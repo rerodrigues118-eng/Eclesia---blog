@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .font-display {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+  .font-sans {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  .font-cinzel {
+    font-family: 'Cinzel', serif;
+  }
+  .drop-cap::first-letter {
+    float: left;
+    font-size: 3.5em;
+    line-height: 0.8;
+    padding-right: 12px;
+    padding-top: 4px;
+    font-family: 'Playfair Display', serif;
+    color: #785600;
+    font-weight: 700;
+  }
+}
+
+/* Custom scrollbars and styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f0eded;
+}
+::-webkit-scrollbar-thumb {
+  background: #d3c4af;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #785600;
+}

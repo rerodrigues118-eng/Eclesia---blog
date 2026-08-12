@@ -1,0 +1,6 @@
+{
+  "name": "Eclesia - Editorial & Liturgia",
+  "description": "Plataforma católica de reflexões teológicas, liturgia diária, santoral completo e curadoria de arte sacra.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
