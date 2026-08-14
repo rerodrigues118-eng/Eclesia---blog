@@ -5,9 +5,10 @@ import { SAINTS_DATA } from '../data/eclesiaData';
 
 interface SantoralViewProps {
   onSelectSaint: (saint: Saint) => void;
+  saints?: Saint[];
 }
 
-export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint }) => {
+export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saints = SAINTS_DATA }) => {
   const [selectedMonth, setSelectedMonth] = useState<string>('');
   const [selectedDay, setSelectedDay] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -29,7 +30,7 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint }) => 
   ];
 
   const filteredSaints = useMemo(() => {
-    return SAINTS_DATA.filter((saint) => {
+    return saints.filter((saint) => {
       if (selectedMonth && saint.month !== parseInt(selectedMonth, 10)) {
         return false;
       }
@@ -55,7 +56,7 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint }) => 
   const gridSaints = filteredSaints.filter((s) => s.id !== featuredSaint?.id);
 
   return (
-    <div className="w-full max-w-[1120px] mx-auto px-4 md:px-12 py-12 space-y-12">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
       {/* Header Section */}
       <section className="flex flex-col items-center text-center max-w-2xl mx-auto gap-4">
         <span className="bg-[#6E1E1E] text-white font-sans text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest">

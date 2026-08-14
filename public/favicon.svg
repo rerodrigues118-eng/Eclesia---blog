@@ -1,0 +1,178 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Metallic Gold Outer Gradient -->
+    <linearGradient id="goldOuter" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF3A8" />
+      <stop offset="25%" stop-color="#E5C158" />
+      <stop offset="50%" stop-color="#FCE070" />
+      <stop offset="75%" stop-color="#AA7813" />
+      <stop offset="100%" stop-color="#704D00" />
+    </linearGradient>
+
+    <!-- Metallic Gold Inner Gradient -->
+    <linearGradient id="goldInner" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFF8CC" />
+      <stop offset="30%" stop-color="#F3CE63" />
+      <stop offset="70%" stop-color="#C6941A" />
+      <stop offset="100%" stop-color="#8C5C00" />
+    </linearGradient>
+
+    <!-- Center Line High-Gloss Flare -->
+    <linearGradient id="goldHighlight" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFFDF0" />
+      <stop offset="50%" stop-color="#FFF0A0" />
+      <stop offset="100%" stop-color="#DCA825" />
+    </linearGradient>
+
+    <!-- Subtle Drop Shadow for browser tab contrast -->
+    <filter id="tabShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.4" />
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#553800" flood-opacity="0.6" />
+    </filter>
+  </defs>
+
+  <g filter="url(#tabShadow)">
+    <!-- 1. OUTER ORNATE CROSS OUTLINE (Thick, Bold & Symmetrical) -->
+    <path
+      d="
+        M 256 16
+        L 272 56
+        C 285 48, 298 52, 304 68
+        C 300 84, 286 94, 276 98
+        L 276 172
+        L 350 172
+        C 354 162, 364 148, 380 144
+        C 396 150, 400 163, 392 176
+        L 432 192
+        L 392 208
+        C 400 221, 396 234, 380 240
+        C 364 236, 354 222, 350 212
+        L 276 212
+        L 276 400
+        C 286 404, 300 414, 304 430
+        C 298 446, 285 450, 272 442
+        L 256 482
+        L 240 442
+        C 227 450, 214 446, 208 430
+        C 212 414, 226 404, 236 400
+        L 236 212
+        L 162 212
+        C 158 222, 148 236, 132 240
+        C 116 234, 112 221, 120 208
+        L 80 192
+        L 120 176
+        C 112 163, 116 150, 132 144
+        C 148 148, 158 162, 162 172
+        L 236 172
+        L 236 98
+        C 226 94, 212 84, 208 68
+        C 214 52, 227 48, 240 56
+        Z
+      "
+      fill="url(#goldOuter)"
+      stroke="#5A3E00"
+      stroke-width="5"
+      stroke-linejoin="round"
+    />
+
+    <!-- 2. INNER FILLED CROSS BODY -->
+    <path
+      d="
+        M 256 36
+        L 264 68
+        C 274 65, 282 72, 280 82
+        L 264 92
+        L 264 184
+        L 356 184
+        L 366 168
+        C 376 166, 383 174, 380 184
+        L 412 192
+        L 380 200
+        C 383 210, 376 218, 366 216
+        L 356 200
+        L 264 200
+        L 264 394
+        L 280 404
+        C 282 414, 274 421, 264 418
+        L 256 450
+        L 248 418
+        C 238 421, 230 414, 232 404
+        L 248 394
+        L 248 200
+        L 156 200
+        L 146 216
+        C 136 218, 129 210, 132 200
+        L 100 192
+        L 132 184
+        C 129 174, 136 166, 146 168
+        L 156 184
+        L 248 184
+        L 248 92
+        L 232 82
+        C 230 72, 238 65, 248 68
+        Z
+      "
+      fill="url(#goldInner)"
+      stroke="#885E00"
+      stroke-width="3"
+    />
+
+    <!-- 3. CENTER EMBOSSED BEVEL LINE (Vertical & Horizontal Shine) -->
+    <!-- Vertical Center Ridge -->
+    <path
+      d="M 256 50 L 256 460"
+      stroke="url(#goldHighlight)"
+      stroke-width="6"
+      stroke-linecap="round"
+    />
+    <path
+      d="M 253 60 L 253 450"
+      stroke="#FFFDE0"
+      stroke-width="2"
+      stroke-linecap="round"
+      opacity="0.8"
+    />
+    <path
+      d="M 259 60 L 259 450"
+      stroke="#5A3E00"
+      stroke-width="2"
+      stroke-linecap="round"
+      opacity="0.5"
+    />
+
+    <!-- Horizontal Center Ridge -->
+    <path
+      d="M 114 192 L 398 192"
+      stroke="url(#goldHighlight)"
+      stroke-width="6"
+      stroke-linecap="round"
+    />
+    <path
+      d="M 120 189 L 392 189"
+      stroke="#FFFDE0"
+      stroke-width="2"
+      stroke-linecap="round"
+      opacity="0.8"
+    />
+    <path
+      d="M 120 195 L 392 195"
+      stroke="#5A3E00"
+      stroke-width="2"
+      stroke-linecap="round"
+      opacity="0.5"
+    />
+
+    <!-- Center Radiant Diamond Embellishment -->
+    <polygon
+      points="256,176 272,192 256,208 240,192"
+      fill="#FFFFFF"
+      opacity="0.9"
+    />
+    <polygon
+      points="256,180 268,192 256,204 244,192"
+      fill="#FFDF73"
+      stroke="#885E00"
+      stroke-width="1.5"
+    />
+  </g>
+</svg>

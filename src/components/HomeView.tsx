@@ -1,280 +1,576 @@
-import React, { useState } from 'react';
-import { ArrowRight, Sparkles, Church, ShoppingBag, Check, MapPin, Navigation } from 'lucide-react';
-import { ActiveView, Saint, Essay } from '../types';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  BookOpen,
+  Heart,
+  Calendar,
+  Sparkles,
+  Church,
+  ShoppingBag,
+  MapPin,
+  Clock,
+  ExternalLink,
+  Flame,
+  Check,
+  Search
+} from 'lucide-react';
+import { ActiveView, Saint, Essay, Product } from '../types';
 import { SAINTS_DATA, ESSAYS_DATA, PRODUCTS_DATA } from '../data/eclesiaData';
+import { TODAY_LITURGY_MOCK } from '../data/liturgiaData';
 
 interface HomeViewProps {
   setActiveView: (view: ActiveView) => void;
   onSelectSaint: (saint: Saint) => void;
   onSelectEssay: (essay: Essay) => void;
+  articles?: Essay[];
+  products?: Product[];
+  saints?: Saint[];
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({
   setActiveView,
   onSelectSaint,
-  onSelectEssay
+  onSelectEssay,
+  articles = ESSAYS_DATA,
+  products = PRODUCTS_DATA,
+  saints = SAINTS_DATA,
 }) => {
-  const [email, setEmail] = useState('');
-  const [subscribed, setSubscribed] = useState(false);
+  // 1. Strictly the 3 most recently posted articles
+  const recentArticles = (articles && articles.length > 0 ? articles : ESSAYS_DATA).slice(0, 3);
+  const articleSlides = recentArticles.map((article, idx) => ({
+    id: article.id || `article-slide-${idx}`,
+    type: 'article' as const,
+    title: article.title,
+    subtitle: article.category || 'Artigo',
+    excerpt: article.excerpt || '',
+    imageUrl: article.imageUrl || 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1400',
+    category: article.category || 'Artigo',
+    buttonText: 'Saiba mais',
+    onClick: () => onSelectEssay(article)
+  }));
 
-  const saintOfTheDay = SAINTS_DATA.find((s) => s.id === 'santa-teresinha') || SAINTS_DATA[1];
+  // 2. Santo do Dia (Saint of the Day)
+  const today = new Date();
+  const currentMonth = today.getMonth() + 1;
+  const currentDay = today.getDate();
+  const allSaints = saints && saints.length > 0 ? saints : SAINTS_DATA;
+  const saintOfDay =
+    allSaints.find(s => s.month === currentMonth && s.day === currentDay) ||
+    allSaints.find(s => s.featured) ||
+    allSaints[0];
 
-  const handleNewsletterSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email) {
-      setSubscribed(true);
-      setTimeout(() => {
-        setSubscribed(false);
-        setEmail('');
-      }, 4000);
-    }
+  const saintSlide = saintOfDay ? [{
+    id: `saint-${saintOfDay.id}`,
+    type: 'saint' as const,
+    title: saintOfDay.name,
+    subtitle: saintOfDay.title ? `${saintOfDay.title} • Festa: ${saintOfDay.feastDate}` : `Memória Litúrgica: ${saintOfDay.feastDate}`,
+    excerpt: saintOfDay.summary || (saintOfDay.fullBio ? saintOfDay.fullBio.slice(0, 160) + '...' : 'Conheça a história e devoção deste grande exemplo de fé e virtude cristã.'),
+    imageUrl: saintOfDay.imageUrl || 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1400',
+    category: 'SANTO DO DIA',
+    buttonText: 'Conhecer Santo',
+    onClick: () => onSelectSaint(saintOfDay)
+  }] : [];
+
+  // 3. Produto Mais Recente na Loja (Latest Store Product)
+  const allProducts = products && products.length > 0 ? products : PRODUCTS_DATA;
+  const latestProduct = allProducts[0];
+  const productPriceFormatted = latestProduct && typeof latestProduct.price === 'number'
+    ? `R$ ${(latestProduct.price / 100).toFixed(2).replace('.', ',')}`
+    : 'Lançamento';
+
+  const productSlide = latestProduct ? [{
+    id: `product-${latestProduct.id}`,
+    type: 'product' as const,
+    title: latestProduct.title,
+    subtitle: latestProduct.subtitle ? `${latestProduct.subtitle} • ${productPriceFormatted}` : `Disponível na Loja • ${productPriceFormatted}`,
+    excerpt: latestProduct.description
+      ? (latestProduct.description.slice(0, 150) + (latestProduct.description.length > 150 ? '...' : ''))
+      : 'Confira os lançamentos, livros e artigos sacros exclusivos da Loja Eclesia.',
+    imageUrl: latestProduct.imageUrl || 'https://images.unsplash.com/photo-1548625361-195979bc7583?auto=format&fit=crop&q=80&w=1400',
+    category: `LOJA ECLESIA • ${productPriceFormatted}`,
+    buttonText: 'Ver na Loja',
+    onClick: () => setActiveView('loja')
+  }] : [];
+
+  // Combine: 3 Recent Articles + Santo do Dia + Produto Mais Recente da Loja
+  const heroSlides = [
+    ...articleSlides,
+    ...saintSlide,
+    ...productSlide
+  ];
+
+  const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
+  const [heroFading, setHeroFading] = useState(false);
+
+  const goToHeroSlide = useCallback((index: number) => {
+    if (heroSlides.length === 0) return;
+    setHeroFading(true);
+    setTimeout(() => {
+      setCurrentHeroIndex(index % heroSlides.length);
+      setHeroFading(false);
+    }, 250);
+  }, [heroSlides.length]);
+
+  const nextHeroSlide = useCallback(() => {
+    if (heroSlides.length === 0) return;
+    goToHeroSlide((currentHeroIndex + 1) % heroSlides.length);
+  }, [currentHeroIndex, heroSlides.length, goToHeroSlide]);
+
+  const prevHeroSlide = () => {
+    if (heroSlides.length === 0) return;
+    goToHeroSlide((currentHeroIndex - 1 + heroSlides.length) % heroSlides.length);
   };
 
+  useEffect(() => {
+    const timer = setInterval(nextHeroSlide, 8000);
+    return () => clearInterval(timer);
+  }, [nextHeroSlide]);
+
+  const currentHero = heroSlides[currentHeroIndex] || heroSlides[0];
+
+  // Reference 3 & 4: Catholic Prayers Cards Data
+  const classicPrayers = [
+    {
+      id: 'p-1',
+      title: 'Benedíctio Mensae – Oração em latim e português para antes e depois das refeições',
+      category: 'ORAÇÕES CATÓLICAS',
+      imageUrl: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&q=80&w=600',
+      action: () => setActiveView('oracoes')
+    },
+    {
+      id: 'p-2',
+      title: 'Oração ao Divino Espírito Santo – Veni, Sancte Spíritus',
+      category: 'ORAÇÕES CATÓLICAS',
+      imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80&w=600',
+      action: () => setActiveView('oracoes')
+    },
+    {
+      id: 'p-3',
+      title: 'Oração a São José pela pureza',
+      category: 'ORAÇÕES CATÓLICAS',
+      imageUrl: 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=600',
+      action: () => setActiveView('oracoes')
+    },
+    {
+      id: 'p-4',
+      title: 'Oração à Bem-Aventurada Virgem Maria após a Comunhão',
+      category: 'ORAÇÕES CATÓLICAS',
+      imageUrl: 'https://images.unsplash.com/photo-1548625361-195979bc7583?auto=format&fit=crop&q=80&w=600',
+      action: () => setActiveView('oracoes')
+    }
+  ];
+
+  // Devotion Categories (Ref. Image 4)
+  const devotionCategories = [
+    {
+      title: 'ORAÇÕES A JESUS CRISTO',
+      imageUrl: 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=600'
+    },
+    {
+      title: 'ORAÇÕES AO SAGRADO CORAÇÃO',
+      imageUrl: 'https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&q=80&w=600'
+    },
+    {
+      title: 'ORAÇÕES AO SANTÍSSIMO SACRAMENTO',
+      imageUrl: 'https://images.unsplash.com/photo-1548625361-195979bc7583?auto=format&fit=crop&q=80&w=600'
+    },
+    {
+      title: 'ORAÇÕES ÀS CHAGAS DE JESUS CRISTO',
+      imageUrl: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&q=80&w=600'
+    }
+  ];
+
   return (
-    <div className="w-full max-w-[1120px] mx-auto px-4 md:px-12 pt-8 pb-20 space-y-16">
-      {/* Hero Section: Saint of the Day & Liturgy Summary */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Daily Liturgy Summary (Left Column) */}
-        <div className="lg:col-span-4 space-y-8 border-t lg:border-t-0 lg:border-r border-[#d3c4af]/50 pt-6 lg:pt-0 lg:pr-8">
-          <div className="space-y-3">
-            <span className="inline-block px-3 py-1 bg-[#9a3e3c] text-white font-sans text-xs font-bold tracking-widest uppercase rounded-full">
-              Tempo Comum
-            </span>
-            <div className="flex items-center justify-between">
-              <h2 className="font-display text-2xl font-semibold text-[#1c1b1b]">Liturgia Diária</h2>
+    <div className="w-full space-y-16 pb-24">
+      {/* =========================================================================
+          1. HERO CAROUSEL BANNER (Ref. Minha Biblioteca Católica - Imagens 1 e 2)
+      ========================================================================= */}
+      <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <div className="relative w-full h-[420px] sm:h-[500px] rounded-3xl overflow-hidden shadow-2xl bg-[#1c1b1b] group">
+          {/* Background Sacred Painting Image */}
+          <div
+            className={`absolute inset-0 bg-cover bg-center transition-all duration-700 ${
+              heroFading ? 'opacity-30 scale-105' : 'opacity-100 scale-100'
+            }`}
+            style={{ backgroundImage: `url(${currentHero.imageUrl})` }}
+          >
+            {/* Atmospheric Heavenly Light Gradient Overlays */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/20 to-transparent" />
+          </div>
+
+          {/* Banner Hero Content */}
+          <div
+            onClick={() => currentHero?.onClick && currentHero.onClick()}
+            className="relative z-10 h-full flex flex-col justify-end p-6 sm:p-14 max-w-2xl text-white space-y-3 sm:space-y-4 cursor-pointer"
+          >
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className={`inline-block px-3.5 py-1 font-sans text-[11px] font-bold uppercase tracking-widest rounded-full self-start shadow-sm ${
+                currentHero.type === 'saint'
+                  ? 'bg-[#ffe082] text-[#5d4037]'
+                  : currentHero.type === 'product'
+                  ? 'bg-[#d1fae5] text-[#065f46]'
+                  : 'bg-[#f7bd48] text-[#1c1b1b]'
+              }`}>
+                {currentHero.category}
+              </span>
+              {currentHero.subtitle && currentHero.type !== 'article' && (
+                <span className="font-sans text-xs text-[#fde68a] font-semibold drop-shadow-xs">
+                  {currentHero.subtitle}
+                </span>
+              )}
+            </div>
+
+            <h1 className="font-display text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight text-white drop-shadow-md">
+              {currentHero.title}
+            </h1>
+
+            <p className="font-sans text-xs sm:text-base text-gray-200 line-clamp-2 leading-relaxed font-normal">
+              {currentHero.excerpt}
+            </p>
+
+            <div className="pt-1 sm:pt-2">
               <button
-                onClick={() => setActiveView('liturgia')}
-                className="text-xs font-bold text-[#785600] hover:underline uppercase tracking-wider flex items-center gap-1"
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (currentHero?.onClick) {
+                    currentHero.onClick();
+                  }
+                }}
+                className="px-6 sm:px-8 py-3 sm:py-3.5 bg-white hover:bg-[#f6f3f2] text-[#1c1b1b] font-sans text-xs font-bold uppercase tracking-widest rounded-full transition-all shadow-lg hover:scale-105 cursor-pointer flex items-center gap-2"
               >
-                Ler hoje <ArrowRight className="w-3 h-3" />
+                <span>{currentHero.buttonText || 'Saiba mais'}</span>
+                <ArrowRight className="w-4 h-4 text-[#785600]" />
               </button>
             </div>
-            <p className="font-sans text-sm text-[#4f4535] leading-relaxed">
-              Leitura do Livro do Profeta Zacarias (Zc 8,20-23)<br />
-              Salmo 86(87)<br />
-              Evangelho de Jesus Cristo segundo Lucas (Lc 9,51-56)
-            </p>
           </div>
 
-          <div className="pt-6 border-t border-[#d3c4af]/50">
-            <h3 className="font-display text-xl font-semibold text-[#1c1b1b] mb-3">Oração do Dia</h3>
-            <blockquote className="font-sans text-sm text-[#4f4535] italic border-l-2 border-[#785600] pl-4 py-1 leading-relaxed">
-              "Ó Deus, que preparastes o vosso Reino para os pequeninos e humildes, dai-nos seguir confiantes o caminho de Santa Teresa, para que, por sua intercessão, nos seja revelada a vossa glória. Por nosso Senhor Jesus Cristo, vosso Filho, na unidade do Espírito Santo."
-            </blockquote>
-          </div>
-        </div>
+          {/* Navigation Arrows */}
+          <button
+            onClick={prevHeroSlide}
+            className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-xs flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+            title="Anterior"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
 
-        {/* Saint of the Day Feature (Right Column) */}
-        <div
-          onClick={() => onSelectSaint(saintOfTheDay)}
-          className="lg:col-span-8 bg-white rounded border border-[#d3c4af]/60 p-1 shadow-sm relative overflow-hidden group cursor-pointer hover:shadow-md transition-all"
-        >
-          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent z-10 pointer-events-none"></div>
-          <img
-            src={saintOfTheDay.imageUrl}
-            alt={saintOfTheDay.name}
-            className="w-full h-[420px] md:h-[480px] object-cover rounded transition-transform duration-700 group-hover:scale-102"
-          />
-          <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 z-20 text-white">
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-4 h-4 text-[#ffdea6]" />
-              <span className="font-sans text-xs font-bold text-[#ffdea6] tracking-widest uppercase">
-                Santo do Dia
-              </span>
-            </div>
-            <h1 className="font-display text-3xl md:text-5xl font-bold mb-2 tracking-tight">
-              {saintOfTheDay.name}
-            </h1>
-            <p className="font-sans text-sm md:text-base text-gray-200 max-w-2xl leading-relaxed">
-              {saintOfTheDay.summary}
-            </p>
+          <button
+            onClick={nextHeroSlide}
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-xs flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+            title="Próximo"
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
+
+          {/* Carousel Dots */}
+          <div className="absolute bottom-5 right-8 flex items-center gap-2 z-10">
+            {heroSlides.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => goToHeroSlide(idx)}
+                className={`transition-all rounded-full cursor-pointer ${
+                  currentHeroIndex === idx
+                    ? 'w-6 h-2 bg-white'
+                    : 'w-2 h-2 bg-white/40 hover:bg-white/70'
+                }`}
+              />
+            ))}
           </div>
         </div>
       </section>
 
-      <hr className="border-t border-[#d3c4af]/40" />
+      {/* =========================================================================
+          2. SEÇÃO DUPLA: LEITURA RECOMENDADA & MAIS LIDAS (Ref. Padre Paulo Ricardo)
+      ========================================================================= */}
+      <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          {/* Left Column: ⁝ Leitura recomendada */}
+          <div className="lg:col-span-7 space-y-6">
+            <div className="flex items-center gap-2 border-b border-[#d3c4af]/50 pb-3">
+              <span className="text-[#e65100] font-bold text-lg">⁝</span>
+              <h2 className="font-display text-2xl font-bold text-[#1c1b1b]">
+                Leitura recomendada
+              </h2>
+            </div>
 
-      {/* Editorial & News Section (Blog) */}
-      <section className="space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 pb-2 border-b border-[#d3c4af]/50">
-          <div>
-            <span className="font-sans text-xs text-[#785600] uppercase tracking-widest font-bold">
-              Blog Eclesia • Editorial & Notícias
-            </span>
-            <h2 className="font-display text-3xl font-semibold text-[#1c1b1b]">Artigos & Notícias</h2>
+            {/* Stacked Horizontal Cards */}
+            <div className="space-y-4">
+              {articles.slice(0, 3).map((essay) => (
+                <div
+                  key={essay.id}
+                  onClick={() => onSelectEssay(essay)}
+                  className="bg-white rounded-2xl border border-[#d3c4af]/60 p-4 sm:p-5 flex flex-col sm:flex-row gap-5 hover:border-[#785600] hover:shadow-md transition-all cursor-pointer group"
+                >
+                  {/* Square Sacred Art Image */}
+                  <div className="w-full sm:w-44 h-36 rounded-xl overflow-hidden shrink-0 bg-[#f6f3f2]">
+                    <img
+                      src={essay.imageUrl}
+                      alt={essay.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 flex flex-col justify-between space-y-2">
+                    <div>
+                      <span className="inline-block px-2.5 py-0.5 bg-[#fff3e0] text-[#e65100] border border-[#ffe0b2] text-[10px] font-bold uppercase tracking-wider rounded-md mb-1.5">
+                        {essay.category}
+                      </span>
+                      <h3 className="font-display text-base sm:text-lg font-bold text-[#1c1b1b] leading-snug group-hover:text-[#785600] transition-colors">
+                        {essay.title}
+                      </h3>
+                      <p className="font-sans text-xs text-[#4f4535] mt-1 line-clamp-2 leading-relaxed">
+                        {essay.excerpt}
+                      </p>
+                    </div>
+
+                    <div className="pt-1">
+                      <span className="text-[#c2410c] text-xs font-bold flex items-center gap-1 group-hover:underline">
+                        Ler leitura →
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
+
+          {/* Right Column: ⁝ Mais lidas do mês */}
+          <div className="lg:col-span-5 space-y-6">
+            <div className="flex items-center gap-2 border-b border-[#d3c4af]/50 pb-3">
+              <span className="text-[#e65100] font-bold text-lg">⁝</span>
+              <h2 className="font-display text-2xl font-bold text-[#1c1b1b]">
+                Mais lidas do mês
+              </h2>
+            </div>
+
+            {/* Featured Hero Article */}
+            {articles[0] && (
+              <div
+                onClick={() => onSelectEssay(articles[0])}
+                className="bg-white rounded-2xl border border-[#d3c4af]/60 overflow-hidden hover:border-[#785600] hover:shadow-md transition-all cursor-pointer group space-y-4"
+              >
+                <div className="h-52 bg-gray-200 overflow-hidden relative">
+                  <img
+                    src={articles[0].imageUrl}
+                    alt={articles[0].title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+
+                <div className="p-5 pt-0 space-y-2">
+                  <h3 className="font-display text-lg sm:text-xl font-bold text-[#1c1b1b] leading-snug group-hover:text-[#785600] transition-colors">
+                    {articles[0].title}
+                  </h3>
+                  <p className="font-sans text-xs text-[#4f4535] line-clamp-3 leading-relaxed">
+                    {articles[0].excerpt}
+                  </p>
+                  <span className="text-[#c2410c] text-xs font-bold inline-block pt-1 group-hover:underline">
+                    Ler leitura →
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* List of Other Top Reads */}
+            <div className="bg-white rounded-2xl border border-[#d3c4af]/50 p-4 divide-y divide-[#d3c4af]/30">
+              {articles.slice(1, 4).map((essay, i) => (
+                <div
+                  key={essay.id}
+                  onClick={() => onSelectEssay(essay)}
+                  className="py-3 first:pt-0 last:pb-0 flex items-start gap-3 cursor-pointer group"
+                >
+                  <span className="font-display text-lg font-bold text-[#785600] shrink-0">
+                    0{i + 2}.
+                  </span>
+                  <div>
+                    <h4 className="font-display text-xs sm:text-sm font-bold text-[#1c1b1b] group-hover:text-[#785600] leading-snug">
+                      {essay.title}
+                    </h4>
+                    <span className="text-[11px] text-[#817563]">{essay.author}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          3. SEÇÃO DE ORAÇÕES CATÓLICAS COM CARDS SACROS (Ref. Imagens 3 e 4)
+      ========================================================================= */}
+      <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-[#d3c4af]/50 pb-4">
+          <div>
+            <span className="text-[#785600] font-sans text-xs font-bold uppercase tracking-widest block mb-1">
+              Tesouro da Tradição
+            </span>
+            <h2 className="font-display text-3xl font-bold text-[#1c1b1b]">
+              Orações Católicas Tradicionais
+            </h2>
+          </div>
+
           <button
-            onClick={() => setActiveView('blog')}
-            className="font-sans text-xs font-bold text-[#785600] hover:text-[#9a7000] transition-colors flex items-center gap-1 uppercase tracking-widest bg-[#f6f3f2] px-4 py-2 rounded-full border border-[#d3c4af]/60"
+            onClick={() => setActiveView('oracoes')}
+            className="px-5 py-2.5 bg-[#f6f3f2] hover:bg-[#e8e2de] border border-[#d3c4af] text-[#785600] font-sans text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
           >
-            Ver Blog Completo <ArrowRight className="w-4 h-4" />
+            Ver Acervo Completo →
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {ESSAYS_DATA.slice(0, 3).map((essay) => (
-            <article
-              key={essay.id}
-              onClick={() => onSelectEssay(essay)}
-              className="group cursor-pointer bg-white p-3 rounded-lg border border-[#d3c4af]/50 hover:border-[#785600] transition-all flex flex-col justify-between shadow-2xs hover:shadow-xs"
+        {/* 4 Vertical Sacred Art Cards (Ref. Image 3) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {classicPrayers.map((prayer) => (
+            <div
+              key={prayer.id}
+              onClick={prayer.action}
+              className="relative h-[380px] rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-[#d3c4af]/60"
             >
-              <div>
-                <div className="aspect-[16/10] mb-3 overflow-hidden rounded relative border border-[#d3c4af]/30">
-                  <img
-                    src={essay.imageUrl}
-                    alt={essay.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                  <span className={`absolute top-2 left-2 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded text-white ${
-                    essay.type === 'noticia' ? 'bg-[#9a3e3c]' : 'bg-[#785600]'
-                  }`}>
-                    {essay.type === 'noticia' ? 'Notícia' : 'Artigo'}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-[11px] text-[#817563] mb-1">
-                  <span className="font-sans font-bold text-[#785600] tracking-widest uppercase">
-                    {essay.category}
-                  </span>
-                  <span>{essay.date}</span>
-                </div>
-                <h3 className="font-display text-lg font-bold text-[#1c1b1b] group-hover:text-[#785600] transition-colors leading-snug">
-                  {essay.title}
+              {/* Background Art */}
+              <img
+                src={prayer.imageUrl}
+                alt={prayer.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+              {/* Dark Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+
+              {/* Top Tag */}
+              <span className="absolute top-4 left-4 bg-[#c89224] text-white text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded shadow-sm">
+                {prayer.category}
+              </span>
+
+              {/* Bottom White Inscription Box */}
+              <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-xs p-3.5 rounded-xl border border-white/40 shadow-lg">
+                <h3 className="font-serif text-xs font-bold text-[#1c1b1b] leading-snug line-clamp-3">
+                  {prayer.title}
                 </h3>
-                <p className="font-sans text-xs text-[#4f4535] mt-2 line-clamp-3 leading-relaxed">
-                  {essay.excerpt}
-                </p>
               </div>
-              <div className="mt-4 pt-3 border-t border-[#d3c4af]/30 flex justify-between items-center text-[11px] text-[#817563]">
-                <span className="font-semibold text-[#1c1b1b]">{essay.author}</span>
-                <span>{essay.readTime}</span>
-              </div>
-            </article>
+            </div>
+          ))}
+        </div>
+
+        {/* 4 Devotion Sacred Categories (Ref. Image 4) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-4">
+          {devotionCategories.map((cat, i) => (
+            <div
+              key={i}
+              onClick={() => setActiveView('oracoes')}
+              className="relative h-72 rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-[#d3c4af]/60 flex flex-col justify-end p-5"
+            >
+              <img
+                src={cat.imageUrl}
+                alt={cat.title}
+                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
+              
+              <h3 className="relative z-10 font-serif text-sm sm:text-base font-bold text-[#f7bd48] text-center tracking-wider leading-snug drop-shadow-md">
+                {cat.title}
+              </h3>
+            </div>
           ))}
         </div>
       </section>
 
-      {/* Church Locator Banner */}
-      <section className="bg-gradient-to-r from-[#785600] to-[#593f00] text-white rounded-xl p-6 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm relative overflow-hidden">
-        <div className="space-y-2 max-w-xl relative z-10">
-          <div className="flex items-center gap-2 text-[#f7bd48] text-xs font-bold uppercase tracking-widest">
-            <MapPin className="w-4 h-4" /> Encontre Igrejas & Horários de Missa
+      {/* =========================================================================
+          4. SEÇÃO DA LOJA CATÓLICA & SACRAMENTAIS
+      ========================================================================= */}
+      <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-[#d3c4af]/50 pb-4">
+          <div>
+            <span className="text-[#785600] font-sans text-xs font-bold uppercase tracking-widest block mb-1">
+              Curadoria Católica
+            </span>
+            <h2 className="font-display text-3xl font-bold text-[#1c1b1b]">
+              Livros Raros, Arte Sacra & Sacramentais
+            </h2>
           </div>
-          <h3 className="font-display text-2xl md:text-3xl font-bold leading-tight">
-            Procurando uma igreja católica perto de você?
-          </h3>
-          <p className="font-sans text-xs md:text-sm text-amber-100/90 leading-relaxed">
-            Localize paróquias, catedrais e santuários católicos utilizando o mapa interativo. Consulte horários de missas, confissões e trace rotas.
-          </p>
+
+          <button
+            onClick={() => setActiveView('loja')}
+            className="px-5 py-2.5 bg-[#785600] hover:bg-[#9a7000] text-white font-sans text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm cursor-pointer flex items-center gap-1.5"
+          >
+            <ShoppingBag className="w-4 h-4" /> Ver Loja Completa →
+          </button>
         </div>
 
-        <button
-          onClick={() => setActiveView('igrejas')}
-          className="px-6 py-3.5 bg-[#f7bd48] hover:bg-[#ffcd66] text-[#1c1b1b] font-sans text-xs font-bold uppercase tracking-widest rounded-lg transition-all flex items-center gap-2 shrink-0 shadow-md cursor-pointer relative z-10"
-        >
-          <Navigation className="w-4 h-4" /> Buscar Igrejas Próximas
-        </button>
-      </section>
-
-      {/* Catholic Social Network Banner */}
-      <section className="bg-[#1c1b1b] text-white rounded-xl p-6 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-md relative overflow-hidden border border-[#785600]">
-        <div className="space-y-2 max-w-xl relative z-10">
-          <div className="flex items-center gap-2 text-[#f7bd48] text-xs font-bold uppercase tracking-widest">
-            <Sparkles className="w-4 h-4 text-[#f7bd48]" /> Rede Social Católica & Comunidades
-          </div>
-          <h3 className="font-display text-2xl md:text-3xl font-bold leading-tight">
-            Partilhe sua caminhada de fé com segurança
-          </h3>
-          <p className="font-sans text-xs md:text-sm text-gray-300 leading-relaxed">
-            Participe de grupos de oração, novenas comunitárias, bate-papo paroquial e feed de partilha espiritual com moderação em camada dupla e proteção integral a jovens.
-          </p>
-        </div>
-
-        <button
-          onClick={() => setActiveView('comunidade')}
-          className="px-6 py-3.5 bg-[#785600] hover:bg-[#9a7000] text-white font-sans text-xs font-bold uppercase tracking-widest rounded-lg transition-all flex items-center gap-2 shrink-0 shadow-md cursor-pointer relative z-10"
-        >
-          Acessar Comunidades →
-        </button>
-      </section>
-
-      {/* Newsletter & Shop Bento Section */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Newsletter CTA */}
-        <div className="bg-[#f6f3f2] border border-[#d3c4af]/60 rounded p-8 md:p-10 flex flex-col justify-center relative overflow-hidden">
-          <Church className="absolute -right-8 -bottom-8 w-64 h-64 text-[#d3c4af]/20 pointer-events-none" />
-          <div className="relative z-10">
-            <h3 className="font-display text-2xl md:text-3xl font-semibold text-[#1c1b1b] mb-3">
-              Assine a Eclesia
-            </h3>
-            <p className="font-sans text-sm text-[#4f4535] mb-6 max-w-md leading-relaxed">
-              Receba reflexões teológicas exclusivas, resumos litúrgicos e novidades editoriais diretamente em seu e-mail. Ad Majorem Dei Gloriam.
-            </p>
-
-            {subscribed ? (
-              <div className="bg-[#1c5d3a]/10 border border-[#1c5d3a]/30 text-[#1c5d3a] p-4 rounded flex items-center gap-3">
-                <Check className="w-5 h-5 text-[#1c5d3a]" />
-                <span className="font-sans text-sm font-semibold">Inscrição realizada com sucesso! Deo Gratias.</span>
-              </div>
-            ) : (
-              <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Seu e-mail"
-                  required
-                  className="flex-1 bg-white border border-[#d3c4af] focus:border-[#785600] focus:ring-0 px-4 py-2.5 font-sans text-sm text-[#1c1b1b] rounded placeholder:text-[#817563]"
-                />
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 bg-[#1c1b1b] text-white font-sans text-xs font-bold uppercase tracking-widest rounded hover:bg-[#785600] transition-colors whitespace-nowrap"
-                >
-                  Inscrever-se
-                </button>
-              </form>
-            )}
-          </div>
-        </div>
-
-        {/* Mini Shop Showcase */}
-        <div className="bg-white border border-[#d3c4af]/60 rounded p-8 flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <h3 className="font-display text-2xl font-semibold text-[#1c1b1b]">A Loja Eclesia</h3>
-              <p className="font-sans text-sm text-[#4f4535] mt-1">Curadoria de livros e sacramentais para a vida de oração.</p>
-            </div>
-            <button
-              onClick={() => setActiveView('loja')}
-              className="w-10 h-10 rounded-full border border-[#d3c4af] flex items-center justify-center hover:bg-[#f0eded] transition-colors text-[#1c1b1b]"
-              title="Ir para a loja"
-            >
-              <ArrowRight className="w-5 h-5" />
-            </button>
-          </div>
-
-          <div className="flex gap-4">
-            {PRODUCTS_DATA.slice(0, 2).map((product) => (
-              <div
-                key={product.id}
-                onClick={() => setActiveView('loja')}
-                className="w-1/3 aspect-[3/4] bg-[#fcf9f8] border border-[#d3c4af]/50 p-1.5 rounded shadow-xs group cursor-pointer hover:border-[#785600] transition-colors"
-              >
-                <img
-                  src={product.imageUrl}
-                  alt={product.title}
-                  className="w-full h-full object-cover rounded-xs group-hover:opacity-90 transition-opacity"
-                />
-              </div>
-            ))}
+        {/* Products Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {products.slice(0, 4).map((product) => (
             <div
+              key={product.id}
               onClick={() => setActiveView('loja')}
-              className="w-1/3 aspect-[3/4] flex flex-col items-center justify-center border border-dashed border-[#d3c4af] rounded hover:bg-[#f6f3f2] transition-colors cursor-pointer text-[#817563] hover:text-[#785600]"
+              className="bg-white rounded-2xl border border-[#d3c4af]/70 overflow-hidden shadow-xs hover:shadow-md hover:border-[#785600] transition-all cursor-pointer flex flex-col justify-between group"
             >
-              <ShoppingBag className="w-6 h-6 mb-2" />
-              <span className="font-sans text-xs font-bold uppercase tracking-wider text-center leading-tight">
-                Ver<br />Catálogo
-              </span>
+              <div>
+                <div className="h-48 bg-[#f6f3f2] overflow-hidden relative">
+                  <img
+                    src={product.imageUrl}
+                    alt={product.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-xs text-[#785600] font-sans text-[10px] font-bold uppercase px-2.5 py-1 rounded-full shadow-xs">
+                    {product.category}
+                  </span>
+                </div>
+
+                <div className="p-4 space-y-1">
+                  <h3 className="font-display text-sm font-bold text-[#1c1b1b] group-hover:text-[#785600] transition-colors line-clamp-1">
+                    {product.title}
+                  </h3>
+                  <p className="font-sans text-xs text-[#817563] line-clamp-2">
+                    {product.subtitle}
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-4 pt-0 border-t border-[#d3c4af]/30 flex items-center justify-between mt-2">
+                <span className="font-display text-base font-bold text-[#785600]">
+                  R$ {product.price.toFixed(2).replace('.', ',')}
+                </span>
+                <span className="text-xs font-bold text-[#785600] group-hover:underline flex items-center gap-1">
+                  Comprar →
+                </span>
+              </div>
             </div>
+          ))}
+        </div>
+      </section>
+
+      {/* =========================================================================
+          5. LITURGIA DIÁRIA & SANTO DO DIA
+      ========================================================================= */}
+      <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-gradient-to-r from-[#1c1b1b] via-[#2a2215] to-[#785600] text-white rounded-3xl p-8 sm:p-12 shadow-xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
+          <div className="space-y-3 max-w-2xl">
+            <span className="inline-block px-3 py-1 bg-[#f7bd48] text-[#1c1b1b] font-sans text-xs font-bold tracking-widest uppercase rounded-full">
+              Liturgia de Hoje • {TODAY_LITURGY_MOCK.date}
+            </span>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight">
+              {TODAY_LITURGY_MOCK.fullDateStr}
+            </h2>
+            <p className="font-sans text-sm text-amber-100/90 leading-relaxed italic">
+              "{TODAY_LITURGY_MOCK.gospel.acclamation}"
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+            <button
+              onClick={() => setActiveView('liturgia')}
+              className="px-6 py-3.5 bg-[#f7bd48] hover:bg-[#ffcd66] text-[#1c1b1b] font-sans text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-md cursor-pointer flex items-center gap-2"
+            >
+              <BookOpen className="w-4 h-4" /> Ler Leituras do Dia
+            </button>
+            <button
+              onClick={() => setActiveView('santoral')}
+              className="px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white font-sans text-xs font-bold uppercase tracking-widest rounded-xl transition-all cursor-pointer"
+            >
+              Santo do Dia
+            </button>
           </div>
         </div>
       </section>

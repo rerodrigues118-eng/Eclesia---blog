@@ -11,10 +11,10 @@ export const LiturgiaView: React.FC = () => {
   const currentReading = READINGS_DATA[selectedDateKey] || READINGS_DATA['2026-11-15'];
 
   return (
-    <div className="w-full max-w-[1120px] mx-auto px-4 md:px-12 py-8">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Sidebar Navigation */}
-        <aside className="lg:col-span-4 bg-white p-6 rounded border border-[#d3c4af]/60 space-y-6 sticky top-24">
+        <aside className="lg:col-span-4 bg-white p-6 rounded border border-[#d3c4af]/60 space-y-6 lg:sticky lg:top-24">
           <div>
             <span className="font-sans text-xs font-bold text-[#785600] uppercase tracking-widest block mb-1">
               Calendário Litúrgico

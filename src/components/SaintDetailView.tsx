@@ -33,7 +33,7 @@ export const SaintDetailView: React.FC<SaintDetailViewProps> = ({ saint, onBack,
   };
 
   return (
-    <div className="w-full max-w-[1120px] mx-auto px-4 md:px-12 py-8 space-y-10 animate-fade-in">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10 animate-fade-in">
       {/* Top Navigation / Breadcrumb */}
       <div className="flex items-center justify-between border-b border-[#d3c4af]/50 pb-4">
         <button

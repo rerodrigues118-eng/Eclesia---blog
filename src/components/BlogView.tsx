@@ -2,24 +2,22 @@ import React, { useState } from 'react';
 import { Search, Newspaper, BookOpen, Sparkles, TrendingUp, Calendar, Clock, ArrowRight, Filter, Check } from 'lucide-react';
 import { Essay } from '../types';
 import { ESSAYS_DATA } from '../data/eclesiaData';
+import { useNewsletter } from '../hooks/useNewsletter';
 
 interface BlogViewProps {
   onSelectEssay: (essay: Essay) => void;
+  articles?: Essay[];
 }
 
-export const BlogView: React.FC<BlogViewProps> = ({ onSelectEssay }) => {
+export const BlogView: React.FC<BlogViewProps> = ({ onSelectEssay, articles = ESSAYS_DATA }) => {
   const [selectedFormat, setSelectedFormat] = useState<'all' | 'artigo' | 'noticia'>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [newsletterEmail, setNewsletterEmail] = useState('');
-  const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
-
-  const featuredPost = ESSAYS_DATA.find((e) => e.featured) || ESSAYS_DATA[0];
-  const trendingPosts = ESSAYS_DATA.filter((e) => e.trending || e.id !== featuredPost.id).slice(0, 3);
+  const { email: newsletterEmail, setEmail: setNewsletterEmail, subscribed: newsletterSubscribed, handleSubmit: handleNewsletterSubmit } = useNewsletter();
 
   const categories = ['all', 'Vaticano', 'Teologia', 'História', 'Cultura', 'Notícias'];
 
-  const filteredPosts = ESSAYS_DATA.filter((essay) => {
+  const filteredPosts = articles.filter((essay) => {
     const matchesFormat =
       selectedFormat === 'all'
         ? true
@@ -38,19 +36,13 @@ export const BlogView: React.FC<BlogViewProps> = ({ onSelectEssay }) => {
     return matchesFormat && matchesCategory && matchesSearch;
   });
 
-  const handleNewsletterSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newsletterEmail) {
-      setNewsletterSubscribed(true);
-      setTimeout(() => {
-        setNewsletterSubscribed(false);
-        setNewsletterEmail('');
-      }, 4000);
-    }
-  };
+  // Strictly the most recently posted article appears first as featured hero banner
+  const featuredPost = filteredPosts[0] || articles[0];
+  const gridPosts = filteredPosts.filter((e) => e.id !== featuredPost?.id);
+  const trendingPosts = articles.filter((e) => e.id !== featuredPost?.id).slice(0, 3);
 
   return (
-    <div className="w-full max-w-[1120px] mx-auto px-4 md:px-12 pt-8 pb-20 space-y-12">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-20 space-y-12">
       {/* Page Title & Subtitle */}
       <div className="border-b border-[#d3c4af]/50 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
@@ -106,14 +98,14 @@ export const BlogView: React.FC<BlogViewProps> = ({ onSelectEssay }) => {
           onClick={() => onSelectEssay(featuredPost)}
           className="group cursor-pointer bg-white border border-[#d3c4af]/60 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all grid grid-cols-1 lg:grid-cols-12"
         >
-          <div className="lg:col-span-7 relative aspect-[16/10] lg:aspect-auto overflow-hidden">
+          <div className="lg:col-span-7 relative w-full h-full min-h-[260px] sm:min-h-[320px] md:min-h-[360px] lg:min-h-[390px] overflow-hidden bg-[#1c1b1b]">
             <img
               src={featuredPost.imageUrl}
               alt={featuredPost.title}
-              className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-700"
+              className="w-full h-full object-cover object-center group-hover:scale-103 transition-transform duration-700"
             />
-            <div className="absolute top-4 left-4 flex gap-2">
-              <span className={`px-2.5 py-1 text-xs font-bold uppercase tracking-widest rounded-md text-white ${
+            <div className="absolute top-3 left-3 sm:top-4 sm:left-4 flex gap-2 z-10">
+              <span className={`px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-md text-white shadow-md ${
                 featuredPost.type === 'noticia' ? 'bg-[#9a3e3c]' : 'bg-[#785600]'
               }`}>
                 {featuredPost.type === 'noticia' ? 'Notícia em Destaque' : 'Artigo Principal'}
@@ -133,7 +125,7 @@ export const BlogView: React.FC<BlogViewProps> = ({ onSelectEssay }) => {
                 {featuredPost.title}
               </h2>
 
-              <p className="font-sans text-sm text-[#4f4535] leading-relaxed line-clamp-4">
+              <p className="font-sans text-sm text-[#4f4535] leading-relaxed line-clamp-2">
                 {featuredPost.excerpt}
               </p>
             </div>
@@ -211,7 +203,7 @@ export const BlogView: React.FC<BlogViewProps> = ({ onSelectEssay }) => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {filteredPosts.map((essay) => (
+              {(gridPosts.length > 0 ? gridPosts : filteredPosts).map((essay) => (
                 <article
                   key={essay.id}
                   onClick={() => onSelectEssay(essay)}

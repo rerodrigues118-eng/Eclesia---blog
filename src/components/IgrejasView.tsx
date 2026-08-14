@@ -142,7 +142,7 @@ export const IgrejasView: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-[1120px] mx-auto px-4 md:px-12 pt-8 pb-20 space-y-8">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-20 space-y-8">
       {/* Header Banner */}
       <div className="border-b border-[#d3c4af]/50 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
@@ -186,30 +186,7 @@ export const IgrejasView: React.FC = () => {
         </div>
       )}
 
-      {/* Google Maps API Key Setup Banner if not yet set */}
-      {!hasValidKey && (
-        <div className="bg-[#ffdea6]/30 border-2 border-[#785600]/40 p-4 md:p-6 rounded-xl space-y-3">
-          <div className="flex items-start gap-3">
-            <Sparkles className="w-5 h-5 text-[#785600] shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <h3 className="font-display text-base font-bold text-[#1c1b1b]">
-                Integração Nativa do Google Maps Ativa
-              </h3>
-              <p className="font-sans text-xs text-[#4f4535] leading-relaxed">
-                A aplicação suporta renderização interativa do Google Maps em tempo real com marcadores estilizados.
-              </p>
-            </div>
-          </div>
-          <div className="bg-white/80 p-3 rounded border border-[#785600]/20 text-xs font-sans text-[#4f4535] space-y-1">
-            <p className="font-bold text-[#1c1b1b]">Para ativar o mapa interativo renderizado via Google Maps JS SDK:</p>
-            <ol className="list-decimal list-inside space-y-0.5 text-[11px]">
-              <li>Obtenha uma Chave do Google Maps Platform no Google Cloud Console</li>
-              <li>No painel do AI Studio, abra <strong>Configurações (⚙️) → Secrets</strong></li>
-              <li>Adicione a variável <code>GOOGLE_MAPS_PLATFORM_KEY</code> com sua chave API</li>
-            </ol>
-          </div>
-        </div>
-      )}
+
 
       {/* Search & Filter Bar */}
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-[#f6f3f2] p-4 rounded-xl border border-[#d3c4af]/50">

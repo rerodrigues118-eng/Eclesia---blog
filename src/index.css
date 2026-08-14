@@ -37,3 +37,28 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #785600;
 }
+
+/* ── Custom animations ── */
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+.animate-fade-in {
+  animation: fadeIn 0.3s ease both;
+}
+.animate-slide-up {
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}

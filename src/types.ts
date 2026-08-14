@@ -1,4 +1,18 @@
-export type ActiveView = 'home' | 'santoral' | 'liturgia' | 'assinaturas' | 'loja' | 'ensaio' | 'blog' | 'igrejas' | 'comunidade';
+export type ActiveView = 
+  | 'home' 
+  | 'santoral' 
+  | 'liturgia' 
+  | 'assinaturas' 
+  | 'loja' 
+  | 'ensaio' 
+  | 'blog' 
+  | 'igrejas' 
+  | 'oracoes' 
+  | 'termos' 
+  | 'privacidade' 
+  | 'conduta'
+  | 'auth'
+  | 'admin';
 
 export interface UserProfile {
   id: string;
@@ -6,6 +20,8 @@ export interface UserProfile {
   handle: string;
   avatar: string;
   bio?: string;
+  role?: 'admin' | 'editor' | 'assinante' | 'user';
+  email?: string;
   is_minor: boolean;
   age: number;
   guardian_email?: string;
@@ -13,6 +29,7 @@ export interface UserProfile {
   dm_policy: 'todos' | 'seguidores_mutuos' | 'ninguem';
   is_verified_parish?: boolean;
   parish_name?: string;
+  patron_saint?: string;
   joined_date?: string;
 }
 
@@ -40,6 +57,15 @@ export interface PostComment {
   created_at: string;
 }
 
+export interface CommunityPrayerPlan {
+  id: string;
+  title: string;
+  description: string;
+  prayer_text?: string;
+  created_by: string;
+  created_at: string;
+}
+
 export interface Community {
   id: string;
   name: string;
@@ -50,9 +76,12 @@ export interface Community {
   is_public: boolean;
   approval_status: 'pendente' | 'aprovado' | 'rejeitado';
   linked_parish?: string;
+  patron_saint?: string;
+  invite_code?: string;
   member_count: number;
   is_member?: boolean;
   category: 'juventude' | 'oracao' | 'estudos' | 'paroquia' | 'familias';
+  prayer_plans?: CommunityPrayerPlan[];
 }
 
 export interface ChatMessage {
@@ -170,6 +199,7 @@ export interface Essay {
   category: string; // "Teologia" | "História" | "Cultura" | "Filosofia" | "Notícias" | "Vaticano"
   type?: 'artigo' | 'noticia';
   imageUrl: string;
+  altText?: string; // Alt text for Google Images SEO
   excerpt: string;
   content: string;
   author: string;
@@ -177,6 +207,31 @@ export interface Essay {
   date: string;
   featured?: boolean;
   trending?: boolean;
+  // Advanced SEO Fields for Google Search
+  slug?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  keywords?: string[];
+  canonicalUrl?: string;
+  ogImage?: string;
+  schemaType?: 'Article' | 'NewsArticle' | 'BlogPosting';
+  seoScore?: number;
+  mediaMap?: Record<string, string>;
+  adConfig?: ArticleAdConfig;
+}
+
+export interface ArticleAdConfig {
+  showTopAd?: boolean;
+  showMiddleAd?: boolean;
+  middleAdParagraph?: number; // e.g. 2, 3, 4, 5
+  showSidebarAd?: boolean;
+  showBottomAd?: boolean;
+  adClient?: string; // ca-pub-xxxxxxxxxxxxxxxx
+  topSlotId?: string;
+  middleSlotId?: string;
+  sidebarSlotId?: string;
+  bottomSlotId?: string;
+  customAdSnippet?: string;
 }
 
 export interface ReadingSection {
@@ -223,6 +278,7 @@ export interface Product {
   category: 'livro' | 'sacramental' | 'arte' | 'vestuário';
   description: string;
   inStock: boolean;
+  buyUrl?: string; // External buy link (Mercado Livre, Shopee, etc.)
 }
 
 export interface SubscriptionPlan {
@@ -233,4 +289,18 @@ export interface SubscriptionPlan {
   periodLabel: string; // "/mês", "/ano", "/trimestre"
   recommended?: boolean;
   features: { text: string; included: boolean }[];
+}
+
+export interface PrayerItem {
+  id: string;
+  title: string;
+  slug?: string;
+  category?: 'diarias' | 'marianas' | 'santos' | 'latim';
+  situation?: string;
+  text?: string;
+  content?: string;
+  description?: string;
+  isDaySpecial?: boolean;
+  isFeaturedToday?: boolean;
+  imageUrl?: string; // Image for prayer
 }
