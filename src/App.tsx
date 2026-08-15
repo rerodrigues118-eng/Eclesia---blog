@@ -22,8 +22,6 @@ import { AuthView } from './components/AuthView';
 import { CookieBanner } from './components/CookieBanner';
 import { useAuth } from './hooks/useAuth';
 import { AdminDashboard } from './admin';
-import { ESSAYS_DATA, PRODUCTS_DATA, SAINTS_DATA } from './data/eclesiaData';
-import { PRAYERS_DATA } from './components/OraçõesView';
 import {
   fetchArticlesFromDb,
   saveArticleToDb,
@@ -73,25 +71,25 @@ export const App: React.FC = () => {
     }
   }, [cart]);
 
-  // Dynamic Site Data (Synchronized with Database)
-  const [articles, setArticles] = useState<Essay[]>(ESSAYS_DATA);
-  const [products, setProducts] = useState<Product[]>(PRODUCTS_DATA);
-  const [prayers, setPrayers] = useState<PrayerItem[]>(PRAYERS_DATA);
-  const [saints, setSaints] = useState<Saint[]>(SAINTS_DATA);
+  // Dynamic Site Data (100% sincronizado com banco de dados Supabase)
+  const [articles, setArticles] = useState<Essay[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [prayers, setPrayers] = useState<PrayerItem[]>([]);
+  const [saints, setSaints] = useState<Saint[]>([]);
 
   // Load from Supabase Database on startup
   useEffect(() => {
     fetchArticlesFromDb().then(data => {
-      if (data && data.length > 0) setArticles(data);
+      if (data) setArticles(data);
     });
     fetchProductsFromDb().then(data => {
-      if (data && data.length > 0) setProducts(data);
+      if (data) setProducts(data);
     });
     fetchPrayersFromDb().then(data => {
-      if (data && data.length > 0) setPrayers(data);
+      if (data) setPrayers(data);
     });
     fetchSaintsFromDb().then(data => {
-      if (data && data.length > 0) setSaints(data);
+      if (data) setSaints(data);
     });
   }, []);
 
@@ -322,12 +320,14 @@ export const App: React.FC = () => {
             essay={articles.find(a => a.id === selectedEssay.id || (a.slug && a.slug === selectedEssay.slug)) || selectedEssay}
             onBack={handleBackFromDetail}
             onSelectEssay={handleSelectEssay}
+            allArticles={articles}
           />
         ) : selectedSaint ? (
           <SaintDetailView
             saint={selectedSaint}
             onBack={handleBackFromDetail}
             onSelectSaint={handleSelectSaint}
+            allSaints={saints}
           />
         ) : (
           <>
@@ -402,6 +402,9 @@ export const App: React.FC = () => {
         onSelectSaint={handleSelectSaint}
         onSelectEssay={handleSelectEssay}
         setActiveView={handleNavChange}
+        saints={saints}
+        articles={articles}
+        products={products}
       />
 
       {/* Cart Drawer */}

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { ShoppingBag, ArrowLeft, Check, Package, Star, ArrowRight, Lock, UserPlus } from 'lucide-react';
 import { Product } from '../types';
-import { PRODUCTS_DATA } from '../data/eclesiaData';
 
 interface LojaViewProps {
   cart: { product: Product; quantity: number }[];
@@ -185,7 +184,7 @@ export const LojaView: React.FC<LojaViewProps> = ({
   onAddToCart,
   onRemoveFromCart,
   onUpdateQuantity,
-  products = PRODUCTS_DATA,
+  products = [],
   user,
   onOpenAuth
 }) => {
@@ -274,92 +273,104 @@ export const LojaView: React.FC<LojaViewProps> = ({
       </div>
 
       {/* Product Grid */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {filtered.map((product) => {
-          const isAdded = !!addedMap[product.id];
-          const cartItem = cart.find((i) => i.product.id === product.id);
+      {filtered.length === 0 ? (
+        <div className="text-center py-16 bg-white border border-[#d3c4af]/50 rounded-3xl p-8 space-y-4">
+          <div className="w-16 h-16 mx-auto rounded-full bg-[#f6f3f2] flex items-center justify-center text-[#785600]">
+            <ShoppingBag className="w-8 h-8 opacity-60" />
+          </div>
+          <h3 className="font-display text-2xl font-bold text-[#1c1b1b]">Nenhum produto encontrado</h3>
+          <p className="font-sans text-sm text-[#4f4535] max-w-md mx-auto">
+            Os produtos da loja são carregados diretamente do banco de dados. Cadastre itens sacros e livros pelo painel de administração.
+          </p>
+        </div>
+      ) : (
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filtered.map((product) => {
+            const isAdded = !!addedMap[product.id];
+            const cartItem = cart.find((i) => i.product.id === product.id);
 
-          return (
-            <article
-              key={product.id}
-              className="bg-white rounded-3xl border border-[#d3c4af]/60 overflow-hidden shadow-xs hover:shadow-xl hover:border-[#785600] transition-all duration-300 flex flex-col justify-between group"
-            >
-              {/* Image Container */}
-              <div
-                onClick={() => setSelectedProduct(product)}
-                className="aspect-[4/3] p-2.5 bg-[#fcf9f8] relative cursor-pointer overflow-hidden"
+            return (
+              <article
+                key={product.id}
+                className="bg-white rounded-3xl border border-[#d3c4af]/60 overflow-hidden shadow-xs hover:shadow-xl hover:border-[#785600] transition-all duration-300 flex flex-col justify-between group"
               >
-                <img
-                  src={product.imageUrl}
-                  alt={product.title}
-                  className="w-full h-full object-cover rounded-2xl transition-transform duration-700 group-hover:scale-105"
-                />
-                {cartItem && (
-                  <div className="absolute top-4 left-4 bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-                    <Check className="w-3 h-3" /> {cartItem.quantity} no carrinho
-                  </div>
-                )}
-                {product.buyUrl && (
-                  <div className="absolute top-4 right-4 bg-amber-500 text-slate-950 text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-sm">
-                    Compra Direta
-                  </div>
-                )}
-              </div>
-
-              {/* Content */}
-              <div className="p-6 space-y-1.5">
-                <span className="font-sans text-[10px] font-bold text-[#785600] uppercase tracking-widest block">
-                  {product.category}
-                </span>
-                <h3
+                {/* Image Container */}
+                <div
                   onClick={() => setSelectedProduct(product)}
-                  className="font-display text-xl font-bold text-[#1c1b1b] cursor-pointer hover:text-[#785600] transition-colors"
+                  className="aspect-[4/3] p-2.5 bg-[#fcf9f8] relative cursor-pointer overflow-hidden"
                 >
-                  {product.title}
-                </h3>
-                <p className="font-sans text-xs text-[#817563] font-medium">{product.subtitle}</p>
-                <p className="font-sans text-xs text-[#4f4535] line-clamp-2 leading-relaxed pt-1">
-                  {product.description}
-                </p>
-              </div>
+                  <img
+                    src={product.imageUrl}
+                    alt={product.title}
+                    className="w-full h-full object-cover rounded-2xl transition-transform duration-700 group-hover:scale-105"
+                  />
+                  {cartItem && (
+                    <div className="absolute top-4 left-4 bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                      <Check className="w-3 h-3" /> {cartItem.quantity} no carrinho
+                    </div>
+                  )}
+                  {product.buyUrl && (
+                    <div className="absolute top-4 right-4 bg-amber-500 text-slate-950 text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-sm">
+                      Compra Direta
+                    </div>
+                  )}
+                </div>
 
-              {/* Price + Buy Button + Cart Icon Button */}
-              <div className="px-6 pb-6 pt-3 flex items-center justify-between border-t border-[#d3c4af]/30 mt-2 gap-3">
-                <div>
-                  <span className="font-sans text-[10px] text-[#817563] block">Preço</span>
-                  <span className="font-display text-2xl font-bold text-[#785600]">
-                    R$ {product.price.toFixed(2).replace('.', ',')}
+                {/* Content */}
+                <div className="p-6 space-y-1.5">
+                  <span className="font-sans text-[10px] font-bold text-[#785600] uppercase tracking-widest block">
+                    {product.category}
                   </span>
+                  <h3
+                    onClick={() => setSelectedProduct(product)}
+                    className="font-display text-xl font-bold text-[#1c1b1b] cursor-pointer hover:text-[#785600] transition-colors"
+                  >
+                    {product.title}
+                  </h3>
+                  <p className="font-sans text-xs text-[#817563] font-medium">{product.subtitle}</p>
+                  <p className="font-sans text-xs text-[#4f4535] line-clamp-2 leading-relaxed pt-1">
+                    {product.description}
+                  </p>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  {/* Comprar Button */}
-                  <button
-                    onClick={() => handleBuyProduct(product)}
-                    className="px-4 py-2.5 bg-[#785600] hover:bg-[#9a7000] text-white font-sans text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm cursor-pointer hover:scale-105 flex items-center gap-1"
-                    title={product.buyUrl ? 'Comprar no Mercado Livre / Shopee' : 'Comprar'}
-                  >
-                    Comprar
-                  </button>
+                {/* Price + Buy Button + Cart Icon Button */}
+                <div className="px-6 pb-6 pt-3 flex items-center justify-between border-t border-[#d3c4af]/30 mt-2 gap-3">
+                  <div>
+                    <span className="font-sans text-[10px] text-[#817563] block">Preço</span>
+                    <span className="font-display text-2xl font-bold text-[#785600]">
+                      R$ {product.price.toFixed(2).replace('.', ',')}
+                    </span>
+                  </div>
 
-                  {/* Icon to Add to Cart */}
-                  <button
-                    onClick={() => handleAddToCart(product)}
-                    className={`p-2.5 rounded-xl border transition-all cursor-pointer shadow-xs flex items-center justify-center ${
-                      isAdded
-                        ? 'bg-emerald-600 border-emerald-600 text-white scale-95'
-                        : 'bg-amber-50 hover:bg-amber-100 border-[#d3c4af] text-[#785600]'
-                    }`}
-                    title="Adicionar ao Carrinho"
-                  >
-                    {isAdded ? <Check className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4" />}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {/* Comprar Button */}
+                    <button
+                      onClick={() => handleBuyProduct(product)}
+                      className="px-4 py-2.5 bg-[#785600] hover:bg-[#9a7000] text-white font-sans text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm cursor-pointer hover:scale-105 flex items-center gap-1"
+                      title={product.buyUrl ? 'Comprar no Mercado Livre / Shopee' : 'Comprar'}
+                    >
+                      Comprar
+                    </button>
+
+                    {/* Icon to Add to Cart */}
+                    <button
+                      onClick={() => handleAddToCart(product)}
+                      className={`p-2.5 rounded-xl border transition-all cursor-pointer shadow-xs flex items-center justify-center ${
+                        isAdded
+                          ? 'bg-emerald-600 border-emerald-600 text-white scale-95'
+                          : 'bg-amber-50 hover:bg-amber-100 border-[#d3c4af] text-[#785600]'
+                      }`}
+                      title="Adicionar ao Carrinho"
+                    >
+                      {isAdded ? <Check className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </article>
-          );
-        })}
-      </section>
+              </article>
+            );
+          })}
+        </section>
+      )}
     </div>
   );
 };

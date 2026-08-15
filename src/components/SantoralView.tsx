@@ -1,14 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { Search, ArrowRight, ChevronLeft, ChevronRight, X, Heart, Sparkles, BookOpen } from 'lucide-react';
 import { Saint } from '../types';
-import { SAINTS_DATA } from '../data/eclesiaData';
 
 interface SantoralViewProps {
   onSelectSaint: (saint: Saint) => void;
   saints?: Saint[];
 }
 
-export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saints = SAINTS_DATA }) => {
+export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saints = [] }) => {
   const [selectedMonth, setSelectedMonth] = useState<string>('');
   const [selectedDay, setSelectedDay] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');

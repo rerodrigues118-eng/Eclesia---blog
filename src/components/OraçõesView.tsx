@@ -2,76 +2,6 @@ import React, { useState } from 'react';
 import { BookOpen, Sparkles, Search, Filter, Share2, Check, ArrowLeft } from 'lucide-react';
 import { PrayerItem } from '../types';
 
-export const PRAYERS_DATA: PrayerItem[] = [
-  {
-    id: '1',
-    title: 'Oração pela Cura e Saúde',
-    slug: 'oracao-pela-cura-e-saude',
-    situation: 'Saúde',
-    content: `Senhor Jesus Cristo, que durante Vossa vida na terra curastes os enfermos e consolastes os que sofriam, olhai com misericórdia para este vosso servo que vos implora.
-
-Pela Vossa santa agonia e pela intercessão da Santíssima Virgem Maria, nossa Mãe, e de todos os Santos, afastai a doença que aflige o corpo e restaurai as forças da saúde, para que com vigor renovado possa louvai-Vos e servir-Vos.
-
-Não nos deixeis desanimar na prova, mas que a tribulação do momento presente nos prepare para a glória eterna que nos prometestes. Amém.`,
-    isFeaturedToday: true
-  },
-  {
-    id: '2',
-    title: 'Oração pelo Trabalho e Sustento',
-    slug: 'oracao-pelo-trabalho-e-sustento',
-    situation: 'Trabalho',
-    content: `São José, padroeiro dos trabalhadores e guardião da Sagrada Família, intercedei por mim perante o Pai Celestial.
-
-Ajudai-me a encontrar trabalho digno com que possa sustentar minha família e contribuir para o bem de todos. Concedei-me competência, honestidade e diligência em minha profissão.
-
-Que o fruto de meu trabalho seja bênção para os meus e glória para Deus, que é o Senhor de toda obra boa. Amém.`
-  },
-  {
-    id: '3',
-    title: 'Oração pela Família',
-    slug: 'oracao-pela-familia',
-    situation: 'Família',
-    content: `Sagrada Família de Nazaré, modelo de amor, obediência e serviço, protegei nossa família.
-
-Que reine em nosso lar o amor de Jesus, a ternura de Maria e a fortaleza de José. Que nossas refeições sejam partilha, nossas alegrias sejam ação de graças e nossas tristezas sejam unidas à Cruz de Cristo.
-
-Afastai de nós toda discórdia, e fazei de nosso lar uma pequena Igreja doméstica, onde cada membro cresça em santidade e amor a Vós. Amém.`
-  },
-  {
-    id: '4',
-    title: 'Oração no Luto e na Perda',
-    slug: 'oracao-no-luto-e-na-perda',
-    situation: 'Luto',
-    content: `Senhor da vida e da ressurreição, que chorastes diante do túmulo de Lázaro e consolastes Maria Madalena no jardim da Páscoa, consolai meu coração ferido pela perda daquele que amei.
-
-Que a fé na ressurreição seja minha âncora nesta dor. Crede que aquele que morreu em Vós não pereceu, mas passou desta vida para a Vida Eterna que prometestes.
-
-Dai-me força para atravessar este vale de lágrimas com a esperança que não envergonha, sabendo que nos reuniremos na Vossa glória. Amém.`
-  },
-  {
-    id: '5',
-    title: 'Oração de Gratidão',
-    slug: 'oracao-de-gratidao',
-    situation: 'Gratidão',
-    content: `Bom Deus, Pai de toda bondade, de quem procedem todos os dons perfeitos, elevo meu coração a Vós em ação de graças.
-
-Obrigado pela vida, pela saúde, pela fé, pela família, pelos amigos e por tantos bens que não mereço, mas que generosamente concedeis. Obrigado pelas provas que purificam, pelas esperas que ensinam e pelas graças que sustentam.
-
-Que minha gratidão não seja apenas de palavras, mas de uma vida inteira a Vos servir com alegria. Deo Gratias! Amém.`
-  },
-  {
-    id: '6',
-    title: 'Oração pela Proteção Espiritual',
-    slug: 'oracao-pela-protecao-espiritual',
-    situation: 'Proteção',
-    content: `São Miguel Arcanjo, defendei-nos no combate. Sede nosso socorro contra a malícia e as ciladas do demônio.
-
-Que Deus lhe imponha a sua autoridade, é o nosso humilde pedido. E vós, príncipe da milícia celestial, precipitai no inferno, pelo divino poder, Satanás e os outros espíritos malignos que vagam pelo mundo para a perdição das almas.
-
-Arcanjo poderoso, protegei esta família, este lar e esta alma que se entregam ao vosso cuidado. Amém.`
-  }
-];
-
 // ── Prayer Detail Page ─────────────────────────────────────────────
 const PrayerDetail: React.FC<{ prayer: PrayerItem; onBack: () => void }> = ({ prayer, onBack }) => {
   const [copied, setCopied] = useState(false);
@@ -164,7 +94,7 @@ const PrayerDetail: React.FC<{ prayer: PrayerItem; onBack: () => void }> = ({ pr
 };
 
 // ── Main OraçõesView ───────────────────────────────────────────────
-export const OraçõesView: React.FC<{ prayers?: PrayerItem[] }> = ({ prayers = PRAYERS_DATA }) => {
+export const OraçõesView: React.FC<{ prayers?: PrayerItem[] }> = ({ prayers = [] }) => {
   const [selectedSituation, setSelectedSituation] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedPrayer, setSelectedPrayer] = useState<PrayerItem | null>(null);
@@ -301,66 +231,78 @@ export const OraçõesView: React.FC<{ prayers?: PrayerItem[] }> = ({ prayers = 
       </div>
 
       {/* Prayers Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {filteredPrayers.map((prayer) => (
-          <div
-            key={prayer.id}
-            className="bg-white border border-[#d3c4af]/60 rounded-3xl p-6 shadow-xs space-y-4 flex flex-col justify-between hover:border-[#785600] hover:shadow-xl transition-all duration-300 group"
-          >
-            <div className="space-y-3">
-              {prayer.imageUrl && (
-                <div className="h-44 -mx-6 -mt-6 rounded-t-3xl overflow-hidden border-b border-[#d3c4af]/40 mb-3 bg-[#fcf9f8]">
-                  <img
-                    src={prayer.imageUrl}
-                    alt={prayer.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                </div>
-              )}
-
-              <div className="flex items-center justify-between">
-                <span className="inline-block px-2.5 py-0.5 bg-[#785600]/10 text-[#785600] text-[10px] font-bold uppercase tracking-wider rounded-md">
-                  {prayer.situation || prayer.category || 'Geral'}
-                </span>
-                {(prayer.isFeaturedToday || prayer.isDaySpecial) && (
-                  <span className="text-[10px] font-bold uppercase text-amber-800 bg-amber-200 px-2 py-0.5 rounded-full">
-                    ★ Oração do Dia
-                  </span>
+      {filteredPrayers.length === 0 ? (
+        <div className="text-center py-16 bg-white border border-[#d3c4af]/50 rounded-3xl p-8 space-y-4">
+          <div className="w-16 h-16 mx-auto rounded-full bg-[#f6f3f2] flex items-center justify-center text-[#785600]">
+            <BookOpen className="w-8 h-8 opacity-60" />
+          </div>
+          <h3 className="font-display text-2xl font-bold text-[#1c1b1b]">Nenhuma oração cadastrada</h3>
+          <p className="font-sans text-sm text-[#4f4535] max-w-md mx-auto">
+            As orações são sincronizadas com o banco de dados. Cadastre preces no painel administrativo.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {filteredPrayers.map((prayer) => (
+            <div
+              key={prayer.id}
+              className="bg-white border border-[#d3c4af]/60 rounded-3xl p-6 shadow-xs space-y-4 flex flex-col justify-between hover:border-[#785600] hover:shadow-xl transition-all duration-300 group"
+            >
+              <div className="space-y-3">
+                {prayer.imageUrl && (
+                  <div className="h-44 -mx-6 -mt-6 rounded-t-3xl overflow-hidden border-b border-[#d3c4af]/40 mb-3 bg-[#fcf9f8]">
+                    <img
+                      src={prayer.imageUrl}
+                      alt={prayer.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  </div>
                 )}
+
+                <div className="flex items-center justify-between">
+                  <span className="inline-block px-2.5 py-0.5 bg-[#785600]/10 text-[#785600] text-[10px] font-bold uppercase tracking-wider rounded-md">
+                    {prayer.situation || prayer.category || 'Geral'}
+                  </span>
+                  {(prayer.isFeaturedToday || prayer.isDaySpecial) && (
+                    <span className="text-[10px] font-bold uppercase text-amber-800 bg-amber-200 px-2 py-0.5 rounded-full">
+                      ★ Oração do Dia
+                    </span>
+                  )}
+                </div>
+
+                <h3
+                  onClick={() => setSelectedPrayer(prayer)}
+                  className="font-display text-xl font-bold text-[#1c1b1b] leading-snug cursor-pointer hover:text-[#785600] transition-colors"
+                >
+                  {prayer.title}
+                </h3>
+                <p className="font-sans text-xs text-[#4f4535] leading-relaxed line-clamp-3 whitespace-pre-line font-serif italic">
+                  "{prayer.text || prayer.content}"
+                </p>
               </div>
 
-              <h3
-                onClick={() => setSelectedPrayer(prayer)}
-                className="font-display text-xl font-bold text-[#1c1b1b] leading-snug cursor-pointer hover:text-[#785600] transition-colors"
-              >
-                {prayer.title}
-              </h3>
-              <p className="font-sans text-xs text-[#4f4535] leading-relaxed line-clamp-3 whitespace-pre-line font-serif italic">
-                "{prayer.text || prayer.content}"
-              </p>
+              <div className="pt-4 border-t border-[#d3c4af]/30 flex items-center gap-3">
+                <button
+                  onClick={() => setSelectedPrayer(prayer)}
+                  className="flex-1 py-2.5 bg-[#785600] hover:bg-[#9a7000] text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  <BookOpen className="w-3.5 h-3.5" /> Ler Completa
+                </button>
+                <button
+                  onClick={() => handleCopy(prayer)}
+                  className="px-3.5 py-2.5 bg-[#f0eded] hover:bg-[#e0d8cf] text-[#4f4535] text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
+                >
+                  {copiedId === prayer.id ? (
+                    <><Check className="w-3.5 h-3.5 text-emerald-600" /> Copiado!</>
+                  ) : (
+                    <><Share2 className="w-3.5 h-3.5" /> Copiar</>
+                  )}
+                </button>
+              </div>
             </div>
-
-            <div className="pt-4 border-t border-[#d3c4af]/30 flex items-center gap-3">
-              <button
-                onClick={() => setSelectedPrayer(prayer)}
-                className="flex-1 py-2.5 bg-[#785600] hover:bg-[#9a7000] text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
-              >
-                <BookOpen className="w-3.5 h-3.5" /> Ler Completa
-              </button>
-              <button
-                onClick={() => handleCopy(prayer)}
-                className="px-3.5 py-2.5 bg-[#f0eded] hover:bg-[#e0d8cf] text-[#4f4535] text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
-              >
-                {copiedId === prayer.id ? (
-                  <><Check className="w-3.5 h-3.5 text-emerald-600" /> Copiado!</>
-                ) : (
-                  <><Share2 className="w-3.5 h-3.5" /> Copiar</>
-                )}
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

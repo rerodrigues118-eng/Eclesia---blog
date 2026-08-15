@@ -1,20 +1,20 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Sparkles, Heart, Share2, Copy, Check, Bookmark } from 'lucide-react';
 import { Saint } from '../types';
-import { SAINTS_DATA } from '../data/eclesiaData';
 
 interface SaintDetailViewProps {
   saint: Saint;
   onBack: () => void;
   onSelectSaint: (saint: Saint) => void;
+  allSaints?: Saint[];
 }
 
-export const SaintDetailView: React.FC<SaintDetailViewProps> = ({ saint, onBack, onSelectSaint }) => {
+export const SaintDetailView: React.FC<SaintDetailViewProps> = ({ saint, onBack, onSelectSaint, allSaints = [] }) => {
   const [copiedPrayer, setCopiedPrayer] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
   // Other saints for recommendation
-  const otherSaints = SAINTS_DATA.filter((s) => s.id !== saint.id).slice(0, 3);
+  const otherSaints = allSaints.filter((s) => s.id !== saint.id).slice(0, 3);
 
   const handleCopyPrayer = () => {
     if (navigator.clipboard) {

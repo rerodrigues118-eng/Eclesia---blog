@@ -17,7 +17,6 @@ import {
   Search
 } from 'lucide-react';
 import { ActiveView, Saint, Essay, Product } from '../types';
-import { SAINTS_DATA, ESSAYS_DATA, PRODUCTS_DATA } from '../data/eclesiaData';
 import { TODAY_LITURGY_MOCK } from '../data/liturgiaData';
 
 interface HomeViewProps {
@@ -33,12 +32,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
   setActiveView,
   onSelectSaint,
   onSelectEssay,
-  articles = ESSAYS_DATA,
-  products = PRODUCTS_DATA,
-  saints = SAINTS_DATA,
+  articles = [],
+  products = [],
+  saints = [],
 }) => {
   // 1. Strictly the 3 most recently posted articles
-  const recentArticles = (articles && articles.length > 0 ? articles : ESSAYS_DATA).slice(0, 3);
+  const recentArticles = (articles || []).slice(0, 3);
   const articleSlides = recentArticles.map((article, idx) => ({
     id: article.id || `article-slide-${idx}`,
     type: 'article' as const,
@@ -55,11 +54,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const today = new Date();
   const currentMonth = today.getMonth() + 1;
   const currentDay = today.getDate();
-  const allSaints = saints && saints.length > 0 ? saints : SAINTS_DATA;
   const saintOfDay =
-    allSaints.find(s => s.month === currentMonth && s.day === currentDay) ||
-    allSaints.find(s => s.featured) ||
-    allSaints[0];
+    saints.find(s => s.month === currentMonth && s.day === currentDay) ||
+    saints.find(s => s.featured) ||
+    saints[0];
 
   const saintSlide = saintOfDay ? [{
     id: `saint-${saintOfDay.id}`,
@@ -74,10 +72,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
   }] : [];
 
   // 3. Produto Mais Recente na Loja (Latest Store Product)
-  const allProducts = products && products.length > 0 ? products : PRODUCTS_DATA;
-  const latestProduct = allProducts[0];
+  const latestProduct = products[0];
   const productPriceFormatted = latestProduct && typeof latestProduct.price === 'number'
-    ? `R$ ${(latestProduct.price / 100).toFixed(2).replace('.', ',')}`
+    ? `R$ ${latestProduct.price.toFixed(2).replace('.', ',')}`
     : 'Lançamento';
 
   const productSlide = latestProduct ? [{

@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { ArrowLeft, BookOpen, Share2, Clock, Calendar, Newspaper, Bookmark, Check } from 'lucide-react';
 import { Essay } from '../types';
-import { ESSAYS_DATA } from '../data/eclesiaData';
 import { updateDocumentSeo, resetPortalSeo } from '../utils/seo';
 import { RichArticleRenderer } from './RichArticleRenderer';
 import { GoogleAdSlot } from './GoogleAdSlot';
@@ -10,9 +9,10 @@ interface EssayDetailViewProps {
   essay: Essay;
   onBack: () => void;
   onSelectEssay: (essay: Essay) => void;
+  allArticles?: Essay[];
 }
 
-export const EssayDetailView: React.FC<EssayDetailViewProps> = ({ essay, onBack, onSelectEssay }) => {
+export const EssayDetailView: React.FC<EssayDetailViewProps> = ({ essay, onBack, onSelectEssay, allArticles = [] }) => {
   const [copied, setCopied] = React.useState(false);
   const [bookmarked, setBookmarked] = React.useState(false);
   const [shareMenuOpen, setShareMenuOpen] = React.useState(false);
@@ -26,7 +26,7 @@ export const EssayDetailView: React.FC<EssayDetailViewProps> = ({ essay, onBack,
   }, [essay]);
 
   // Find related articles (excluding current one)
-  const relatedEssays = ESSAYS_DATA.filter((e) => e.id !== essay.id).slice(0, 3);
+  const relatedEssays = allArticles.filter((e) => e.id !== essay.id).slice(0, 3);
 
   const getShareUrl = () => {
     const baseUrl = window.location.origin;
