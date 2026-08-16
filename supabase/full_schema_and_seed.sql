@@ -89,13 +89,18 @@ CREATE TABLE IF NOT EXISTS public.articles (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Colunas adicionais garantidas caso tabela já existisse
+-- Colunas adicionais garantidas caso a tabela já existisse no banco anteriormente
 ALTER TABLE public.articles ADD COLUMN IF NOT EXISTS author_name TEXT DEFAULT 'Redação Eclesia';
 ALTER TABLE public.articles ADD COLUMN IF NOT EXISTS read_time TEXT DEFAULT '5 min de leitura';
+ALTER TABLE public.articles ADD COLUMN IF NOT EXISTS featured BOOLEAN DEFAULT false;
+ALTER TABLE public.articles ADD COLUMN IF NOT EXISTS trending BOOLEAN DEFAULT false;
 ALTER TABLE public.articles ADD COLUMN IF NOT EXISTS meta_title TEXT;
 ALTER TABLE public.articles ADD COLUMN IF NOT EXISTS meta_description TEXT;
 ALTER TABLE public.articles ADD COLUMN IF NOT EXISTS keywords TEXT[];
 ALTER TABLE public.articles ADD COLUMN IF NOT EXISTS media_map JSONB;
+ALTER TABLE public.articles ADD COLUMN IF NOT EXISTS status article_status DEFAULT 'publicado';
+ALTER TABLE public.articles ADD COLUMN IF NOT EXISTS source article_source DEFAULT 'manual';
+ALTER TABLE public.articles ADD COLUMN IF NOT EXISTS type article_type DEFAULT 'artigo';
 
 CREATE INDEX IF NOT EXISTS idx_articles_status ON public.articles (status, published_at DESC);
 CREATE INDEX IF NOT EXISTS idx_articles_slug ON public.articles (slug);
@@ -120,7 +125,14 @@ CREATE TABLE IF NOT EXISTS public.products (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS subtitle TEXT;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS description TEXT;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS price_cents INT DEFAULT 0;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS images TEXT[];
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS stock INT DEFAULT 50;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS category product_category DEFAULT 'livro';
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS buy_url TEXT;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT true;
 
 CREATE INDEX IF NOT EXISTS idx_products_category ON public.products (category);
 CREATE INDEX IF NOT EXISTS idx_products_active ON public.products (active) WHERE active = true;
@@ -148,8 +160,17 @@ CREATE TABLE IF NOT EXISTS public.saints (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
+ALTER TABLE public.saints ADD COLUMN IF NOT EXISTS title TEXT;
 ALTER TABLE public.saints ADD COLUMN IF NOT EXISTS feast_date TEXT;
+ALTER TABLE public.saints ADD COLUMN IF NOT EXISTS short_bio TEXT;
 ALTER TABLE public.saints ADD COLUMN IF NOT EXISTS summary TEXT;
+ALTER TABLE public.saints ADD COLUMN IF NOT EXISTS full_bio TEXT;
+ALTER TABLE public.saints ADD COLUMN IF NOT EXISTS patronage TEXT;
+ALTER TABLE public.saints ADD COLUMN IF NOT EXISTS category TEXT;
+ALTER TABLE public.saints ADD COLUMN IF NOT EXISTS image_url TEXT;
+ALTER TABLE public.saints ADD COLUMN IF NOT EXISTS prayer TEXT;
+ALTER TABLE public.saints ADD COLUMN IF NOT EXISTS quotes TEXT[];
+ALTER TABLE public.saints ADD COLUMN IF NOT EXISTS featured BOOLEAN DEFAULT false;
 
 CREATE INDEX IF NOT EXISTS idx_saints_feast ON public.saints (feast_month, feast_day);
 CREATE INDEX IF NOT EXISTS idx_saints_slug ON public.saints (slug);
@@ -173,9 +194,13 @@ CREATE TABLE IF NOT EXISTS public.prayers (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
+ALTER TABLE public.prayers ADD COLUMN IF NOT EXISTS situation TEXT DEFAULT 'diarias';
 ALTER TABLE public.prayers ADD COLUMN IF NOT EXISTS category TEXT DEFAULT 'diarias';
+ALTER TABLE public.prayers ADD COLUMN IF NOT EXISTS content TEXT;
 ALTER TABLE public.prayers ADD COLUMN IF NOT EXISTS text TEXT;
 ALTER TABLE public.prayers ADD COLUMN IF NOT EXISTS description TEXT;
+ALTER TABLE public.prayers ADD COLUMN IF NOT EXISTS is_featured_today BOOLEAN DEFAULT false;
+ALTER TABLE public.prayers ADD COLUMN IF NOT EXISTS featured_date DATE;
 ALTER TABLE public.prayers ADD COLUMN IF NOT EXISTS image_url TEXT;
 
 CREATE INDEX IF NOT EXISTS idx_prayers_situation ON public.prayers (situation);
@@ -201,6 +226,17 @@ CREATE TABLE IF NOT EXISTS public.daily_liturgy (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
+ALTER TABLE public.daily_liturgy ADD COLUMN IF NOT EXISTS liturgical_season TEXT;
+ALTER TABLE public.daily_liturgy ADD COLUMN IF NOT EXISTS liturgical_color TEXT;
+ALTER TABLE public.daily_liturgy ADD COLUMN IF NOT EXISTS color_hex TEXT DEFAULT '#1c5d3a';
+ALTER TABLE public.daily_liturgy ADD COLUMN IF NOT EXISTS full_date_str TEXT;
+ALTER TABLE public.daily_liturgy ADD COLUMN IF NOT EXISTS first_reading JSONB;
+ALTER TABLE public.daily_liturgy ADD COLUMN IF NOT EXISTS psalm JSONB;
+ALTER TABLE public.daily_liturgy ADD COLUMN IF NOT EXISTS second_reading JSONB;
+ALTER TABLE public.daily_liturgy ADD COLUMN IF NOT EXISTS gospel JSONB;
+ALTER TABLE public.daily_liturgy ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'CNBB / Liturgia Diária';
+ALTER TABLE public.daily_liturgy ADD COLUMN IF NOT EXISTS inserted_manually BOOLEAN DEFAULT false;
+
 CREATE INDEX IF NOT EXISTS idx_liturgy_date ON public.daily_liturgy (date DESC);
 
 -- =============================================================================
@@ -219,6 +255,14 @@ CREATE TABLE IF NOT EXISTS public.orders (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS customer_name TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS items JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS total_cents INT DEFAULT 0;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS payment_status TEXT DEFAULT 'pendente';
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS payment_method TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS pagarme_order_id TEXT;
+ALTER TABLE public.orders ADD COLUMN IF NOT EXISTS shipping_address JSONB;
+
 CREATE INDEX IF NOT EXISTS idx_orders_email ON public.orders (customer_email);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON public.orders (payment_status);
 
@@ -234,6 +278,10 @@ CREATE TABLE IF NOT EXISTS public.subscribers (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
+ALTER TABLE public.subscribers ADD COLUMN IF NOT EXISTS name TEXT;
+ALTER TABLE public.subscribers ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'ativo';
+ALTER TABLE public.subscribers ADD COLUMN IF NOT EXISTS brevo_contact_id TEXT;
+
 -- =============================================================================
 -- 10. TABELAS: SUBSCRIPTION_PLANS & SUBSCRIPTIONS (Clube / Assinaturas)
 -- =============================================================================
@@ -248,6 +296,14 @@ CREATE TABLE IF NOT EXISTS public.subscription_plans (
     pagarme_plan_id TEXT,
     active BOOLEAN DEFAULT true
 );
+
+ALTER TABLE public.subscription_plans ADD COLUMN IF NOT EXISTS tagline TEXT;
+ALTER TABLE public.subscription_plans ADD COLUMN IF NOT EXISTS price_cents INT DEFAULT 0;
+ALTER TABLE public.subscription_plans ADD COLUMN IF NOT EXISTS interval TEXT DEFAULT 'month';
+ALTER TABLE public.subscription_plans ADD COLUMN IF NOT EXISTS interval_count INT DEFAULT 1;
+ALTER TABLE public.subscription_plans ADD COLUMN IF NOT EXISTS benefits TEXT[];
+ALTER TABLE public.subscription_plans ADD COLUMN IF NOT EXISTS pagarme_plan_id TEXT;
+ALTER TABLE public.subscription_plans ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT true;
 
 CREATE TABLE IF NOT EXISTS public.subscriptions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -441,7 +497,7 @@ ON CONFLICT (slug) DO UPDATE SET
 INSERT INTO public.products (id, name, slug, subtitle, description, price_cents, images, stock, category, active, buy_url)
 VALUES
 (
-    'p1111111-1111-1111-1111-111111111111',
+    '11111111-1111-1111-1111-111111111111',
     'Terço de Madeira Nobre e Cordão Militar',
     'terco-madeira-nobre-cordao-militar',
     'Contas em jacarandá maciço 8mm e medalha de São Bento em bronze envelhecido.',
@@ -454,7 +510,7 @@ VALUES
     'https://loja.eclesia.blog.br/terco'
 ),
 (
-    'p2222222-2222-2222-2222-222222222222',
+    '22222222-2222-2222-2222-222222222222',
     'Summa Theologiae — Edição Integral em 9 Volumes',
     'summa-theologiae-edicao-integral',
     'Obra prima de Santo Tomás de Aquino traduzida diretamente do latim.',
@@ -467,7 +523,7 @@ VALUES
     'https://loja.eclesia.blog.br/summa'
 ),
 (
-    'p3333333-3333-3333-3333-333333333333',
+    '33333333-3333-3333-3333-333333333333',
     'Ícone de Nossa Senhora do Perpétuo Socorro',
     'icone-nossa-senhora-perpetuo-socorro',
     'Pintura em têmpera de ovo sobre madeira com folha de ouro 24k.',
@@ -480,7 +536,7 @@ VALUES
     'https://loja.eclesia.blog.br/icone-ns-socorro'
 ),
 (
-    'p4444444-4444-4444-4444-444444444444',
+    '44444444-4444-4444-4444-444444444444',
     'Escapulário do Carmo em Tecido de Lã Pura',
     'escapulario-do-carmo-la-pura',
     'Fiel à tradição carmelitana com cordão marrom e acabamento reforçado.',
@@ -505,7 +561,7 @@ ON CONFLICT (slug) DO UPDATE SET
 INSERT INTO public.saints (id, name, slug, title, feast_month, feast_day, feast_date, short_bio, summary, full_bio, patronage, image_url, prayer, quotes, featured)
 VALUES
 (
-    's1111111-1111-1111-1111-111111111111',
+    '55555555-5555-5555-5555-555555555555',
     'Santo Tomás de Aquino',
     'santo-tomas-de-aquino',
     'Doutor Angélico e Príncipe dos Teólogos',
@@ -522,7 +578,7 @@ VALUES
     true
 ),
 (
-    's2222222-2222-2222-2222-222222222222',
+    '66666666-6666-6666-6666-666666666666',
     'Santa Teresinha do Menino Jesus',
     'santa-teresinha-do-menino-jesus',
     'Virgem e Doutora da Igreja',
@@ -539,7 +595,7 @@ VALUES
     false
 ),
 (
-    's3333333-3333-3333-3333-333333333333',
+    '77777777-7777-7777-7777-777777777777',
     'São Francisco de Assis',
     'sao-francisco-de-assis',
     'O Poverello de Assis',
@@ -573,7 +629,7 @@ ON CONFLICT (slug) DO UPDATE SET
 INSERT INTO public.prayers (id, title, slug, situation, category, content, text, description, is_featured_today)
 VALUES
 (
-    'r1111111-1111-1111-1111-111111111111',
+    '88888888-8888-8888-8888-888888888888',
     'Oração de São Bento contra as Ciladas do Inimigo',
     'oracao-de-sao-bento',
     'protecao',
@@ -584,7 +640,7 @@ VALUES
     true
 ),
 (
-    'r2222222-2222-2222-2222-222222222222',
+    '99999999-9999-9999-9999-999999999999',
     'Salve Regina (Salve Rainha)',
     'salve-regina',
     'mariana',
@@ -595,7 +651,7 @@ VALUES
     false
 ),
 (
-    'r3333333-3333-3333-3333-333333333333',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
     'Pater Noster (Pai Nosso em Latim)',
     'pater-noster-latim',
     'latim',
