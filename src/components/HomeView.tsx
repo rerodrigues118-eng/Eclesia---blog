@@ -260,34 +260,49 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </div>
           </div>
 
-          {/* Navigation Arrows */}
+          {/* Navigation Arrows (visíveis no mobile com opacidade suave e no desktop ao passar o mouse) */}
           <button
-            onClick={prevHeroSlide}
-            className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-xs flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              prevHeroSlide();
+            }}
+            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-10 sm:w-11 h-10 sm:h-11 rounded-full bg-black/50 hover:bg-black/80 text-white backdrop-blur-xs flex items-center justify-center transition-all opacity-80 sm:opacity-0 sm:group-hover:opacity-100 cursor-pointer z-20 shadow-md"
             title="Anterior"
+            aria-label="Slide anterior"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="w-5 sm:w-6 h-5 sm:h-6" />
           </button>
 
           <button
-            onClick={nextHeroSlide}
-            className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-xs flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              nextHeroSlide();
+            }}
+            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-10 sm:w-11 h-10 sm:h-11 rounded-full bg-black/50 hover:bg-black/80 text-white backdrop-blur-xs flex items-center justify-center transition-all opacity-80 sm:opacity-0 sm:group-hover:opacity-100 cursor-pointer z-20 shadow-md"
             title="Próximo"
+            aria-label="Próximo slide"
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronRight className="w-5 sm:w-6 h-5 sm:h-6" />
           </button>
 
           {/* Carousel Dots */}
-          <div className="absolute bottom-5 right-8 flex items-center gap-2 z-10">
-            {heroSlides.map((_, idx) => (
+          <div className="absolute bottom-4 sm:bottom-5 right-4 sm:right-8 flex items-center gap-1.5 sm:gap-2 z-20">
+            {effectiveSlides.map((_, idx) => (
               <button
                 key={idx}
-                onClick={() => goToHeroSlide(idx)}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToHeroSlide(idx);
+                }}
                 className={`transition-all rounded-full cursor-pointer ${
                   currentHeroIndex === idx
-                    ? 'w-6 h-2 bg-white'
-                    : 'w-2 h-2 bg-white/40 hover:bg-white/70'
+                    ? 'w-6 h-2 sm:h-2.5 bg-white shadow-xs'
+                    : 'w-2 sm:w-2.5 h-2 sm:h-2.5 bg-white/50 hover:bg-white/80'
                 }`}
+                aria-label={`Ir para slide ${idx + 1}`}
               />
             ))}
           </div>

@@ -406,31 +406,33 @@ export async function fetchSaintsFromDb(): Promise<Saint[]> {
         .order('feast_month', { ascending: true })
         .order('feast_day', { ascending: true });
 
-      if (!error && data) {
+      if (error) {
+        console.error('[dbService] Erro ao buscar santos do Supabase:', error);
+      }
+
+      if (!error && data && data.length > 0) {
         const mapped: Saint[] = data.map((item: any) => {
-          const localItem = localSaints.find(l => l.id === item.id || l.id === item.slug);
+          const monthNum = parseInt(item.feast_month || item.month || '1', 10);
+          const dayNum = parseInt(item.feast_day || item.day || '1', 10);
           return {
             id: item.id || item.slug,
-            name: item.name || localItem?.name || '',
-            title: item.title || localItem?.title || '',
-            feastDate: item.feast_date || localItem?.feastDate || `${item.feast_day || item.day || 1} de Mês`,
-            month: item.feast_month || item.month || 1,
-            day: item.feast_day || item.day || 1,
-            imageUrl: item.image_url || localItem?.imageUrl || 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=800',
-            patronage: item.patronage || localItem?.patronage || '',
-            summary: item.summary || item.short_bio || localItem?.summary || '',
-            fullBio: item.full_bio || localItem?.fullBio || '',
-            prayer: item.prayer || localItem?.prayer || '',
-            quotes: item.quotes || localItem?.quotes || [],
-            featured: Boolean(item.featured ?? localItem?.featured)
+            name: item.name || '',
+            title: item.title || '',
+            feastDate: item.feast_date || `${dayNum} de Mês`,
+            month: isNaN(monthNum) ? 1 : monthNum,
+            day: isNaN(dayNum) ? 1 : dayNum,
+            imageUrl: item.image_url || 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=800',
+            patronage: item.patronage || '',
+            summary: item.summary || item.short_bio || '',
+            fullBio: item.full_bio || '',
+            prayer: item.prayer || '',
+            quotes: Array.isArray(item.quotes) ? item.quotes : (item.quotes ? [item.quotes] : []),
+            featured: Boolean(item.featured)
           };
         });
 
-        const unsynced = localSaints.filter(l => !mapped.some(m => m.id === l.id || m.id === l.name));
-        const combined = [...mapped, ...unsynced];
-
-        localStorage.setItem(STORAGE_KEY_SAINTS, JSON.stringify(combined));
-        return combined;
+        localStorage.setItem(STORAGE_KEY_SAINTS, JSON.stringify(mapped));
+        return mapped;
       }
     }
   } catch (err) {
