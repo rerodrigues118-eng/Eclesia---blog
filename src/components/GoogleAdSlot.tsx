@@ -88,7 +88,7 @@ export const GoogleAdSlot: React.FC<GoogleAdSlotProps> = ({
     >
       <div className="flex items-center justify-between px-4 py-1.5 bg-slate-100/90 dark:bg-slate-800/80 border-b border-slate-200 text-[10px] uppercase font-bold tracking-wider text-slate-500">
         <span className="flex items-center gap-1.5 text-amber-700 dark:text-amber-400">
-          <Megaphone className="w-3 h-3" /> Publicidade Google Ads
+          <Megaphone className="w-3 h-3" /> Publicidade
         </span>
         {isPreview && onConfigure && (
           <button
@@ -112,18 +112,16 @@ export const GoogleAdSlot: React.FC<GoogleAdSlotProps> = ({
             data-full-width-responsive="true"
           />
         ) : (
-          <div className="space-y-1.5 max-w-md py-2">
-            <span className="text-xs font-bold text-slate-800 block">
+          <div className="space-y-1.5 max-w-md py-3">
+            <span className="text-xs font-bold text-[#785600] uppercase tracking-wider block">
               {details.title}
             </span>
-            <span className="text-[11px] font-mono text-slate-500 block">
+            <span className="text-[11px] font-sans text-slate-500 block">
               {details.size}
             </span>
-            {isPreview && (
-              <span className="inline-block text-[10px] font-bold px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full">
-                Posição Ativa • Visível no Artigo Publicado
-              </span>
-            )}
+            <span className="inline-block text-[10px] font-semibold px-2.5 py-0.5 bg-amber-100/70 text-amber-900 rounded-full border border-amber-200">
+              Espaço de Monetização • Adcash / AutoTag
+            </span>
           </div>
         )}
       </div>

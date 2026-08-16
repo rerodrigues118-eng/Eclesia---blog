@@ -28,6 +28,17 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
     { value: '12', label: 'Dezembro' }
   ];
 
+  const today = new Date();
+  const currentMonth = today.getMonth() + 1;
+  const currentDay = today.getDate();
+
+  // Find Saint of Today exactly
+  const saintOfToday = useMemo(() => {
+    return saints.find((s) => s.month === currentMonth && s.day === currentDay) ||
+      saints.find((s) => s.featured) ||
+      saints[0];
+  }, [saints, currentMonth, currentDay]);
+
   const filteredSaints = useMemo(() => {
     return saints.filter((saint) => {
       if (selectedMonth && saint.month !== parseInt(selectedMonth, 10)) {
@@ -39,19 +50,26 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchName = saint.name.toLowerCase().includes(q);
-        const matchTitle = saint.title.toLowerCase().includes(q);
-        const matchBio = saint.fullBio.toLowerCase().includes(q);
-        const matchSummary = saint.summary.toLowerCase().includes(q);
-        if (!matchName && !matchTitle && !matchBio && !matchSummary) {
+        const matchTitle = saint.title?.toLowerCase().includes(q);
+        const matchBio = saint.fullBio?.toLowerCase().includes(q);
+        const matchSummary = saint.summary?.toLowerCase().includes(q);
+        const matchPatronage = saint.patronage?.toLowerCase().includes(q);
+        if (!matchName && !matchTitle && !matchBio && !matchSummary && !matchPatronage) {
           return false;
         }
       }
       return true;
     });
-  }, [selectedMonth, selectedDay, searchQuery]);
+  }, [saints, selectedMonth, selectedDay, searchQuery]);
 
-  // Featured Saint (Santo Tomás de Aquino if visible, else first)
-  const featuredSaint = filteredSaints.find((s) => s.featured) || filteredSaints[0];
+  // Featured Saint in filtered results: matches today if in filter, else featured, else first
+  const featuredSaint = useMemo(() => {
+    if (filteredSaints.length === 0) return null;
+    const matchToday = filteredSaints.find(s => s.month === currentMonth && s.day === currentDay);
+    if (matchToday) return matchToday;
+    return filteredSaints.find((s) => s.featured) || filteredSaints[0];
+  }, [filteredSaints, currentMonth, currentDay]);
+
   const gridSaints = filteredSaints.filter((s) => s.id !== featuredSaint?.id);
 
   return (
@@ -142,17 +160,29 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
                 />
               </div>
               <div className="w-full md:w-1/2 p-6 md:p-8 flex flex-col justify-center gap-3">
-                <div className="flex justify-between items-start">
-                  <span className="font-sans text-xs font-bold text-[#785600] uppercase tracking-wider">
-                    {featuredSaint.feastDate}
-                  </span>
+                <div className="flex justify-between items-start flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    {featuredSaint.month === currentMonth && featuredSaint.day === currentDay && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 shadow-xs">
+                        <Sparkles className="w-3 h-3 text-amber-600" /> Santo de Hoje
+                      </span>
+                    )}
+                    <span className="font-sans text-xs font-bold text-[#785600] uppercase tracking-wider">
+                      {featuredSaint.feastDate}
+                    </span>
+                  </div>
                   <ArrowRight className="w-5 h-5 text-[#817563] group-hover:text-[#785600] transition-colors" />
                 </div>
                 <h2 className="font-display text-2xl md:text-3xl font-bold text-[#1c1b1b] leading-tight">
                   {featuredSaint.name}
                 </h2>
+                {featuredSaint.title && (
+                  <p className="font-serif italic text-xs text-[#785600] font-medium">
+                    {featuredSaint.title}
+                  </p>
+                )}
                 <p className="font-sans text-sm text-[#4f4535] leading-relaxed line-clamp-4">
-                  {featuredSaint.summary}
+                  {featuredSaint.summary || (featuredSaint.fullBio ? featuredSaint.fullBio.slice(0, 180) + '...' : '')}
                 </p>
                 <div className="pt-2">
                   <span className="font-sans text-xs font-bold text-[#785600] uppercase tracking-widest flex items-center gap-1">
