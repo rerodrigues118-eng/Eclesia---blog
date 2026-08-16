@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, ArrowRight, ChevronLeft, ChevronRight, X, Heart, Sparkles, BookOpen } from 'lucide-react';
 import { Saint } from '../types';
 
