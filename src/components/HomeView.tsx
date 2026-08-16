@@ -91,6 +91,19 @@ export const HomeView: React.FC<HomeViewProps> = ({
     onClick: () => setActiveView('loja')
   }] : [];
 
+  // Default fallback hero slide if articles/saints/products are empty or still loading
+  const defaultFallbackHero = {
+    id: 'hero-default',
+    type: 'article' as const,
+    title: 'Eclesia • Tradição, Fé e Doutrina Católica',
+    subtitle: 'Portal Católico Apostólico Romano',
+    excerpt: 'Artigos teológicos fundamentados no Magistério, Santoral tradicional e aprofundamento na espiritualidade da Santa Igreja.',
+    imageUrl: 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1400',
+    category: 'DESTAQUE',
+    buttonText: 'Explorar Artigos',
+    onClick: () => setActiveView('blog')
+  };
+
   // Combine: 3 Recent Articles + Santo do Dia + Produto Mais Recente da Loja
   const heroSlides = [
     ...articleSlides,
@@ -98,26 +111,28 @@ export const HomeView: React.FC<HomeViewProps> = ({
     ...productSlide
   ];
 
+  const effectiveSlides = heroSlides.length > 0 ? heroSlides : [defaultFallbackHero];
+
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
   const [heroFading, setHeroFading] = useState(false);
 
   const goToHeroSlide = useCallback((index: number) => {
-    if (heroSlides.length === 0) return;
+    if (effectiveSlides.length === 0) return;
     setHeroFading(true);
     setTimeout(() => {
-      setCurrentHeroIndex(index % heroSlides.length);
+      setCurrentHeroIndex(index % effectiveSlides.length);
       setHeroFading(false);
     }, 250);
-  }, [heroSlides.length]);
+  }, [effectiveSlides.length]);
 
   const nextHeroSlide = useCallback(() => {
-    if (heroSlides.length === 0) return;
-    goToHeroSlide((currentHeroIndex + 1) % heroSlides.length);
-  }, [currentHeroIndex, heroSlides.length, goToHeroSlide]);
+    if (effectiveSlides.length === 0) return;
+    goToHeroSlide((currentHeroIndex + 1) % effectiveSlides.length);
+  }, [currentHeroIndex, effectiveSlides.length, goToHeroSlide]);
 
   const prevHeroSlide = () => {
-    if (heroSlides.length === 0) return;
-    goToHeroSlide((currentHeroIndex - 1 + heroSlides.length) % heroSlides.length);
+    if (effectiveSlides.length === 0) return;
+    goToHeroSlide((currentHeroIndex - 1 + effectiveSlides.length) % effectiveSlides.length);
   };
 
   useEffect(() => {
@@ -125,7 +140,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
     return () => clearInterval(timer);
   }, [nextHeroSlide]);
 
-  const currentHero = heroSlides[currentHeroIndex] || heroSlides[0];
+  const currentHero = effectiveSlides[currentHeroIndex] || effectiveSlides[0] || defaultFallbackHero;
 
   // Reference 3 & 4: Catholic Prayers Cards Data
   const classicPrayers = [
