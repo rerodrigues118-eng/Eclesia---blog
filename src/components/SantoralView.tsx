@@ -25,12 +25,14 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
     { value: '9', label: 'Setembro' },
     { value: '10', label: 'Outubro' },
     { value: '11', label: 'Novembro' },
-    { value: '12', label: 'Dezembro' }
-  ];
-
   const today = new Date();
   const currentMonth = today.getMonth() + 1;
   const currentDay = today.getDate();
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedMonth, selectedDay, searchQuery]);
 
   // Find Saint of Today exactly
   const saintOfToday = useMemo(() => {
@@ -70,7 +72,17 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
     return filteredSaints.find((s) => s.featured) || filteredSaints[0];
   }, [filteredSaints, currentMonth, currentDay]);
 
-  const gridSaints = filteredSaints.filter((s) => s.id !== featuredSaint?.id);
+  const gridSaints = useMemo(() => {
+    return filteredSaints.filter((s) => s.id !== featuredSaint?.id);
+  }, [filteredSaints, featuredSaint]);
+
+  // Dynamic pagination calculation (6 items per page in grid)
+  const itemsPerPage = 6;
+  const totalPages = Math.max(1, Math.ceil(gridSaints.length / itemsPerPage));
+  const paginatedGridSaints = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return gridSaints.slice(start, start + itemsPerPage);
+  }, [gridSaints, currentPage]);
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
@@ -195,7 +207,7 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
 
           {/* Grid Saints */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {gridSaints.map((saint) => (
+            {paginatedGridSaints.map((saint) => (
               <article
                 key={saint.id}
                 onClick={() => onSelectSaint(saint)}
@@ -218,11 +230,11 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
                       {saint.name}
                     </h3>
                     <p className="font-sans text-sm text-[#4f4535] mt-2 line-clamp-3 leading-relaxed">
-                      {saint.summary}
+                      {saint.summary || (saint.fullBio ? saint.fullBio.slice(0, 140) + '...' : '')}
                     </p>
                   </div>
                   <div className="pt-3 border-t border-[#d3c4af]/30 flex justify-between items-center text-xs text-[#817563]">
-                    <span>{saint.patronage}</span>
+                    <span>{saint.patronage || 'Igreja Católica'}</span>
                     <span className="font-bold text-[#785600] group-hover:underline">Ler +</span>
                   </div>
                 </div>
@@ -232,48 +244,46 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
         </section>
       )}
 
-      {/* Pagination */}
-      <section className="flex justify-center pt-6">
-        <div className="flex gap-2 items-center">
-          <button
-            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-            className="w-10 h-10 flex items-center justify-center border border-[#d3c4af] rounded text-[#817563] hover:border-[#785600] hover:text-[#785600] transition-colors"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button
-            onClick={() => setCurrentPage(1)}
-            className={`w-10 h-10 flex items-center justify-center rounded font-sans text-sm font-bold ${
-              currentPage === 1 ? 'bg-[#785600] text-white' : 'border border-[#d3c4af] text-[#1c1b1b]'
-            }`}
-          >
-            1
-          </button>
-          <button
-            onClick={() => setCurrentPage(2)}
-            className={`w-10 h-10 flex items-center justify-center rounded font-sans text-sm font-bold ${
-              currentPage === 2 ? 'bg-[#785600] text-white' : 'border border-[#d3c4af] text-[#1c1b1b]'
-            }`}
-          >
-            2
-          </button>
-          <button
-            onClick={() => setCurrentPage(3)}
-            className={`w-10 h-10 flex items-center justify-center rounded font-sans text-sm font-bold ${
-              currentPage === 3 ? 'bg-[#785600] text-white' : 'border border-[#d3c4af] text-[#1c1b1b]'
-            }`}
-          >
-            3
-          </button>
-          <span className="text-[#817563]">...</span>
-          <button
-            onClick={() => setCurrentPage(currentPage + 1)}
-            className="w-10 h-10 flex items-center justify-center border border-[#d3c4af] rounded text-[#817563] hover:border-[#785600] hover:text-[#785600] transition-colors"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </div>
-      </section>
+      {/* Dynamic Pagination */}
+      {totalPages > 1 && (
+        <section className="flex justify-center pt-6">
+          <div className="flex gap-2 items-center">
+            <button
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              className={`w-10 h-10 flex items-center justify-center border border-[#d3c4af] rounded transition-colors ${
+                currentPage === 1 ? 'opacity-40 cursor-not-allowed text-slate-400' : 'text-[#817563] hover:border-[#785600] hover:text-[#785600] cursor-pointer'
+              }`}
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+              <button
+                key={pageNum}
+                onClick={() => setCurrentPage(pageNum)}
+                className={`w-10 h-10 flex items-center justify-center rounded font-sans text-sm font-bold cursor-pointer transition-all ${
+                  currentPage === pageNum
+                    ? 'bg-[#785600] text-white shadow-xs'
+                    : 'border border-[#d3c4af] text-[#1c1b1b] hover:border-[#785600]'
+                }`}
+              >
+                {pageNum}
+              </button>
+            ))}
+
+            <button
+              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage === totalPages}
+              className={`w-10 h-10 flex items-center justify-center border border-[#d3c4af] rounded transition-colors ${
+                currentPage === totalPages ? 'opacity-40 cursor-not-allowed text-slate-400' : 'text-[#817563] hover:border-[#785600] hover:text-[#785600] cursor-pointer'
+              }`}
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        </section>
+      )}
     </div>
   );
 };

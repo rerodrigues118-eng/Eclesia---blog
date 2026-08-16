@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ActiveView, Saint, Essay, Product, PrayerItem } from './types';
+import { SAINTS_DATA, ESSAYS_DATA, PRODUCTS_DATA } from './data/eclesiaData';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { HomeView } from './components/HomeView';
@@ -71,25 +72,56 @@ export const App: React.FC = () => {
     }
   }, [cart]);
 
-  // Dynamic Site Data (100% sincronizado com banco de dados Supabase)
-  const [articles, setArticles] = useState<Essay[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [prayers, setPrayers] = useState<PrayerItem[]>([]);
-  const [saints, setSaints] = useState<Saint[]>([]);
+  // Dynamic Site Data (inicializa com dados locais e sincroniza 100% com banco de dados Supabase)
+  const [articles, setArticles] = useState<Essay[]>(() => {
+    try {
+      const cached = localStorage.getItem('eclesia_db_articles');
+      return cached ? JSON.parse(cached) : ESSAYS_DATA;
+    } catch {
+      return ESSAYS_DATA;
+    }
+  });
+
+  const [products, setProducts] = useState<Product[]>(() => {
+    try {
+      const cached = localStorage.getItem('eclesia_db_products');
+      return cached ? JSON.parse(cached) : PRODUCTS_DATA;
+    } catch {
+      return PRODUCTS_DATA;
+    }
+  });
+
+  const [prayers, setPrayers] = useState<PrayerItem[]>(() => {
+    try {
+      const cached = localStorage.getItem('eclesia_db_prayers');
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [saints, setSaints] = useState<Saint[]>(() => {
+    try {
+      const cached = localStorage.getItem('eclesia_db_saints');
+      return cached ? JSON.parse(cached) : SAINTS_DATA;
+    } catch {
+      return SAINTS_DATA;
+    }
+  });
 
   // Load from Supabase Database on startup
   useEffect(() => {
     fetchArticlesFromDb().then(data => {
-      if (data) setArticles(data);
+      if (data && data.length > 0) setArticles(data);
     });
     fetchProductsFromDb().then(data => {
-      if (data) setProducts(data);
+      if (data && data.length > 0) setProducts(data);
     });
     fetchPrayersFromDb().then(data => {
-      if (data) setPrayers(data);
+      if (data && data.length > 0) setPrayers(data);
     });
     fetchSaintsFromDb().then(data => {
-      if (data) setSaints(data);
+      if (data && data.length > 0) setSaints(data);
     });
   }, []);
 
