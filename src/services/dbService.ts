@@ -93,10 +93,10 @@ export async function saveArticleToDb(article: Essay): Promise<{ success: boolea
       const payload: any = {
         title: article.title,
         slug: article.slug || article.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
-        excerpt: article.excerpt,
-        content: article.content,
-        cover_image: article.imageUrl,
-        category: article.category,
+        excerpt: article.excerpt || '',
+        content: article.content || '',
+        cover_image: article.imageUrl || 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=800',
+        category: article.category || 'Teologia',
         type: article.type || 'artigo',
         author_name: article.author || 'Redação Eclesia',
         read_time: article.readTime || '5 min de leitura',
@@ -104,8 +104,8 @@ export async function saveArticleToDb(article: Essay): Promise<{ success: boolea
         trending: !!article.trending,
         meta_title: article.metaTitle || article.title,
         meta_description: article.metaDescription || article.excerpt,
-        keywords: article.keywords,
-        media_map: article.mediaMap,
+        keywords: article.keywords || [],
+        media_map: article.mediaMap || null,
         status: 'publicado',
         published_at: new Date().toISOString()
       };
@@ -114,7 +114,12 @@ export async function saveArticleToDb(article: Essay): Promise<{ success: boolea
         payload.id = article.id;
       }
 
-      await supabase.from('articles').upsert(payload, { onConflict: 'slug' });
+      const { data, error } = await supabase.from('articles').upsert(payload, { onConflict: 'slug' }).select();
+      if (error) {
+        console.error('[dbService] Erro ao salvar artigo no Supabase:', error);
+      } else if (data && data[0]) {
+        console.log('[dbService] Artigo salvo com sucesso no Supabase:', data[0]);
+      }
     } catch (err) {
       console.warn('[dbService] Supabase articles upsert warning:', err);
     }
