@@ -25,6 +25,9 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
     { value: '9', label: 'Setembro' },
     { value: '10', label: 'Outubro' },
     { value: '11', label: 'Novembro' },
+    { value: '12', label: 'Dezembro' }
+  ];
+
   const today = new Date();
   const currentMonth = today.getMonth() + 1;
   const currentDay = today.getDate();
