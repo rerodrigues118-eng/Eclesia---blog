@@ -11,16 +11,6 @@ const STORAGE_KEY_SAINTS = 'eclesia_db_saints';
 // =========================================================================
 
 export async function fetchArticlesFromDb(): Promise<Essay[]> {
-  const local = localStorage.getItem(STORAGE_KEY_ARTICLES);
-  let localArticles: Essay[] = [];
-  if (local) {
-    try {
-      localArticles = JSON.parse(local);
-    } catch {
-      localArticles = [];
-    }
-  }
-
   try {
     if (isSupabaseConfigured) {
       const { data, error } = await supabase
@@ -29,45 +19,50 @@ export async function fetchArticlesFromDb(): Promise<Essay[]> {
         .order('published_at', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false });
 
+      if (error) {
+        console.error('[dbService] Erro ao buscar artigos do Supabase:', error);
+      }
+
       if (!error && data) {
-        const mapped: Essay[] = data.map((item: any) => {
-          const localItem = localArticles.find(l => l.id === item.id || (l.slug && item.slug && l.slug === item.slug));
-          return {
-            id: item.id,
-            title: item.title || localItem?.title || '',
-            category: item.category || localItem?.category || 'Teologia',
-            type: item.type || localItem?.type || 'artigo',
-            imageUrl: item.cover_image || localItem?.imageUrl || 'https://images.unsplash.com/photo-1548625361-195979bc7583?auto=format&fit=crop&q=80&w=1200',
-            excerpt: item.excerpt || localItem?.excerpt || '',
-            content: item.content || localItem?.content || '',
-            author: item.author_name || localItem?.author || 'Redação Eclesia',
-            readTime: item.read_time || localItem?.readTime || '5 min de leitura',
-            date: item.published_at
-              ? new Date(item.published_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
-              : (localItem?.date || 'Recente'),
-            featured: Boolean(item.featured ?? localItem?.featured),
-            trending: Boolean(item.trending ?? localItem?.trending),
-            slug: item.slug,
-            metaTitle: item.meta_title || localItem?.metaTitle || item.title,
-            metaDescription: item.meta_description || localItem?.metaDescription || item.excerpt,
-            keywords: item.keywords || localItem?.keywords || [],
-            mediaMap: item.media_map || localItem?.mediaMap
-          };
-        });
+        const mapped: Essay[] = data.map((item: any) => ({
+          id: item.id,
+          title: item.title || '',
+          category: item.category || 'Teologia',
+          type: item.type || 'artigo',
+          imageUrl: item.cover_image || 'https://images.unsplash.com/photo-1548625361-195979bc7583?auto=format&fit=crop&q=80&w=1200',
+          excerpt: item.excerpt || '',
+          content: item.content || '',
+          author: item.author_name || 'Redação Eclesia',
+          readTime: item.read_time || '5 min de leitura',
+          date: item.published_at
+            ? new Date(item.published_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
+            : 'Recente',
+          featured: Boolean(item.featured),
+          trending: Boolean(item.trending),
+          slug: item.slug,
+          metaTitle: item.meta_title || item.title,
+          metaDescription: item.meta_description || item.excerpt,
+          keywords: item.keywords || [],
+          mediaMap: item.media_map
+        }));
 
-        // Mescla artigos criados localmente que ainda não foram sincronizados
-        const unsynced = localArticles.filter(l => !mapped.some(m => m.id === l.id || (m.slug && l.slug && m.slug === l.slug)));
-        const combined = [...mapped, ...unsynced];
-
-        localStorage.setItem(STORAGE_KEY_ARTICLES, JSON.stringify(combined));
-        return combined;
+        localStorage.setItem(STORAGE_KEY_ARTICLES, JSON.stringify(mapped));
+        return mapped;
       }
     }
   } catch (err) {
     console.warn('[dbService] Supabase articles fetch warning:', err);
   }
 
-  return localArticles;
+  const local = localStorage.getItem(STORAGE_KEY_ARTICLES);
+  if (local) {
+    try {
+      return JSON.parse(local);
+    } catch {
+      return [];
+    }
+  }
+  return [];
 }
 
 export async function saveArticleToDb(article: Essay): Promise<{ success: boolean; article: Essay }> {
@@ -148,21 +143,7 @@ export async function deleteArticleFromDb(id: string): Promise<boolean> {
   return true;
 }
 
-// =========================================================================
-// 2. PRODUCTS / STORE DATABASE SERVICE (100% DINÂMICO SUPABASE)
-// =========================================================================
-
 export async function fetchProductsFromDb(): Promise<Product[]> {
-  const local = localStorage.getItem(STORAGE_KEY_PRODUCTS);
-  let localProducts: Product[] = [];
-  if (local) {
-    try {
-      localProducts = JSON.parse(local);
-    } catch {
-      localProducts = [];
-    }
-  }
-
   try {
     if (isSupabaseConfigured) {
       const { data, error } = await supabase
@@ -171,34 +152,40 @@ export async function fetchProductsFromDb(): Promise<Product[]> {
         .eq('active', true)
         .order('created_at', { ascending: false });
 
+      if (error) {
+        console.error('[dbService] Erro ao buscar produtos do Supabase:', error);
+      }
+
       if (!error && data) {
-        const mapped: Product[] = data.map((item: any) => {
-          const localItem = localProducts.find(l => l.id === item.id);
-          return {
-            id: item.id,
-            title: item.name || localItem?.title || '',
-            subtitle: item.subtitle || localItem?.subtitle || '',
-            price: item.price_cents !== undefined ? item.price_cents / 100 : (localItem?.price ?? 0),
-            category: (item.category || localItem?.category || 'livro') as any,
-            imageUrl: (item.images && item.images[0]) || item.image_url || localItem?.imageUrl || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=600',
-            description: item.description || localItem?.description || '',
-            inStock: item.stock !== undefined ? item.stock > 0 : (localItem?.inStock ?? true),
-            buyUrl: item.buy_url || localItem?.buyUrl || ''
-          };
-        });
+        const mapped: Product[] = data.map((item: any) => ({
+          id: item.id,
+          title: item.name || '',
+          subtitle: item.subtitle || '',
+          price: item.price_cents !== undefined ? item.price_cents / 100 : 0,
+          category: (item.category || 'livro') as any,
+          imageUrl: (item.images && item.images[0]) || item.image_url || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=600',
+          description: item.description || '',
+          inStock: item.stock !== undefined ? item.stock > 0 : true,
+          buyUrl: item.buy_url || ''
+        }));
 
-        const unsynced = localProducts.filter(l => !mapped.some(m => m.id === l.id));
-        const combined = [...mapped, ...unsynced];
-
-        localStorage.setItem(STORAGE_KEY_PRODUCTS, JSON.stringify(combined));
-        return combined;
+        localStorage.setItem(STORAGE_KEY_PRODUCTS, JSON.stringify(mapped));
+        return mapped;
       }
     }
   } catch (err) {
     console.warn('[dbService] Supabase products fetch warning:', err);
   }
 
-  return localProducts;
+  const local = localStorage.getItem(STORAGE_KEY_PRODUCTS);
+  if (local) {
+    try {
+      return JSON.parse(local);
+    } catch {
+      return [];
+    }
+  }
+  return [];
 }
 
 export async function saveProductToDb(product: Product): Promise<{ success: boolean; product: Product }> {
@@ -272,16 +259,6 @@ export async function deleteProductFromDb(id: string): Promise<boolean> {
 // =========================================================================
 
 export async function fetchPrayersFromDb(): Promise<PrayerItem[]> {
-  const local = localStorage.getItem(STORAGE_KEY_PRAYERS);
-  let localPrayers: PrayerItem[] = [];
-  if (local) {
-    try {
-      localPrayers = JSON.parse(local);
-    } catch {
-      localPrayers = [];
-    }
-  }
-
   try {
     if (isSupabaseConfigured) {
       const { data, error } = await supabase
@@ -289,33 +266,39 @@ export async function fetchPrayersFromDb(): Promise<PrayerItem[]> {
         .select('*')
         .order('created_at', { ascending: false });
 
+      if (error) {
+        console.error('[dbService] Erro ao buscar orações do Supabase:', error);
+      }
+
       if (!error && data) {
-        const mapped: PrayerItem[] = data.map((item: any) => {
-          const localItem = localPrayers.find(l => l.id === item.id);
-          return {
-            id: item.id,
-            title: item.title || localItem?.title || '',
-            category: (item.category || item.situation || localItem?.category || 'diarias') as any,
-            text: item.text || item.content || localItem?.text || '',
-            content: item.content || item.text || localItem?.content || '',
-            description: item.description || localItem?.description || '',
-            isDaySpecial: Boolean(item.is_featured_today ?? localItem?.isDaySpecial),
-            imageUrl: item.image_url || localItem?.imageUrl || ''
-          };
-        });
+        const mapped: PrayerItem[] = data.map((item: any) => ({
+          id: item.id,
+          title: item.title || '',
+          category: (item.category || item.situation || 'diarias') as any,
+          text: item.text || item.content || '',
+          content: item.content || item.text || '',
+          description: item.description || '',
+          isDaySpecial: Boolean(item.is_featured_today),
+          imageUrl: item.image_url || ''
+        }));
 
-        const unsynced = localPrayers.filter(l => !mapped.some(m => m.id === l.id));
-        const combined = [...mapped, ...unsynced];
-
-        localStorage.setItem(STORAGE_KEY_PRAYERS, JSON.stringify(combined));
-        return combined;
+        localStorage.setItem(STORAGE_KEY_PRAYERS, JSON.stringify(mapped));
+        return mapped;
       }
     }
   } catch (err) {
     console.warn('[dbService] Supabase prayers fetch warning:', err);
   }
 
-  return localPrayers;
+  const local = localStorage.getItem(STORAGE_KEY_PRAYERS);
+  if (local) {
+    try {
+      return JSON.parse(local);
+    } catch {
+      return [];
+    }
+  }
+  return [];
 }
 
 export async function savePrayerToDb(prayer: PrayerItem): Promise<{ success: boolean; prayer: PrayerItem }> {
@@ -388,16 +371,6 @@ export async function deletePrayerFromDb(id: string): Promise<boolean> {
 // =========================================================================
 
 export async function fetchSaintsFromDb(): Promise<Saint[]> {
-  const local = localStorage.getItem(STORAGE_KEY_SAINTS);
-  let localSaints: Saint[] = [];
-  if (local) {
-    try {
-      localSaints = JSON.parse(local);
-    } catch {
-      localSaints = [];
-    }
-  }
-
   try {
     if (isSupabaseConfigured) {
       const { data, error } = await supabase
@@ -439,7 +412,15 @@ export async function fetchSaintsFromDb(): Promise<Saint[]> {
     console.warn('[dbService] Supabase saints fetch warning:', err);
   }
 
-  return localSaints;
+  const local = localStorage.getItem(STORAGE_KEY_SAINTS);
+  if (local) {
+    try {
+      return JSON.parse(local);
+    } catch {
+      return [];
+    }
+  }
+  return [];
 }
 
 export async function saveSaintToDb(saint: Saint): Promise<{ success: boolean; saint: Saint }> {

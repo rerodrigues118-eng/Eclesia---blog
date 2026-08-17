@@ -16,7 +16,7 @@ import {
   Check,
   Search
 } from 'lucide-react';
-import { ActiveView, Saint, Essay, Product } from '../types';
+import { ActiveView, Saint, Essay, Product, PrayerItem } from '../types';
 import { TODAY_LITURGY_MOCK } from '../data/liturgiaData';
 
 interface HomeViewProps {
@@ -26,6 +26,7 @@ interface HomeViewProps {
   articles?: Essay[];
   products?: Product[];
   saints?: Saint[];
+  prayers?: PrayerItem[];
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({
@@ -142,37 +143,16 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
   const currentHero = effectiveSlides[currentHeroIndex] || effectiveSlides[0] || defaultFallbackHero;
 
-  // Reference 3 & 4: Catholic Prayers Cards Data
-  const classicPrayers = [
-    {
-      id: 'p-1',
-      title: 'Benedíctio Mensae – Oração em latim e português para antes e depois das refeições',
-      category: 'ORAÇÕES CATÓLICAS',
-      imageUrl: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&q=80&w=600',
-      action: () => setActiveView('oracoes')
-    },
-    {
-      id: 'p-2',
-      title: 'Oração ao Divino Espírito Santo – Veni, Sancte Spíritus',
-      category: 'ORAÇÕES CATÓLICAS',
-      imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80&w=600',
-      action: () => setActiveView('oracoes')
-    },
-    {
-      id: 'p-3',
-      title: 'Oração a São José pela pureza',
-      category: 'ORAÇÕES CATÓLICAS',
-      imageUrl: 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=600',
-      action: () => setActiveView('oracoes')
-    },
-    {
-      id: 'p-4',
-      title: 'Oração à Bem-Aventurada Virgem Maria após a Comunhão',
-      category: 'ORAÇÕES CATÓLICAS',
-      imageUrl: 'https://images.unsplash.com/photo-1548625361-195979bc7583?auto=format&fit=crop&q=80&w=600',
-      action: () => setActiveView('oracoes')
-    }
-  ];
+  // Orações Dinâmicas do Banco de Dados
+  const effectivePrayers = prayers.length > 0
+    ? prayers.slice(0, 4).map((p) => ({
+        id: p.id,
+        title: p.title,
+        category: p.category ? `ORAÇÕES • ${p.category.toUpperCase()}` : 'ORAÇÃO CATÓLICA',
+        imageUrl: p.imageUrl || 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=600',
+        action: () => setActiveView('oracoes')
+      }))
+    : [];
 
   // Devotion Categories (Ref. Image 4)
   const devotionCategories = [
@@ -448,37 +428,39 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </button>
         </div>
 
-        {/* 4 Vertical Sacred Art Cards (Ref. Image 3) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {classicPrayers.map((prayer) => (
-            <div
-              key={prayer.id}
-              onClick={prayer.action}
-              className="relative h-[380px] rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-[#d3c4af]/60"
-            >
-              {/* Background Art */}
-              <img
-                src={prayer.imageUrl}
-                alt={prayer.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              {/* Dark Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+        {/* 4 Vertical Sacred Art Cards (Dinâmicos do Banco de Dados) */}
+        {effectivePrayers.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {effectivePrayers.map((prayer) => (
+              <div
+                key={prayer.id}
+                onClick={prayer.action}
+                className="relative h-[380px] rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-[#d3c4af]/60"
+              >
+                {/* Background Art */}
+                <img
+                  src={prayer.imageUrl}
+                  alt={prayer.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                {/* Dark Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
 
-              {/* Top Tag */}
-              <span className="absolute top-4 left-4 bg-[#c89224] text-white text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded shadow-sm">
-                {prayer.category}
-              </span>
+                {/* Top Tag */}
+                <span className="absolute top-4 left-4 bg-[#c89224] text-white text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded shadow-sm">
+                  {prayer.category}
+                </span>
 
-              {/* Bottom White Inscription Box */}
-              <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-xs p-3.5 rounded-xl border border-white/40 shadow-lg">
-                <h3 className="font-serif text-xs font-bold text-[#1c1b1b] leading-snug line-clamp-3">
-                  {prayer.title}
-                </h3>
+                {/* Bottom White Inscription Box */}
+                <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-xs p-3.5 rounded-xl border border-white/40 shadow-lg">
+                  <h3 className="font-serif text-xs font-bold text-[#1c1b1b] leading-snug line-clamp-3">
+                    {prayer.title}
+                  </h3>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* 4 Devotion Sacred Categories (Ref. Image 4) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-4">

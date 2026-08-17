@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { ActiveView, Saint, Essay, Product, PrayerItem } from './types';
-import { SAINTS_DATA, ESSAYS_DATA, PRODUCTS_DATA } from './data/eclesiaData';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { HomeView } from './components/HomeView';
@@ -72,22 +71,22 @@ export const App: React.FC = () => {
     }
   }, [cart]);
 
-  // Dynamic Site Data (inicializa com dados locais e sincroniza 100% com banco de dados Supabase)
+  // 100% Sincronizado exclusivamente com o banco de dados Supabase
   const [articles, setArticles] = useState<Essay[]>(() => {
     try {
       const cached = localStorage.getItem('eclesia_db_articles');
-      return cached ? JSON.parse(cached) : ESSAYS_DATA;
+      return cached ? JSON.parse(cached) : [];
     } catch {
-      return ESSAYS_DATA;
+      return [];
     }
   });
 
   const [products, setProducts] = useState<Product[]>(() => {
     try {
       const cached = localStorage.getItem('eclesia_db_products');
-      return cached ? JSON.parse(cached) : PRODUCTS_DATA;
+      return cached ? JSON.parse(cached) : [];
     } catch {
-      return PRODUCTS_DATA;
+      return [];
     }
   });
 
@@ -103,25 +102,25 @@ export const App: React.FC = () => {
   const [saints, setSaints] = useState<Saint[]>(() => {
     try {
       const cached = localStorage.getItem('eclesia_db_saints');
-      return cached ? JSON.parse(cached) : SAINTS_DATA;
+      return cached ? JSON.parse(cached) : [];
     } catch {
-      return SAINTS_DATA;
+      return [];
     }
   });
 
-  // Load from Supabase Database on startup
+  // Carrega imediatamente do Supabase ao abrir a aplicação
   useEffect(() => {
     fetchArticlesFromDb().then(data => {
-      if (data && data.length > 0) setArticles(data);
+      if (data) setArticles(data);
     });
     fetchProductsFromDb().then(data => {
-      if (data && data.length > 0) setProducts(data);
+      if (data) setProducts(data);
     });
     fetchPrayersFromDb().then(data => {
-      if (data && data.length > 0) setPrayers(data);
+      if (data) setPrayers(data);
     });
     fetchSaintsFromDb().then(data => {
-      if (data && data.length > 0) setSaints(data);
+      if (data) setSaints(data);
     });
   }, []);
 
@@ -371,6 +370,7 @@ export const App: React.FC = () => {
                 articles={articles}
                 products={products}
                 saints={saints}
+                prayers={prayers}
               />
             )}
 
