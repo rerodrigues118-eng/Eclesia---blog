@@ -1,14 +1,11 @@
-import { createClient } from '@supabase/supabase-js';
+/**
+ * Módulo de cliente Supabase.
+ * NOTA DE SEGURANÇA: Operações que necessitam de Service Role Key NUNCA devem
+ * ser executadas no bundle de frontend do navegador (src/). Operações privilegiadas
+ * devem ser executadas exclusivamente via Edge Functions do Supabase.
+ */
+import { supabase } from './client';
 
-// Server Component client — usa service role key para operações de admin / SSR seguro
-// NUNCA expor SUPABASE_SERVICE_ROLE_KEY no browser
-export const supabaseServer = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder',
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
+// Re-exporta a instância segura autenticada do cliente
+export const supabaseServer = supabase;
+export default supabase;

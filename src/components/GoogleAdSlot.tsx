@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { Megaphone, ExternalLink, Sparkles } from 'lucide-react';
+import { Megaphone, Sparkles } from 'lucide-react';
+import { initAdcashIfConsented } from '../lib/adcash';
 
 interface GoogleAdSlotProps {
   slotType: 'top' | 'middle' | 'sidebar' | 'bottom' | 'inline';
@@ -21,7 +22,7 @@ export const GoogleAdSlot: React.FC<GoogleAdSlotProps> = ({
   onConfigure
 }) => {
   const adRef = useRef<HTMLDivElement>(null);
-  const isRealAdConfigured = adClient && adClient !== 'ca-pub-0000000000000000' && adSlot && !isPreview;
+  const isRealAdConfigured = Boolean(adClient && adClient !== 'ca-pub-0000000000000000' && adSlot && !isPreview);
 
   useEffect(() => {
     // 1. If Google AdSense is configured
@@ -34,57 +35,49 @@ export const GoogleAdSlot: React.FC<GoogleAdSlotProps> = ({
       }
     }
 
-    // 2. Trigger Adcash in-article AutoTag and Zone delivery
-    try {
-      // @ts-ignore
-      if (typeof window !== 'undefined' && window.aclib) {
-        // @ts-ignore
-        window.aclib.runAutoTag({ zoneId: 'zlxbp9tnn8' });
-        // @ts-ignore
-        window.aclib.runAutoTag({ zoneId: 't7mdnha0np' });
-      }
-    } catch (err) {
-      console.warn('Adcash execution notice:', err);
+    // 2. Garante que o Adcash esteja carregado globalmente com consentimento
+    if (!isPreview) {
+      initAdcashIfConsented();
     }
-  }, [isRealAdConfigured, slotType, adSlot]);
+  }, [isRealAdConfigured, isPreview]);
 
-  // Labels and descriptions according to position
+  // Dimensões fixas rigorosas por formato para eliminar Cumulative Layout Shift (CLS)
   const getSlotDetails = () => {
     switch (slotType) {
       case 'top':
         return {
           title: 'Anúncio Topo do Artigo',
-          size: 'Banner Horizontal (Adcash zoneId: zlxbp9tnn8)',
-          minHeight: 'min-h-[100px]',
-          bg: 'bg-gradient-to-r from-amber-50/70 via-slate-50 to-amber-50/70'
+          size: 'Leaderboard (728x90 / Banner)',
+          heightClass: 'h-[90px] sm:h-[100px]',
+          zoneId: 'zlxbp9tnn8'
         };
       case 'middle':
         return {
           title: 'Anúncio In-Article (Meio do Conteúdo)',
-          size: 'Nativo In-Feed (Adcash zoneId: zlxbp9tnn8)',
-          minHeight: 'min-h-[140px]',
-          bg: 'bg-slate-50'
+          size: 'Display Nativo In-Feed',
+          heightClass: 'h-[140px]',
+          zoneId: 'zlxbp9tnn8'
         };
       case 'sidebar':
         return {
           title: 'Anúncio Barra Lateral (Sidebar)',
-          size: 'Display Vertical (Adcash zoneId: t7mdnha0np)',
-          minHeight: 'min-h-[260px]',
-          bg: 'bg-gradient-to-b from-slate-50 to-amber-50/40'
+          size: 'Retângulo Médio / Vertical (300x250)',
+          heightClass: 'h-[250px]',
+          zoneId: 't7mdnha0np'
         };
       case 'bottom':
         return {
           title: 'Anúncio Rodapé do Artigo',
-          size: 'Banner de Encerramento (Adcash zoneId: zlxbp9tnn8)',
-          minHeight: 'min-h-[100px]',
-          bg: 'bg-gradient-to-r from-slate-50 via-amber-50/50 to-slate-50'
+          size: 'Banner Horizontal de Encerramento',
+          heightClass: 'h-[100px]',
+          zoneId: 'zlxbp9tnn8'
         };
       default:
         return {
-          title: 'Espaço de Anúncio Publicitário',
-          size: 'Adcash AutoTag Zone',
-          minHeight: 'min-h-[100px]',
-          bg: 'bg-slate-50'
+          title: 'Espaço Publicitário',
+          size: 'Adcash Zone',
+          heightClass: 'h-[100px]',
+          zoneId: 'zlxbp9tnn8'
         };
     }
   };
@@ -95,50 +88,57 @@ export const GoogleAdSlot: React.FC<GoogleAdSlotProps> = ({
     <div
       ref={adRef}
       data-ad-slot-type={slotType}
-      data-adcash-zone="zlxbp9tnn8"
-      className={`w-full my-6 rounded-2xl overflow-hidden border border-dashed transition-all duration-300 ${
+      data-adcash-zone={details.zoneId}
+      className={`w-full my-6 rounded-2xl overflow-hidden border transition-all duration-300 ${
         isPreview
-          ? 'border-amber-400/80 shadow-xs ring-2 ring-amber-400/20'
-          : 'border-[#d3c4af]/80 shadow-xs'
-      } ${details.bg} ${className}`}
+          ? 'border-dashed border-amber-400/80 bg-amber-50/40 shadow-xs ring-2 ring-amber-400/20'
+          : 'border-[#d3c4af]/40 bg-[#faf8f6]/50 shadow-xs'
+      } ${className}`}
     >
-      <div className="flex items-center justify-between px-4 py-1.5 bg-slate-100/90 dark:bg-slate-800/80 border-b border-slate-200 text-[10px] uppercase font-bold tracking-wider text-slate-500">
-        <span className="flex items-center gap-1.5 text-amber-700 dark:text-amber-400">
+      <div className="flex items-center justify-between px-4 py-1.5 bg-stone-100/90 border-b border-stone-200 text-[10px] uppercase font-bold tracking-wider text-stone-500">
+        <span className="flex items-center gap-1.5 text-[#785600]">
           <Megaphone className="w-3 h-3" /> Publicidade
         </span>
         {isPreview && onConfigure && (
           <button
             type="button"
             onClick={onConfigure}
-            className="text-[10px] text-amber-700 hover:text-amber-800 font-bold underline flex items-center gap-1 cursor-pointer"
+            className="text-[10px] text-[#785600] hover:underline font-bold flex items-center gap-1 cursor-pointer"
           >
             <Sparkles className="w-2.5 h-2.5" /> Configurar Anúncio
           </button>
         )}
       </div>
 
-      <div className={`p-4 flex flex-col items-center justify-center text-center ${details.minHeight}`}>
+      <div className={`w-full flex items-center justify-center ${details.heightClass} overflow-hidden`}>
         {isRealAdConfigured ? (
           <ins
             className="adsbygoogle"
-            style={{ display: 'block', width: '100%' }}
+            style={{ display: 'block', width: '100%', height: '100%' }}
             data-ad-client={adClient}
             data-ad-slot={adSlot}
             data-ad-format={format}
             data-full-width-responsive="true"
           />
-        ) : (
-          <div className="adcash-zone-container w-full flex flex-col items-center justify-center py-2 space-y-1.5" data-zone-id="zlxbp9tnn8">
+        ) : isPreview ? (
+          /* Preview explicativo visível SOMENTE no modal administrativo */
+          <div className="w-full flex flex-col items-center justify-center p-3 text-center space-y-1">
             <span className="text-xs font-bold text-[#785600] uppercase tracking-wider block">
               {details.title}
             </span>
-            <span className="text-[11px] font-sans text-[#817563] block">
+            <span className="text-[11px] font-sans text-stone-600 block">
               {details.size}
             </span>
-            <span className="inline-block text-[10px] font-semibold px-2.5 py-0.5 bg-amber-100/80 text-amber-900 rounded-full border border-amber-300">
-              ✓ Zona Ativa Adcash: zlxbp9tnn8
+            <span className="text-[10px] font-mono text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300">
+              Zona Adcash: {details.zoneId}
             </span>
           </div>
+        ) : (
+          /* Container limpo para inserção dinâmica da rede sem texto de placeholder */
+          <div
+            className="adcash-zone-container w-full h-full flex items-center justify-center"
+            data-zone-id={details.zoneId}
+          />
         )}
       </div>
     </div>

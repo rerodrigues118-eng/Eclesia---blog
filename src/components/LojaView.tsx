@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ShoppingBag, ArrowLeft, Check, Package, Star, ArrowRight, Lock, UserPlus } from 'lucide-react';
 import { Product } from '../types';
+import { openSafeExternalUrl, isSafeHttpUrl } from '../lib/security';
 
 interface LojaViewProps {
   cart: { product: Product; quantity: number }[];
@@ -61,6 +62,8 @@ const ProductDetail: React.FC<{
             src={product.imageUrl}
             alt={product.title}
             className="w-full h-full object-cover rounded-xl"
+            loading="lazy"
+            decoding="async"
           />
         </div>
 
@@ -116,8 +119,10 @@ const ProductDetail: React.FC<{
             <div className="flex items-center gap-3 pt-2">
               <button
                 onClick={() => {
-                  if (product.buyUrl) {
-                    window.open(product.buyUrl, '_blank');
+                  if (product.buyUrl && isSafeHttpUrl(product.buyUrl)) {
+                    openSafeExternalUrl(product.buyUrl);
+                  } else if (product.buyUrl) {
+                    alert('O link de compra deste item é inválido ou não possui protocolo seguro (HTTPS).');
                   } else {
                     handleAdd();
                   }
@@ -161,7 +166,7 @@ const ProductDetail: React.FC<{
                 className="flex gap-4 bg-white rounded-2xl border border-[#d3c4af]/50 p-4 cursor-pointer hover:border-[#785600] hover:shadow-sm transition-all group"
               >
                 <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-[#f6f3f2]">
-                  <img src={p.imageUrl} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img src={p.imageUrl} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" decoding="async" />
                 </div>
                 <div className="flex flex-col justify-center min-w-0">
                   <span className="text-[10px] font-bold uppercase tracking-widest text-[#785600]">{p.category}</span>
@@ -217,8 +222,10 @@ export const LojaView: React.FC<LojaViewProps> = ({
   };
 
   const handleBuyProduct = (product: Product) => {
-    if (product.buyUrl) {
-      window.open(product.buyUrl, '_blank');
+    if (product.buyUrl && isSafeHttpUrl(product.buyUrl)) {
+      openSafeExternalUrl(product.buyUrl);
+    } else if (product.buyUrl) {
+      alert('O link de compra deste item é inválido ou não possui protocolo seguro (HTTPS).');
     } else {
       handleAddToCart(product);
     }
@@ -303,6 +310,8 @@ export const LojaView: React.FC<LojaViewProps> = ({
                     src={product.imageUrl}
                     alt={product.title}
                     className="w-full h-full object-cover rounded-2xl transition-transform duration-700 group-hover:scale-105"
+                    loading="lazy"
+                    decoding="async"
                   />
                   {cartItem && (
                     <div className="absolute top-4 left-4 bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm">

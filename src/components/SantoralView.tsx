@@ -172,6 +172,8 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
                   src={featuredSaint.imageUrl}
                   alt={featuredSaint.name}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-102"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
               <div className="w-full md:w-1/2 p-6 md:p-8 flex flex-col justify-center gap-3">
@@ -222,6 +224,8 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
                     src={saint.imageUrl}
                     alt={saint.name}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
                 <div className="p-6 flex flex-col gap-2 flex-1 justify-between">

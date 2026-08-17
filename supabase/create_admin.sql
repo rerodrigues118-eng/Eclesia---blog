@@ -1,113 +1,50 @@
 -- =====================================================================
--- CRIAR OU PROMOVER USUÁRIO ADMINISTRADOR NO SUPABASE
--- Email: suporte.delski@gmail.com
--- Senha: @Ma6tBrai67.
+-- PROMOVER OU CONFIGURAR USUÁRIO ADMINISTRADOR NO SUPABASE
+-- Email do Administrador: suporte.delski@gmail.com
 -- =====================================================================
--- Execute este script diretamente no SQL Editor do Painel do Supabase.
+-- OBSERVAÇÃO DE SEGURANÇA:
+-- A senha NUNCA deve ser versionada em código ou scripts SQL.
+-- O usuário deve ser criado/ter sua senha definida através de:
+-- 1. Painel do Supabase: Authentication > Users > "Add user" ou "Send password reset"
+-- 2. Link de redefinição de senha na tela /admin da própria aplicação.
+-- =====================================================================
 
--- 1. Garante que a extensão pgcrypto está ativa para criptografar a senha
-create extension if not exists pgcrypto with schema extensions;
+-- 1. Garante que o tipo user_role exista
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'user_role') then
+    create type user_role as enum ('admin', 'editor', 'assinante');
+  end if;
+end $$;
 
+-- 2. Promove o usuário existente com o email informado para a função ADMIN em public.profiles
 do $$
 declare
   v_user_id uuid;
-  v_encrypted_pw text;
 begin
-  -- Gera o hash bcrypt da senha fornecida
-  v_encrypted_pw := extensions.crypt('@Ma6tBrai67.', extensions.gen_salt('bf', 10));
-
-  -- Verifica se o usuário já existe na autenticação
+  -- Busca o UID do usuário na tabela de autenticação
   select id into v_user_id from auth.users where email = 'suporte.delski@gmail.com';
 
-  if v_user_id is null then
-    -- Gera novo ID para o usuário
-    v_user_id := gen_random_uuid();
-
-    -- Cria o usuário diretamente em auth.users com email confirmado
-    insert into auth.users (
-      instance_id,
-      id,
-      aud,
-      role,
-      email,
-      encrypted_password,
-      email_confirmed_at,
-      raw_app_meta_data,
-      raw_user_meta_data,
-      created_at,
-      updated_at,
-      confirmation_token,
-      recovery_token,
-      email_change_token_new,
-      email_change
-    ) values (
-      '00000000-0000-0000-0000-000000000000',
-      v_user_id,
-      'authenticated',
-      'authenticated',
-      'suporte.delski@gmail.com',
-      v_encrypted_pw,
-      now(),
-      '{"provider": "email", "providers": ["email"]}'::jsonb,
-      '{"full_name": "Administrador Eclesia", "name": "Administrador Eclesia"}'::jsonb,
-      now(),
-      now(),
-      '',
-      '',
-      '',
-      ''
-    );
-
-    -- Cria ou atualiza a identidade em auth.identities
-    insert into auth.identities (
-      id,
-      user_id,
-      identity_data,
-      provider,
-      provider_id,
-      last_sign_in_at,
-      created_at,
-      updated_at
-    ) values (
-      v_user_id,
-      v_user_id,
-      format('{"sub":"%s","email":"%s"}', v_user_id, 'suporte.delski@gmail.com')::jsonb,
-      'email',
-      'suporte.delski@gmail.com',
-      now(),
-      now(),
-      now()
-    )
-    on conflict (provider, provider_id) do update
-    set last_sign_in_at = now();
-
-  else
-    -- Se já existia, apenas atualiza a senha e confirma o email
-    update auth.users
+  if v_user_id is not null then
+    -- Garante que o perfil público existe e atribui a permissão de 'admin'
+    insert into public.profiles (id, full_name, role)
+    values (v_user_id, 'Administrador Eclesia', 'admin'::user_role)
+    on conflict (id) do update
     set
-      encrypted_password = v_encrypted_pw,
-      email_confirmed_at = coalesce(email_confirmed_at, now()),
-      raw_user_meta_data = coalesce(raw_user_meta_data, '{}'::jsonb) || '{"full_name": "Administrador Eclesia", "name": "Administrador Eclesia"}'::jsonb,
-      updated_at = now()
-    where id = v_user_id;
+      role = 'admin'::user_role,
+      full_name = coalesce(public.profiles.full_name, 'Administrador Eclesia');
+
+    raise notice 'Permissão de ADMIN atribuída com sucesso para o usuário: suporte.delski@gmail.com (ID: %)', v_user_id;
+  else
+    raise warning 'Usuário com o email suporte.delski@gmail.com não foi encontrado em auth.users. Crie-o primeiro no painel Authentication do Supabase.';
   end if;
-
-  -- 2. Garante que o perfil público exista e tenha permissão de ADMIN
-  insert into public.profiles (id, full_name, role)
-  values (v_user_id, 'Administrador Eclesia', 'admin'::user_role)
-  on conflict (id) do update
-  set
-    role = 'admin'::user_role,
-    full_name = coalesce(public.profiles.full_name, 'Administrador Eclesia');
-
-  raise notice 'Conta de administrador configurada com sucesso para: suporte.delski@gmail.com (ID: %)', v_user_id;
 end $$;
 
 -- =====================================================================
 -- VERIFICAÇÃO FINAL
 -- =====================================================================
 select 
-  u.id,
+  u.id as auth_user_id,
   u.email,
   u.email_confirmed_at,
   p.full_name,

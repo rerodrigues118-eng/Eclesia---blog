@@ -46,6 +46,8 @@ const PrayerDetail: React.FC<{ prayer: PrayerItem; onBack: () => void }> = ({ pr
             src={prayer.imageUrl}
             alt={prayer.title}
             className="w-full h-full object-cover"
+            loading="lazy"
+            decoding="async"
           />
         </div>
       )}
@@ -169,7 +171,7 @@ export const OraçõesView: React.FC<{ prayers?: PrayerItem[] }> = ({ prayers = 
 
             {featuredPrayer.imageUrl && (
               <div className="w-full lg:w-48 h-32 rounded-2xl overflow-hidden border border-[#d3c4af]/60 shrink-0">
-                <img src={featuredPrayer.imageUrl} alt={featuredPrayer.title} className="w-full h-full object-cover" />
+                <img src={featuredPrayer.imageUrl} alt={featuredPrayer.title} className="w-full h-full object-cover" loading="lazy" decoding="async" />
               </div>
             )}
           </div>
@@ -255,6 +257,8 @@ export const OraçõesView: React.FC<{ prayers?: PrayerItem[] }> = ({ prayers = 
                       src={prayer.imageUrl}
                       alt={prayer.title}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                      decoding="async"
                     />
                   </div>
                 )}

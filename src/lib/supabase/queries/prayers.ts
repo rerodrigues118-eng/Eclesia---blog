@@ -1,4 +1,4 @@
-import { supabaseServer } from '../server';
+import { supabase } from '../client';
 
 export interface DBPrayer {
   id: string;
@@ -12,7 +12,7 @@ export interface DBPrayer {
 }
 
 export async function getFeaturedPrayer(): Promise<DBPrayer | null> {
-  const { data, error } = await supabaseServer
+  const { data, error } = await supabase
     .from('prayers')
     .select('*')
     .eq('is_featured_today', true)
@@ -27,7 +27,7 @@ export async function getFeaturedPrayer(): Promise<DBPrayer | null> {
 }
 
 export async function getPrayersBySituation(situation?: string): Promise<DBPrayer[]> {
-  let query = supabaseServer
+  let query = supabase
     .from('prayers')
     .select('*')
     .order('created_at', { ascending: false });
@@ -45,7 +45,7 @@ export async function getPrayersBySituation(situation?: string): Promise<DBPraye
 }
 
 export async function getPrayerBySlug(slug: string): Promise<DBPrayer | null> {
-  const { data, error } = await supabaseServer
+  const { data, error } = await supabase
     .from('prayers')
     .select('*')
     .eq('slug', slug)

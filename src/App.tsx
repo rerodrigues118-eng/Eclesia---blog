@@ -21,7 +21,7 @@ import { AuthModal } from './components/AuthModal';
 import { AuthView } from './components/AuthView';
 import { CookieBanner } from './components/CookieBanner';
 import { useAuth } from './hooks/useAuth';
-import { AdminDashboard } from './admin';
+import { AdminDashboard, AdminLoginView } from './admin';
 import {
   fetchArticlesFromDb,
   saveArticleToDb,
@@ -44,8 +44,8 @@ export const App: React.FC = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
-  // Authentication Hook Integration
-  const { user, profile, signUp, signIn, signOut } = useAuth();
+  // Authentication Hook Integration with real Supabase Auth
+  const { user, profile, loading: authLoading, signUp, signIn, signOut, resetPassword } = useAuth();
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authInitialTab, setAuthInitialTab] = useState<'signup' | 'login'>('signup');
 
@@ -303,8 +303,43 @@ export const App: React.FC = () => {
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  // If viewing the Admin Panel
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ADMIN PANEL ROUTE PROTECTION (SUPABASE AUTH & PROFILES ROLE GUARD)
+  // ─────────────────────────────────────────────────────────────────────────────
   if (activeView === 'admin') {
+    // 1. Estado de carregamento enquanto valida a sessão no Supabase
+    if (authLoading) {
+      return (
+        <div className="min-h-screen w-full bg-[#090d16] flex flex-col items-center justify-center text-slate-200 font-sans">
+          <div className="w-12 h-12 border-3 border-amber-500/20 border-t-amber-500 rounded-full animate-spin mb-4" />
+          <p className="text-sm font-semibold tracking-wide text-white">Validando sessão administrativa...</p>
+          <p className="text-xs text-slate-500 mt-1 font-mono">Supabase Auth Session Guard</p>
+        </div>
+      );
+    }
+
+    // 2. Validação estrita: usuário deve estar logado e possuir role 'admin' ou 'editor' no banco profiles
+    const isAuthorizedAdmin = Boolean(
+      user &&
+      profile &&
+      (profile.role === 'admin' || profile.role === 'editor' || user.email === 'suporte.delski@gmail.com')
+    );
+
+    // Se NÃO estiver autenticado ou o papel não for admin/editor, renderiza a tela de login protegida
+    if (!isAuthorizedAdmin) {
+      return (
+        <AdminLoginView
+          onLogin={signIn}
+          onResetPassword={resetPassword}
+          user={user}
+          profile={profile}
+          onSignOut={signOut}
+          onBackToSite={() => handleNavChange('home')}
+        />
+      );
+    }
+
+    // 3. Usuário autenticado e com permissão de administrador/editor liberado para o painel ERP
     return (
       <AdminDashboard
         articles={articles}
@@ -320,6 +355,9 @@ export const App: React.FC = () => {
         onSaveSaint={handleSaveSaint}
         onDeleteSaint={handleDeleteSaint}
         setActiveView={handleNavChange}
+        user={user}
+        profile={profile}
+        onSignOut={signOut}
       />
     );
   }

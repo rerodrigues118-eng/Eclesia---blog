@@ -38,10 +38,12 @@ import {
   Minimize2,
   Sliders,
   Image as ImageIcon,
-  Megaphone
+  Megaphone,
+  LogOut,
+  User as UserIcon
 } from 'lucide-react';
 
-import { Essay, Product, PrayerItem, ActiveView, Saint, ArticleAdConfig } from '../types';
+import { Essay, Product, PrayerItem, ActiveView, Saint, ArticleAdConfig, UserProfile } from '../types';
 import { AdminTab, SiteSettings } from './types';
 import {
   generateSeoSlug,
@@ -53,6 +55,7 @@ import { RichArticleRenderer } from '../components/RichArticleRenderer';
 import { convertFileToWebP } from '../utils/imageOptimizer';
 import { ArticleLivePreviewModal } from '../components/ArticleLivePreviewModal';
 import { GoogleAdSlot } from '../components/GoogleAdSlot';
+import { fetchSiteSettingsFromDb, saveSiteSettingsToDb } from '../services/dbService';
 
 interface ArticleImageItem {
   id: string;
@@ -76,6 +79,9 @@ interface AdminDashboardProps {
   onSaveSaint: (saint: Saint) => Promise<void> | void;
   onDeleteSaint: (id: string) => Promise<void> | void;
   setActiveView: (view: ActiveView) => void;
+  user?: any;
+  profile?: UserProfile | null;
+  onSignOut?: () => void;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -92,9 +98,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onSaveSaint,
   onDeleteSaint,
   setActiveView,
+  user,
+  profile,
+  onSignOut,
 }) => {
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [isFormSaving, setIsFormSaving] = useState(false);
 
   // Theme State: Light Mode as Default, Dark Mode as optional
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -225,6 +235,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       author: 'Fiódor Dostoiévski'
     }
   });
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchSiteSettingsFromDb().then((dbSettings) => {
+      if (dbSettings && isMounted) {
+        setSettings((prev) => ({ ...prev, ...dbSettings }));
+      }
+    });
+    return () => { isMounted = false; };
+  }, []);
 
   // Helper notification
   const notify = (text: string, type: 'success' | 'error' = 'success') => {
@@ -793,6 +813,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       adConfig: articleAdConfig
     };
 
+    setIsFormSaving(true);
     try {
       await onSaveArticle(payload);
       notify(
@@ -806,6 +827,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     } catch (err: any) {
       console.error('Erro ao salvar artigo:', err);
       notify(`Erro ao gravar no banco de dados: ${err?.message || 'Verifique as permissões RLS no Supabase.'}`, 'error');
+    } finally {
+      setIsFormSaving(false);
     }
   };
 
@@ -838,7 +861,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setIsProductFormOpen(true);
   };
 
-  const handleSaveProductSubmit = (e: React.FormEvent) => {
+  const handleSaveProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const priceNum = parseFloat(prodPrice.toString().replace(',', '.'));
     if (!prodTitle.trim() || isNaN(priceNum) || priceNum <= 0) {
@@ -858,10 +881,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       buyUrl: prodBuyUrl.trim() || undefined
     };
 
-    onSaveProduct(payload);
-    notify(`Produto "${payload.title}" salvo no catálogo!`);
-    setIsProductFormOpen(false);
-    setEditingProduct(null);
+    setIsFormSaving(true);
+    try {
+      await onSaveProduct(payload);
+      notify(`Produto "${payload.title}" salvo no catálogo com sucesso!`);
+      setIsProductFormOpen(false);
+      setEditingProduct(null);
+    } catch (err: any) {
+      console.error('Erro ao salvar produto:', err);
+      notify(`Erro ao salvar produto: ${err?.message || 'Erro de banco de dados'}`, 'error');
+    } finally {
+      setIsFormSaving(false);
+    }
   };
 
   // =========================================================================
@@ -889,7 +920,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setIsPrayerFormOpen(true);
   };
 
-  const handleSavePrayerSubmit = (e: React.FormEvent) => {
+  const handleSavePrayerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!prayerTitle.trim() || !prayerText.trim()) {
       notify('Preencha o título e o texto da oração.', 'error');
@@ -908,10 +939,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       imageUrl: prayerImageUrl.trim() || undefined
     };
 
-    onSavePrayer(payload);
-    notify(`Oração "${payload.title}" salva no acervo com sucesso!`);
-    setIsPrayerFormOpen(false);
-    setEditingPrayer(null);
+    setIsFormSaving(true);
+    try {
+      await onSavePrayer(payload);
+      notify(`Oração "${payload.title}" salva no acervo com sucesso!`);
+      setIsPrayerFormOpen(false);
+      setEditingPrayer(null);
+    } catch (err: any) {
+      console.error('Erro ao salvar oração:', err);
+      notify(`Erro ao salvar oração: ${err?.message || 'Erro de banco de dados'}`, 'error');
+    } finally {
+      setIsFormSaving(false);
+    }
   };
 
   // =========================================================================
@@ -949,7 +988,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setIsSaintFormOpen(true);
   };
 
-  const handleSaveSaintSubmit = (e: React.FormEvent) => {
+  const handleSaveSaintSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!saintName.trim()) {
       notify('Preencha o nome do santo.', 'error');
@@ -974,10 +1013,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       featured: saintFeatured
     };
 
-    onSaveSaint(payload);
-    notify(`Santo "${payload.name}" salvo no Santoral!`);
-    setIsSaintFormOpen(false);
-    setEditingSaint(null);
+    setIsFormSaving(true);
+    try {
+      await onSaveSaint(payload);
+      notify(`Santo "${payload.name}" salvo no Santoral!`);
+      setIsSaintFormOpen(false);
+      setEditingSaint(null);
+    } catch (err: any) {
+      console.error('Erro ao salvar santo:', err);
+      notify(`Erro ao salvar santo: ${err?.message || 'Erro de banco de dados'}`, 'error');
+    } finally {
+      setIsFormSaving(false);
+    }
   };
 
   // Search filtering
@@ -1057,6 +1104,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <span>18ms</span>
           </div>
 
+          {/* Current User Info & Role Badge */}
+          {user && (
+            <div className={`hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs ${
+              isDark
+                ? 'bg-slate-900/80 border-slate-800 text-slate-200'
+                : 'bg-slate-100 border-slate-200 text-slate-800'
+            }`}>
+              <UserIcon className="w-3.5 h-3.5 text-amber-500" />
+              <span className="font-mono text-[11px] max-w-[150px] truncate" title={user.email}>
+                {user.email}
+              </span>
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold font-mono uppercase bg-amber-500 text-slate-950">
+                {profile?.role || 'admin'}
+              </span>
+            </div>
+          )}
+
           {/* Theme Toggle Button (Light/Dark) */}
           <button
             onClick={toggleTheme}
@@ -1073,14 +1137,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
           <button
             onClick={() => setActiveView('home')}
-            className={`px-4 py-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer flex items-center gap-2 ${
+            className={`px-3.5 py-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 ${
               isDark
                 ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
-                : 'bg-slate-900 hover:bg-slate-800 text-white border-slate-900 shadow-xs'
+                : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300 shadow-xs'
             }`}
+            title="Visualizar o site público"
           >
-            <ArrowLeft className="w-4 h-4" /> Ver Portal Público
+            <ArrowLeft className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Ver Portal</span>
           </button>
+
+          {/* Real Supabase Auth Logout Button */}
+          {onSignOut && (
+            <button
+              onClick={onSignOut}
+              className="px-3.5 py-2 text-xs font-semibold rounded-xl border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
+              title="Encerrar sessão de administrador (Logout)"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Sair</span>
+            </button>
+          )}
         </div>
       </header>
 
@@ -2188,9 +2265,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </button>
                       <button
                         type="submit"
-                        className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-bold uppercase shadow-md cursor-pointer"
+                        disabled={isFormSaving}
+                        className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 rounded-xl text-xs font-bold uppercase shadow-md cursor-pointer flex items-center gap-2"
                       >
-                        {editingArticle ? 'Salvar Alterações do Artigo' : 'Publicar Artigo'}
+                        {isFormSaving && <span className="animate-spin">⏳</span>}
+                        {isFormSaving ? 'Gravando no Banco...' : (editingArticle ? 'Salvar Alterações do Artigo' : 'Publicar Artigo')}
                       </button>
                     </div>
                   </div>
@@ -2465,9 +2544,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </button>
                     <button
                       type="submit"
-                      className="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-bold uppercase shadow-sm cursor-pointer"
+                      disabled={isFormSaving}
+                      className="px-6 py-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 rounded-xl text-xs font-bold uppercase shadow-sm cursor-pointer flex items-center gap-2"
                     >
-                      Salvar Produto
+                      {isFormSaving && <span className="animate-spin">⏳</span>}
+                      {isFormSaving ? 'Gravando Produto...' : 'Salvar Produto'}
                     </button>
                   </div>
                 </form>
@@ -2688,9 +2769,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </button>
                     <button
                       type="submit"
-                      className="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-bold uppercase shadow-sm cursor-pointer"
+                      disabled={isFormSaving}
+                      className="px-6 py-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 rounded-xl text-xs font-bold uppercase shadow-sm cursor-pointer flex items-center gap-2"
                     >
-                      Salvar Oração
+                      {isFormSaving && <span className="animate-spin">⏳</span>}
+                      {isFormSaving ? 'Gravando Oração...' : 'Salvar Oração'}
                     </button>
                   </div>
                 </form>
@@ -2971,9 +3054,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </button>
                     <button
                       type="submit"
-                      className="px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-bold uppercase shadow-sm cursor-pointer"
+                      disabled={isFormSaving}
+                      className="px-6 py-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 rounded-xl text-xs font-bold uppercase shadow-sm cursor-pointer flex items-center gap-2"
                     >
-                      Salvar Santo
+                      {isFormSaving && <span className="animate-spin">⏳</span>}
+                      {isFormSaving ? 'Gravando Santo...' : 'Salvar Santo'}
                     </button>
                   </div>
                 </form>
@@ -3113,10 +3198,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => notify('Conteúdos institucionais atualizados com sucesso!')}
-                  className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-bold uppercase shadow-sm cursor-pointer"
+                  disabled={isFormSaving}
+                  onClick={async () => {
+                    setIsFormSaving(true);
+                    try {
+                      await saveSiteSettingsToDb(settings);
+                      notify('Conteúdos institucionais atualizados e salvos com sucesso no Supabase!');
+                    } catch (err: any) {
+                      notify(`Erro ao salvar no banco: ${err?.message}`, 'error');
+                    } finally {
+                      setIsFormSaving(false);
+                    }
+                  }}
+                  className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 rounded-xl text-xs font-bold uppercase shadow-sm cursor-pointer flex items-center gap-2"
                 >
-                  Salvar Textos do Site
+                  {isFormSaving && <span className="animate-spin">⏳</span>}
+                  {isFormSaving ? 'Gravando...' : 'Salvar Textos do Site'}
                 </button>
               </div>
             </div>
@@ -3136,7 +3233,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Identidade do portal, canais de comunicação e credenciais de suporte.</p>
               </div>
 
-              <form onSubmit={(e) => { e.preventDefault(); notify('Configurações salvas!'); }} className="space-y-4 max-w-xl">
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  setIsFormSaving(true);
+                  try {
+                    await saveSiteSettingsToDb(settings);
+                    notify('Configurações globais salvas com sucesso no Supabase!');
+                  } catch (err: any) {
+                    notify(`Erro ao salvar configurações: ${err?.message}`, 'error');
+                  } finally {
+                    setIsFormSaving(false);
+                  }
+                }}
+                className="space-y-4 max-w-xl"
+              >
                 <div>
                   <label className={`block text-xs font-bold uppercase mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Nome do Portal</label>
                   <input
@@ -3200,9 +3311,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-bold uppercase shadow-sm cursor-pointer"
+                  disabled={isFormSaving}
+                  className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 rounded-xl text-xs font-bold uppercase shadow-sm cursor-pointer flex items-center gap-2"
                 >
-                  Salvar Configurações
+                  {isFormSaving && <span className="animate-spin">⏳</span>}
+                  {isFormSaving ? 'Gravando...' : 'Salvar Configurações'}
                 </button>
               </form>
             </div>

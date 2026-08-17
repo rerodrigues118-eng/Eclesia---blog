@@ -1,4 +1,4 @@
-import { supabaseServer } from '../server';
+import { supabase } from '../client';
 
 export interface DBArticle {
   id: string;
@@ -19,7 +19,7 @@ export interface DBArticle {
 }
 
 export async function getPublishedArticles(category?: string, limit = 20): Promise<DBArticle[]> {
-  let query = supabaseServer
+  let query = supabase
     .from('articles')
     .select('*')
     .eq('status', 'publicado')
@@ -39,7 +39,7 @@ export async function getPublishedArticles(category?: string, limit = 20): Promi
 }
 
 export async function getFeaturedArticle(): Promise<DBArticle | null> {
-  const { data, error } = await supabaseServer
+  const { data, error } = await supabase
     .from('articles')
     .select('*')
     .eq('status', 'publicado')
@@ -56,7 +56,7 @@ export async function getFeaturedArticle(): Promise<DBArticle | null> {
 }
 
 export async function getArticleBySlug(slug: string): Promise<DBArticle | null> {
-  const { data, error } = await supabaseServer
+  const { data, error } = await supabase
     .from('articles')
     .select('*')
     .eq('slug', slug)
@@ -71,7 +71,7 @@ export async function getArticleBySlug(slug: string): Promise<DBArticle | null> 
 }
 
 export async function getAllArticleSlugs(): Promise<{ slug: string }[]> {
-  const { data, error } = await supabaseServer
+  const { data, error } = await supabase
     .from('articles')
     .select('slug')
     .eq('status', 'publicado');

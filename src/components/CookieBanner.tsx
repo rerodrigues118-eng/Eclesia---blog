@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Cookie, X, CheckCircle, Heart } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase/client';
 import { ActiveView } from '../types';
+import { initAdcashIfConsented } from '../lib/adcash';
 
 interface CookieBannerProps {
   onOpenPrivacy?: () => void;
@@ -24,6 +25,9 @@ export const CookieBanner: React.FC<CookieBannerProps> = ({ setActiveView }) => 
         setIsVisible(true);
       }, 1000);
       return () => clearTimeout(timer);
+    } else {
+      // Inicializa anúncios se o consentimento anterior foi concedido
+      initAdcashIfConsented();
     }
   }, []);
 
@@ -38,6 +42,9 @@ export const CookieBanner: React.FC<CookieBannerProps> = ({ setActiveView }) => 
     // 1. Save to local storage immediately
     try {
       localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(consentData));
+      if (consentType === 'all') {
+        initAdcashIfConsented();
+      }
     } catch (err) {
       console.warn('LocalStorage error:', err);
     }

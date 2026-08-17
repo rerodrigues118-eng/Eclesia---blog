@@ -1,4 +1,4 @@
-import { supabaseServer } from '../server';
+import { supabase } from '../client';
 
 export interface DBLiturgia {
   id: string;
@@ -18,7 +18,7 @@ export interface DBLiturgia {
 export async function getLiturgyByDate(dateStr?: string): Promise<DBLiturgia | null> {
   const targetDate = dateStr || new Date().toISOString().split('T')[0];
 
-  const { data, error } = await supabaseServer
+  const { data, error } = await supabase
     .from('daily_liturgy')
     .select('*')
     .eq('date', targetDate)

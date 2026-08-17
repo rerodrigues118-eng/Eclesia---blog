@@ -1,0 +1,8 @@
+# ads.txt — Eclesia Editorial
+# https://eclesia.blog/ads.txt
+
+# Adcash Advertising Network
+adcash.com, 100000, DIRECT
+
+# Google AdSense (se configurado)
+# google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0

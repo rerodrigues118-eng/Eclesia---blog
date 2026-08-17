@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArticleAdConfig } from '../types';
 import { GoogleAdSlot } from './GoogleAdSlot';
+import { Sparkles, BookOpen } from 'lucide-react';
 
 interface RichArticleRendererProps {
   content: string;
@@ -19,11 +20,23 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
 }) => {
   if (!content) return null;
 
-  // Split by double newline or single newline to process paragraphs and custom tags
+  // Separa o conteúdo em blocos estruturados
   const rawBlocks = content.split(/\n\n+/);
-  const middleAdPos = adConfig?.middleAdParagraph || 3;
-  let paragraphCount = 0;
-  const hasManualAdTag = rawBlocks.some(b => /^\[anuncio(?::\s*[^\]]+)?\]$/i.test(b.trim()));
+  const targetAdParagraph = adConfig?.middleAdParagraph || 3;
+  const hasManualAdTag = rawBlocks.some(b => /^\[(anuncio|adsense)(?::\s*[^\]]+)?\]$/i.test(b.trim()));
+
+  // Helper para identificar se um bloco é devocional/sagrado (onde anúncios NUNCA devem ser colados)
+  const isSacredBlock = (text: string): boolean => {
+    const t = text.trim();
+    return (
+      t.startsWith('>') ||
+      /^\[oracao(?::\s*[^\]]+)?\]/i.test(t) ||
+      /^\[citacao_biblica(?::\s*[^\]]+)?\]/i.test(t) ||
+      t.startsWith('#') ||
+      t === '---' ||
+      t === '⸻'
+    );
+  };
 
   // Helper to resolve media URL (handles short IDs like "img-1", "1" or direct URLs / base64)
   const resolveImgUrl = (ref: string): string => {
@@ -42,7 +55,6 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
       const part1 = parts[0].trim();
       const part2 = parts.slice(1).join('|').trim();
 
-      // Check if part1 is a width like "300px", "50%", "400"
       if (/^(\d+px|\d+%|\d+)$/i.test(part1)) {
         width = part1.endsWith('px') || part1.endsWith('%') ? part1 : `${part1}px`;
         caption = part2;
@@ -61,13 +73,16 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
     return { width, caption };
   };
 
+  let paragraphCount = 0;
+  let adInserted = false;
+
   return (
     <div className="rich-article-content font-sans text-[#1c1b1b] text-base md:text-lg leading-relaxed space-y-6 pt-2 clearfix">
       {rawBlocks.map((block, index) => {
         const trimmed = block.trim();
         if (!trimmed) return null;
 
-        // Custom Ad Tag: [anuncio] or [anuncio: meio] or [adsense]
+        // Custom Ad Tag Manual: [anuncio] ou [anuncio: meio]
         if (/^\[(anuncio|adsense)(?::\s*([^\]]+))?\]$/i.test(trimmed)) {
           return (
             <GoogleAdSlot
@@ -81,7 +96,51 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
           );
         }
 
-        // 1. Tag [img-esquerda: URL_OU_ID | (OPCIONAL: LARGURA) | (OPCIONAL: LEGENDA)]
+        // 1. Tag [ORACAO: Título (opcional)] ... [/ORACAO]
+        const oracaoMatch = trimmed.match(/^\[oracao(?::\s*([^\]]+))?\]([\s\S]*?)(?:\[\/oracao\]|$)/i);
+        if (oracaoMatch) {
+          const prayerTitle = oracaoMatch[1]?.trim() || 'Oração Devocional';
+          const prayerBody = oracaoMatch[2]?.trim() || '';
+
+          return (
+            <div
+              key={index}
+              className="my-8 bg-gradient-to-br from-amber-50/80 via-white to-amber-50/50 border-2 border-[#785600]/40 rounded-3xl p-6 md:p-8 shadow-xs relative overflow-hidden"
+            >
+              <div className="flex items-center gap-2 mb-3 text-[#785600]">
+                <Sparkles className="w-4 h-4" />
+                <span className="font-sans text-xs font-bold uppercase tracking-widest">{prayerTitle}</span>
+              </div>
+              <p className="font-serif italic text-base md:text-lg text-[#2e261d] leading-relaxed whitespace-pre-line">
+                {formatInlineText(prayerBody)}
+              </p>
+            </div>
+          );
+        }
+
+        // 2. Tag [CITACAO_BIBLICA: Referência] ... [/CITACAO_BIBLICA]
+        const bibliaMatch = trimmed.match(/^\[citacao_biblica(?::\s*([^\]]+))?\]([\s\S]*?)(?:\[\/citacao_biblica\]|$)/i);
+        if (bibliaMatch) {
+          const refTitle = bibliaMatch[1]?.trim() || 'Sagrada Escritura';
+          const quoteBody = bibliaMatch[2]?.trim() || '';
+
+          return (
+            <blockquote
+              key={index}
+              className="my-6 p-6 bg-[#fbf8f5] border-l-4 border-[#785600] rounded-r-2xl shadow-xs space-y-2"
+            >
+              <div className="flex items-center gap-2 text-[#785600] text-xs font-bold uppercase tracking-wider">
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>{refTitle}</span>
+              </div>
+              <p className="font-serif italic text-base md:text-lg text-[#1c1b1b] leading-relaxed">
+                "{formatInlineText(quoteBody)}"
+              </p>
+            </blockquote>
+          );
+        }
+
+        // 3. Imagem Esquerda: [img-esquerda: URL_OU_ID | LARGURA | LEGENDA]
         const leftImgMatch = trimmed.match(/^\[img-esquerda:\s*([^|\]]+)(?:\|\s*([^\]]+))?\]$/i);
         if (leftImgMatch) {
           const rawRef = leftImgMatch[1].trim();
@@ -100,6 +159,7 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
                 alt={caption || 'Ilustração do artigo'}
                 className="w-full h-auto max-h-[420px] object-cover rounded-xl"
                 loading="lazy"
+                decoding="async"
               />
               {caption && (
                 <figcaption className="text-center font-sans text-xs text-[#817563] italic pt-2 px-2">
@@ -110,7 +170,7 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
           );
         }
 
-        // 2. Tag [img-direita: URL_OU_ID | (OPCIONAL: LARGURA) | (OPCIONAL: LEGENDA)]
+        // 4. Imagem Direita: [img-direita: URL_OU_ID | LARGURA | LEGENDA]
         const rightImgMatch = trimmed.match(/^\[img-direita:\s*([^|\]]+)(?:\|\s*([^\]]+))?\]$/i);
         if (rightImgMatch) {
           const rawRef = rightImgMatch[1].trim();
@@ -129,6 +189,7 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
                 alt={caption || 'Ilustração do artigo'}
                 className="w-full h-auto max-h-[420px] object-cover rounded-xl"
                 loading="lazy"
+                decoding="async"
               />
               {caption && (
                 <figcaption className="text-center font-sans text-xs text-[#817563] italic pt-2 px-2">
@@ -139,7 +200,7 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
           );
         }
 
-        // 3. Tag [img-centro: URL_OU_ID | (OPCIONAL: LARGURA) | (OPCIONAL: LEGENDA)]
+        // 5. Imagem Central: [img-centro: URL_OU_ID | LARGURA | LEGENDA]
         const centerImgMatch = trimmed.match(/^\[img-centro:\s*([^|\]]+)(?:\|\s*([^\]]+))?\]$/i);
         if (centerImgMatch) {
           const rawRef = centerImgMatch[1].trim();
@@ -158,6 +219,7 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
                 alt={caption || 'Ilustração do artigo'}
                 className="w-full h-auto max-h-[500px] object-cover rounded-xl mx-auto"
                 loading="lazy"
+                decoding="async"
               />
               {caption && (
                 <figcaption className="font-sans text-xs text-[#817563] italic pt-2">
@@ -168,7 +230,7 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
           );
         }
 
-        // 4. Headings: # H1, ## H2, ### H3, #### H4
+        // 6. Headings (#, ##, ###, ####)
         if (trimmed.startsWith('#### ')) {
           return (
             <h4 key={index} className="font-display text-base sm:text-lg lg:text-xl font-bold text-[#1c1b1b] mt-6 mb-2 tracking-tight break-words">
@@ -198,7 +260,7 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
           );
         }
 
-        // 5. Citação Sacra / Frase de Santo (> ...)
+        // 7. Citação Tradicional (> ...)
         if (trimmed.startsWith('>')) {
           return (
             <blockquote
@@ -212,7 +274,7 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
           );
         }
 
-        // 6. Divisor Decorativo (--- ou ⸻)
+        // 8. Divisor Decorativo
         if (trimmed === '---' || trimmed === '⸻') {
           return (
             <div key={index} className="my-6 sm:my-8 clear-both flex items-center justify-center gap-3 text-[#d3c4af]">
@@ -223,9 +285,18 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
           );
         }
 
-        // 7. Regular Paragraph
+        // 9. Parágrafo Regular com Injeção Inteligente de Anúncio
         paragraphCount++;
-        const isMiddleAdTarget = !hasManualAdTag && adConfig?.showMiddleAd && paragraphCount === middleAdPos;
+
+        // Checa se o bloco anterior ou o próximo é sagrado/oração para evitar anúncios colados
+        const prevBlockIsSacred = index > 0 && isSacredBlock(rawBlocks[index - 1]);
+        const nextBlockIsSacred = index < rawBlocks.length - 1 && isSacredBlock(rawBlocks[index + 1]);
+        const canInsertAdHere = !hasManualAdTag && adConfig?.showMiddleAd && !adInserted && !prevBlockIsSacred && !nextBlockIsSacred;
+
+        const isMiddleAdTarget = canInsertAdHere && paragraphCount >= targetAdParagraph;
+        if (isMiddleAdTarget) {
+          adInserted = true;
+        }
 
         return (
           <React.Fragment key={index}>
@@ -245,7 +316,6 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
         );
       })}
 
-      {/* Clearfix spacer */}
       <div className="clear-both" />
     </div>
   );
@@ -267,36 +337,29 @@ function formatInlineText(text: string): React.ReactNode {
       return (
         <span
           key={i}
-          style={{ fontSize: `clamp(14px, ${sizePx}px, ${sizePx}px)`, lineHeight: 1.3 }}
-          className="font-bold inline-block my-1 text-[#1c1b1b] max-w-full break-words"
+          style={{ fontSize: `${sizePx}px`, lineHeight: '1.2' }}
+          className="inline-block font-display font-bold my-1 text-[#785600]"
         >
           {innerText}
         </span>
       );
     }
 
-    // Bold: **text**
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={i} className="font-bold text-[#1c1b1b] break-words">{part.slice(2, -2)}</strong>;
-    }
-
-    // Italic: *text*
-    if (part.startsWith('*') && part.endsWith('*')) {
-      return <em key={i} className="italic text-[#4f4535] break-words">{part.slice(1, -1)}</em>;
-    }
-
-    // Handle single newlines inside paragraph
-    if (part.includes('\n')) {
-      const lineSegments = part.split('\n');
+    // Bold **text**
+    if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
       return (
-        <React.Fragment key={i}>
-          {lineSegments.map((segment, segIdx) => (
-            <React.Fragment key={segIdx}>
-              {segment}
-              {segIdx < lineSegments.length - 1 && <br />}
-            </React.Fragment>
-          ))}
-        </React.Fragment>
+        <strong key={i} className="font-bold text-[#1c1b1b]">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+
+    // Italic *text*
+    if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
+      return (
+        <em key={i} className="italic text-[#4f4535]">
+          {part.slice(1, -1)}
+        </em>
       );
     }
 

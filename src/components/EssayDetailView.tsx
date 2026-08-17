@@ -187,6 +187,8 @@ export const EssayDetailView: React.FC<EssayDetailViewProps> = ({ essay, onBack,
               src={essay.imageUrl}
               alt={essay.title}
               className="w-full h-full object-cover"
+              loading="lazy"
+              decoding="async"
             />
           </div>
 
@@ -263,7 +265,7 @@ export const EssayDetailView: React.FC<EssayDetailViewProps> = ({ essay, onBack,
                       onClick={() => onSelectEssay(r)}
                       className="cursor-pointer group flex items-start gap-3 border-b border-[#d3c4af]/30 pb-3"
                     >
-                      <img src={r.imageUrl} alt={r.title} className="w-16 h-12 object-cover rounded-lg shrink-0" />
+                      <img src={r.imageUrl} alt={r.title} className="w-16 h-12 object-cover rounded-lg shrink-0" loading="lazy" decoding="async" />
                       <div>
                         <h5 className="text-xs font-bold text-[#1c1b1b] group-hover:text-[#785600] line-clamp-2">{r.title}</h5>
                         <span className="text-[10px] text-[#817563]">{r.date}</span>
@@ -302,6 +304,8 @@ export const EssayDetailView: React.FC<EssayDetailViewProps> = ({ essay, onBack,
                     src={item.imageUrl}
                     alt={item.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                    decoding="async"
                   />
                   <span className={`absolute top-2 left-2 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded text-white ${
                     item.type === 'noticia' ? 'bg-[#9a3e3c]' : 'bg-[#785600]'

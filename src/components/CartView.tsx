@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, ShoppingBag, Plus, Minus, Trash2, ArrowLeft, ShoppingCart, ExternalLink } from 'lucide-react';
 import { Product } from '../types';
+import { openSafeExternalUrl, isSafeHttpUrl } from '../lib/security';
 
 interface CartViewProps {
   cart: { product: Product; quantity: number }[];
@@ -23,8 +24,10 @@ export const CartView: React.FC<CartViewProps> = ({
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const handleBuyItem = (product: Product) => {
-    if (product.buyUrl) {
-      window.open(product.buyUrl, '_blank', 'noopener,noreferrer');
+    if (product.buyUrl && isSafeHttpUrl(product.buyUrl)) {
+      openSafeExternalUrl(product.buyUrl);
+    } else if (product.buyUrl) {
+      alert('O link de compra deste item é inválido ou não possui protocolo seguro (HTTPS).');
     } else {
       alert(`O link de compra para "${product.title}" estará disponível em breve no parceiro oficial.`);
     }

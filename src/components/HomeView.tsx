@@ -318,6 +318,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
                       src={essay.imageUrl}
                       alt={essay.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                      decoding="async"
                     />
                   </div>
 
@@ -366,6 +368,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     src={articles[0].imageUrl}
                     alt={articles[0].title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
 
@@ -443,6 +447,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   src={prayer.imageUrl}
                   alt={prayer.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
+                  decoding="async"
                 />
                 {/* Dark Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
@@ -475,6 +481,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 src={cat.imageUrl}
                 alt={cat.title}
                 className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+                decoding="async"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
               
@@ -522,6 +530,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     src={product.imageUrl}
                     alt={product.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                    decoding="async"
                   />
                   <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-xs text-[#785600] font-sans text-[10px] font-bold uppercase px-2.5 py-1 rounded-full shadow-xs">
                     {product.category}

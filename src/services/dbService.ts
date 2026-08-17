@@ -17,7 +17,8 @@ export async function fetchArticlesFromDb(): Promise<Essay[]> {
         .from('articles')
         .select('*')
         .order('published_at', { ascending: false, nullsFirst: false })
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(100);
 
       if (error) {
         console.error('[dbService] Erro ao buscar artigos do Supabase:', error);
@@ -99,12 +100,12 @@ export async function saveArticleToDb(article: Essay): Promise<{ success: boolea
       throw new Error(`[Supabase ${error.code || 'ERR'}]: ${error.message} ${error.details || ''} ${error.hint || ''}`.trim());
     }
 
-    if (data && data[0]) {
-      console.log('[dbService] Artigo salvo com sucesso no Supabase:', data[0]);
+    if (data && data[0] && data[0].id) {
+      article.id = data[0].id;
     }
   }
 
-  // Atualiza cache local de backup
+  // Backup e sincronização em localStorage
   const local = localStorage.getItem(STORAGE_KEY_ARTICLES);
   let current: Essay[] = [];
   if (local) {
@@ -114,9 +115,10 @@ export async function saveArticleToDb(article: Essay): Promise<{ success: boolea
       current = [];
     }
   }
-  const exists = current.some(a => a.id === article.id || (a.slug && article.slug && a.slug === article.slug));
+
+  const exists = current.some(a => a.id === article.id || (a.slug && a.slug === article.slug));
   const updatedList = exists
-    ? current.map(a => (a.id === article.id || (a.slug && article.slug && a.slug === article.slug)) ? article : a)
+    ? current.map(a => (a.id === article.id || a.slug === article.slug) ? article : a)
     : [article, ...current];
   localStorage.setItem(STORAGE_KEY_ARTICLES, JSON.stringify(updatedList));
 
@@ -134,14 +136,24 @@ export async function deleteArticleFromDb(id: string): Promise<boolean> {
   }
 
   if (isSupabaseConfigured) {
-    try {
-      await supabase.from('articles').delete().eq('id', id);
-    } catch (err) {
-      console.warn('[dbService] Supabase article delete warning:', err);
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    const query = isUuid
+      ? supabase.from('articles').delete().eq('id', id)
+      : supabase.from('articles').delete().eq('slug', id);
+
+    const { error } = await query;
+    if (error) {
+      console.error('[dbService] Erro ao deletar artigo do Supabase:', error);
+      throw new Error(`[Supabase ${error.code || 'ERR'}]: ${error.message}`);
     }
   }
+
   return true;
 }
+
+// =========================================================================
+// 2. PRODUCTS / STORE DATABASE SERVICE (100% DINÂMICO SUPABASE)
+// =========================================================================
 
 export async function fetchProductsFromDb(): Promise<Product[]> {
   try {
@@ -149,8 +161,8 @@ export async function fetchProductsFromDb(): Promise<Product[]> {
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .eq('active', true)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(100);
 
       if (error) {
         console.error('[dbService] Erro ao buscar produtos do Supabase:', error);
@@ -161,11 +173,11 @@ export async function fetchProductsFromDb(): Promise<Product[]> {
           id: item.id,
           title: item.name || '',
           subtitle: item.subtitle || '',
-          price: item.price_cents !== undefined ? item.price_cents / 100 : 0,
-          category: (item.category || 'livro') as any,
-          imageUrl: (item.images && item.images[0]) || item.image_url || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=600',
+          price: (item.price_cents || 0) / 100,
+          category: item.category || 'livro',
+          imageUrl: (item.images && item.images[0]) || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=600',
           description: item.description || '',
-          inStock: item.stock !== undefined ? item.stock > 0 : true,
+          inStock: (item.stock || 0) > 0,
           buyUrl: item.buy_url || ''
         }));
 
@@ -189,6 +201,37 @@ export async function fetchProductsFromDb(): Promise<Product[]> {
 }
 
 export async function saveProductToDb(product: Product): Promise<{ success: boolean; product: Product }> {
+  if (isSupabaseConfigured) {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(product.id);
+    const payload: any = {
+      name: product.title,
+      slug: product.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
+      subtitle: product.subtitle || '',
+      description: product.description || '',
+      price_cents: Math.round((product.price || 0) * 100),
+      images: product.imageUrl ? [product.imageUrl] : [],
+      stock: product.inStock ? 50 : 0,
+      category: product.category || 'livro',
+      active: true,
+      buy_url: product.buyUrl || ''
+    };
+
+    if (isUuid) {
+      payload.id = product.id;
+    }
+
+    const { data, error } = await supabase.from('products').upsert(payload, { onConflict: 'slug' }).select();
+
+    if (error) {
+      console.error('[dbService] Erro ao salvar produto no Supabase:', error);
+      throw new Error(`[Supabase ${error.code || 'ERR'}]: ${error.message}`);
+    }
+
+    if (data && data[0] && data[0].id) {
+      product.id = data[0].id;
+    }
+  }
+
   const local = localStorage.getItem(STORAGE_KEY_PRODUCTS);
   let current: Product[] = [];
   if (local) {
@@ -205,32 +248,6 @@ export async function saveProductToDb(product: Product): Promise<{ success: bool
     : [product, ...current];
   localStorage.setItem(STORAGE_KEY_PRODUCTS, JSON.stringify(updatedList));
 
-  if (isSupabaseConfigured) {
-    try {
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(product.id);
-      const payload: any = {
-        name: product.title,
-        slug: product.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
-        subtitle: product.subtitle,
-        description: product.description,
-        price_cents: Math.round((product.price || 0) * 100),
-        images: product.imageUrl ? [product.imageUrl] : [],
-        stock: product.inStock ? 50 : 0,
-        category: product.category || 'livro',
-        active: true,
-        buy_url: product.buyUrl
-      };
-
-      if (isUuid) {
-        payload.id = product.id;
-      }
-
-      await supabase.from('products').upsert(payload, { onConflict: 'slug' });
-    } catch (err) {
-      console.warn('[dbService] Supabase product upsert warning:', err);
-    }
-  }
-
   return { success: true, product };
 }
 
@@ -245,10 +262,15 @@ export async function deleteProductFromDb(id: string): Promise<boolean> {
   }
 
   if (isSupabaseConfigured) {
-    try {
-      await supabase.from('products').delete().eq('id', id);
-    } catch (err) {
-      console.warn('[dbService] Supabase product delete warning:', err);
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    const query = isUuid
+      ? supabase.from('products').delete().eq('id', id)
+      : supabase.from('products').delete().eq('slug', id);
+
+    const { error } = await query;
+    if (error) {
+      console.error('[dbService] Erro ao excluir produto no Supabase:', error);
+      throw new Error(`[Supabase ${error.code || 'ERR'}]: ${error.message}`);
     }
   }
   return true;
@@ -264,7 +286,9 @@ export async function fetchPrayersFromDb(): Promise<PrayerItem[]> {
       const { data, error } = await supabase
         .from('prayers')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('is_featured_today', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(100);
 
       if (error) {
         console.error('[dbService] Erro ao buscar orações do Supabase:', error);
@@ -274,12 +298,11 @@ export async function fetchPrayersFromDb(): Promise<PrayerItem[]> {
         const mapped: PrayerItem[] = data.map((item: any) => ({
           id: item.id,
           title: item.title || '',
-          category: (item.category || item.situation || 'diarias') as any,
-          text: item.text || item.content || '',
-          content: item.content || item.text || '',
+          category: item.situation || item.category || 'diarias',
+          text: item.content || item.text || '',
           description: item.description || '',
           isDaySpecial: Boolean(item.is_featured_today),
-          imageUrl: item.image_url || ''
+          imageUrl: item.image_url || 'https://images.unsplash.com/photo-1548625361-195979bc7583?auto=format&fit=crop&q=80&w=800'
         }));
 
         localStorage.setItem(STORAGE_KEY_PRAYERS, JSON.stringify(mapped));
@@ -302,6 +325,36 @@ export async function fetchPrayersFromDb(): Promise<PrayerItem[]> {
 }
 
 export async function savePrayerToDb(prayer: PrayerItem): Promise<{ success: boolean; prayer: PrayerItem }> {
+  if (isSupabaseConfigured) {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(prayer.id);
+    const payload: any = {
+      title: prayer.title,
+      slug: prayer.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
+      situation: prayer.category || 'diarias',
+      category: prayer.category || 'diarias',
+      content: prayer.text || prayer.content || '',
+      text: prayer.text || prayer.content || '',
+      description: prayer.description || '',
+      is_featured_today: !!(prayer.isDaySpecial),
+      image_url: prayer.imageUrl || null
+    };
+
+    if (isUuid) {
+      payload.id = prayer.id;
+    }
+
+    const { data, error } = await supabase.from('prayers').upsert(payload, { onConflict: 'slug' }).select();
+
+    if (error) {
+      console.error('[dbService] Erro ao salvar oração no Supabase:', error);
+      throw new Error(`[Supabase ${error.code || 'ERR'}]: ${error.message}`);
+    }
+
+    if (data && data[0] && data[0].id) {
+      prayer.id = data[0].id;
+    }
+  }
+
   const local = localStorage.getItem(STORAGE_KEY_PRAYERS);
   let current: PrayerItem[] = [];
   if (local) {
@@ -318,31 +371,6 @@ export async function savePrayerToDb(prayer: PrayerItem): Promise<{ success: boo
     : [prayer, ...current];
   localStorage.setItem(STORAGE_KEY_PRAYERS, JSON.stringify(updatedList));
 
-  if (isSupabaseConfigured) {
-    try {
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(prayer.id);
-      const payload: any = {
-        title: prayer.title,
-        slug: prayer.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
-        situation: prayer.category || 'diarias',
-        category: prayer.category || 'diarias',
-        content: prayer.text || prayer.content || '',
-        text: prayer.text || prayer.content || '',
-        description: prayer.description,
-        is_featured_today: !!(prayer.isDaySpecial),
-        image_url: prayer.imageUrl
-      };
-
-      if (isUuid) {
-        payload.id = prayer.id;
-      }
-
-      await supabase.from('prayers').upsert(payload, { onConflict: 'slug' });
-    } catch (err) {
-      console.warn('[dbService] Supabase prayer upsert warning:', err);
-    }
-  }
-
   return { success: true, prayer };
 }
 
@@ -357,10 +385,15 @@ export async function deletePrayerFromDb(id: string): Promise<boolean> {
   }
 
   if (isSupabaseConfigured) {
-    try {
-      await supabase.from('prayers').delete().eq('id', id);
-    } catch (err) {
-      console.warn('[dbService] Supabase prayer delete warning:', err);
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    const query = isUuid
+      ? supabase.from('prayers').delete().eq('id', id)
+      : supabase.from('prayers').delete().eq('slug', id);
+
+    const { error } = await query;
+    if (error) {
+      console.error('[dbService] Erro ao excluir oração no Supabase:', error);
+      throw new Error(`[Supabase ${error.code || 'ERR'}]: ${error.message}`);
     }
   }
   return true;
@@ -377,32 +410,29 @@ export async function fetchSaintsFromDb(): Promise<Saint[]> {
         .from('saints')
         .select('*')
         .order('feast_month', { ascending: true })
-        .order('feast_day', { ascending: true });
+        .order('feast_day', { ascending: true })
+        .limit(400);
 
       if (error) {
         console.error('[dbService] Erro ao buscar santos do Supabase:', error);
       }
 
-      if (!error && data && data.length > 0) {
-        const mapped: Saint[] = data.map((item: any) => {
-          const monthNum = parseInt(item.feast_month || item.month || '1', 10);
-          const dayNum = parseInt(item.feast_day || item.day || '1', 10);
-          return {
-            id: item.id || item.slug,
-            name: item.name || '',
-            title: item.title || '',
-            feastDate: item.feast_date || `${dayNum} de Mês`,
-            month: isNaN(monthNum) ? 1 : monthNum,
-            day: isNaN(dayNum) ? 1 : dayNum,
-            imageUrl: item.image_url || 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=800',
-            patronage: item.patronage || '',
-            summary: item.summary || item.short_bio || '',
-            fullBio: item.full_bio || '',
-            prayer: item.prayer || '',
-            quotes: Array.isArray(item.quotes) ? item.quotes : (item.quotes ? [item.quotes] : []),
-            featured: Boolean(item.featured)
-          };
-        });
+      if (!error && data) {
+        const mapped: Saint[] = data.map((item: any) => ({
+          id: item.id,
+          name: item.name || '',
+          title: item.title || '',
+          feastDate: item.feast_date || `${item.feast_day} de ${getMonthName(item.feast_month)}`,
+          month: item.feast_month || 1,
+          day: item.feast_day || 1,
+          imageUrl: item.image_url || 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=800',
+          patronage: item.patronage || 'Igreja Católica',
+          summary: item.summary || item.short_bio || '',
+          fullBio: item.full_bio || '',
+          prayer: item.prayer || '',
+          quotes: item.quotes || [],
+          featured: Boolean(item.featured)
+        }));
 
         localStorage.setItem(STORAGE_KEY_SAINTS, JSON.stringify(mapped));
         return mapped;
@@ -424,6 +454,41 @@ export async function fetchSaintsFromDb(): Promise<Saint[]> {
 }
 
 export async function saveSaintToDb(saint: Saint): Promise<{ success: boolean; saint: Saint }> {
+  if (isSupabaseConfigured) {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(saint.id);
+    const payload: any = {
+      name: saint.name,
+      slug: saint.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
+      title: saint.title || '',
+      feast_month: saint.month || 1,
+      feast_day: saint.day || 1,
+      feast_date: saint.feastDate || `${saint.day} de ${getMonthName(saint.month)}`,
+      image_url: saint.imageUrl || null,
+      patronage: saint.patronage || '',
+      summary: saint.summary || '',
+      short_bio: saint.summary || '',
+      full_bio: saint.fullBio || '',
+      prayer: saint.prayer || '',
+      quotes: saint.quotes || [],
+      featured: !!saint.featured
+    };
+
+    if (isUuid) {
+      payload.id = saint.id;
+    }
+
+    const { data, error } = await supabase.from('saints').upsert(payload, { onConflict: 'slug' }).select();
+
+    if (error) {
+      console.error('[dbService] Erro ao salvar santo no Supabase:', error);
+      throw new Error(`[Supabase ${error.code || 'ERR'}]: ${error.message}`);
+    }
+
+    if (data && data[0] && data[0].id) {
+      saint.id = data[0].id;
+    }
+  }
+
   const local = localStorage.getItem(STORAGE_KEY_SAINTS);
   let current: Saint[] = [];
   if (local) {
@@ -440,36 +505,6 @@ export async function saveSaintToDb(saint: Saint): Promise<{ success: boolean; s
     : [saint, ...current];
   localStorage.setItem(STORAGE_KEY_SAINTS, JSON.stringify(updatedList));
 
-  if (isSupabaseConfigured) {
-    try {
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(saint.id);
-      const payload: any = {
-        name: saint.name,
-        slug: saint.id || saint.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
-        title: saint.title,
-        feast_month: saint.month || 1,
-        feast_day: saint.day || 1,
-        feast_date: saint.feastDate,
-        image_url: saint.imageUrl,
-        patronage: saint.patronage,
-        summary: saint.summary,
-        short_bio: saint.summary,
-        full_bio: saint.fullBio,
-        prayer: saint.prayer,
-        quotes: saint.quotes,
-        featured: !!saint.featured
-      };
-
-      if (isUuid) {
-        payload.id = saint.id;
-      }
-
-      await supabase.from('saints').upsert(payload, { onConflict: 'slug' });
-    } catch (err) {
-      console.warn('[dbService] Supabase saint upsert warning:', err);
-    }
-  }
-
   return { success: true, saint };
 }
 
@@ -484,11 +519,79 @@ export async function deleteSaintFromDb(id: string): Promise<boolean> {
   }
 
   if (isSupabaseConfigured) {
-    try {
-      await supabase.from('saints').delete().eq('id', id);
-    } catch (err) {
-      console.warn('[dbService] Supabase saint delete warning:', err);
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    const query = isUuid
+      ? supabase.from('saints').delete().eq('id', id)
+      : supabase.from('saints').delete().eq('slug', id);
+
+    const { error } = await query;
+    if (error) {
+      console.error('[dbService] Erro ao excluir santo no Supabase:', error);
+      throw new Error(`[Supabase ${error.code || 'ERR'}]: ${error.message}`);
     }
   }
   return true;
+}
+
+// =========================================================================
+// 5. SITE SETTINGS & CMS GLOBAL DATABASE SERVICE
+// =========================================================================
+
+const STORAGE_KEY_SITE_SETTINGS = 'eclesia_db_site_settings';
+
+export async function fetchSiteSettingsFromDb(): Promise<any | null> {
+  try {
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('*')
+        .eq('id', 'default')
+        .maybeSingle();
+
+      if (!error && data?.settings) {
+        localStorage.setItem(STORAGE_KEY_SITE_SETTINGS, JSON.stringify(data.settings));
+        return data.settings;
+      }
+    }
+  } catch (err) {
+    console.warn('[dbService] Supabase site settings fetch warning:', err);
+  }
+
+  const local = localStorage.getItem(STORAGE_KEY_SITE_SETTINGS);
+  if (local) {
+    try {
+      return JSON.parse(local);
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+export async function saveSiteSettingsToDb(settings: any): Promise<{ success: boolean; settings: any }> {
+  if (isSupabaseConfigured) {
+    const { error } = await supabase
+      .from('site_settings')
+      .upsert(
+        {
+          id: 'default',
+          settings: settings,
+          updated_at: new Date().toISOString()
+        },
+        { onConflict: 'id' }
+      );
+
+    if (error) {
+      console.error('[dbService] Erro ao salvar configurações no Supabase:', error);
+      throw new Error(`[Supabase ${error.code || 'ERR'}]: ${error.message}`);
+    }
+  }
+
+  localStorage.setItem(STORAGE_KEY_SITE_SETTINGS, JSON.stringify(settings));
+  return { success: true, settings };
+}
+
+function getMonthName(month: number): string {
+  const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  return months[month - 1] || 'Janeiro';
 }

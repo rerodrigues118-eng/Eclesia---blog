@@ -1,4 +1,4 @@
-import { supabaseServer } from '../server';
+import { supabase } from '../client';
 
 export interface DBSaint {
   id: string;
@@ -23,7 +23,7 @@ export async function getSaintOfTheDay(): Promise<DBSaint | null> {
   const month = today.getMonth() + 1;
   const day = today.getDate();
 
-  const { data, error } = await supabaseServer
+  const { data, error } = await supabase
     .from('saints')
     .select('*')
     .eq('feast_month', month)
@@ -40,7 +40,7 @@ export async function getSaintOfTheDay(): Promise<DBSaint | null> {
 }
 
 export async function getSaintsByMonth(month: number): Promise<DBSaint[]> {
-  const { data, error } = await supabaseServer
+  const { data, error } = await supabase
     .from('saints')
     .select('*')
     .eq('feast_month', month)
@@ -54,7 +54,7 @@ export async function getSaintsByMonth(month: number): Promise<DBSaint[]> {
 }
 
 export async function getSaintBySlug(slug: string): Promise<DBSaint | null> {
-  const { data, error } = await supabaseServer
+  const { data, error } = await supabase
     .from('saints')
     .select('*')
     .eq('slug', slug)
@@ -68,7 +68,7 @@ export async function getSaintBySlug(slug: string): Promise<DBSaint | null> {
 }
 
 export async function getAllSaintSlugs(): Promise<{ slug: string }[]> {
-  const { data, error } = await supabaseServer
+  const { data, error } = await supabase
     .from('saints')
     .select('slug');
 
@@ -80,7 +80,7 @@ export async function getAllSaintSlugs(): Promise<{ slug: string }[]> {
 }
 
 export async function searchSaints(query: string): Promise<DBSaint[]> {
-  const { data, error } = await supabaseServer
+  const { data, error } = await supabase
     .from('saints')
     .select('*')
     .ilike('name', `%${query}%`)

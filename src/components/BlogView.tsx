@@ -12,7 +12,16 @@ export const BlogView: React.FC<BlogViewProps> = ({ onSelectEssay, articles = []
   const [selectedFormat, setSelectedFormat] = useState<'all' | 'artigo' | 'noticia'>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const { email: newsletterEmail, setEmail: setNewsletterEmail, subscribed: newsletterSubscribed, handleSubmit: handleNewsletterSubmit } = useNewsletter();
+  const {
+    email: newsletterEmail,
+    setEmail: setNewsletterEmail,
+    honeypot: newsletterHoneypot,
+    setHoneypot: setNewsletterHoneypot,
+    subscribed: newsletterSubscribed,
+    loading: newsletterLoading,
+    errorMessage: newsletterError,
+    handleSubmit: handleNewsletterSubmit
+  } = useNewsletter();
 
   const categories = ['all', 'Vaticano', 'Teologia', 'História', 'Cultura', 'Notícias'];
 
@@ -102,6 +111,8 @@ export const BlogView: React.FC<BlogViewProps> = ({ onSelectEssay, articles = []
               src={featuredPost.imageUrl}
               alt={featuredPost.title}
               className="w-full h-full object-cover object-center aspect-[16/9] lg:aspect-auto group-hover:scale-105 transition-transform duration-700"
+              loading="lazy"
+              decoding="async"
             />
             <div className="absolute top-3 left-3 flex gap-2 z-10">
               <span className={`px-2.5 py-1 text-[11px] font-bold uppercase tracking-widest rounded-md text-white shadow-md ${
@@ -219,6 +230,8 @@ export const BlogView: React.FC<BlogViewProps> = ({ onSelectEssay, articles = []
                         src={essay.imageUrl}
                         alt={essay.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                        decoding="async"
                       />
                       <span className={`absolute top-3 left-3 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded text-white ${
                         essay.type === 'noticia' ? 'bg-[#9a3e3c]' : 'bg-[#785600]'
@@ -308,6 +321,19 @@ export const BlogView: React.FC<BlogViewProps> = ({ onSelectEssay, articles = []
               </div>
             ) : (
               <form onSubmit={handleNewsletterSubmit} className="space-y-2 relative z-10">
+                {/* Honeypot invisível anti-bot */}
+                <input
+                  type="text"
+                  name="website_eclesia_hp"
+                  value={newsletterHoneypot}
+                  onChange={(e) => setNewsletterHoneypot(e.target.value)}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  className="hidden"
+                  style={{ display: 'none', position: 'absolute', left: '-9999px' }}
+                  aria-hidden="true"
+                />
+
                 <input
                   type="email"
                   value={newsletterEmail}
@@ -316,11 +342,17 @@ export const BlogView: React.FC<BlogViewProps> = ({ onSelectEssay, articles = []
                   required
                   className="w-full px-3 py-2 bg-white/10 border border-white/20 text-white rounded-lg text-xs placeholder:text-gray-400 focus:outline-none focus:border-[#f7bd48]"
                 />
+
+                {newsletterError && (
+                  <p className="text-[11px] text-rose-300 font-medium">{newsletterError}</p>
+                )}
+
                 <button
                   type="submit"
-                  className="w-full py-2 bg-[#785600] hover:bg-[#9a7000] text-white text-xs font-bold uppercase tracking-widest rounded-lg transition-colors cursor-pointer"
+                  disabled={newsletterLoading}
+                  className="w-full py-2 bg-[#785600] hover:bg-[#9a7000] disabled:opacity-50 text-white text-xs font-bold uppercase tracking-widest rounded-lg transition-colors cursor-pointer"
                 >
-                  Assinar Boletim
+                  {newsletterLoading ? 'Cadastrando...' : 'Assinar Boletim'}
                 </button>
               </form>
             )}

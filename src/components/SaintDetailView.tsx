@@ -71,6 +71,8 @@ export const SaintDetailView: React.FC<SaintDetailViewProps> = ({ saint, onBack,
               src={saint.imageUrl}
               alt={saint.name}
               className="w-full h-full object-cover rounded-md"
+              loading="lazy"
+              decoding="async"
             />
             <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-xs p-2 rounded text-center border border-[#d3c4af]">
               <span className="text-[10px] font-bold uppercase tracking-widest text-[#785600]">Iconografia Sagrada</span>
@@ -194,6 +196,8 @@ export const SaintDetailView: React.FC<SaintDetailViewProps> = ({ saint, onBack,
                 src={item.imageUrl}
                 alt={item.name}
                 className="w-16 h-20 object-cover rounded border border-[#d3c4af]/40 shrink-0 group-hover:scale-105 transition-transform"
+                loading="lazy"
+                decoding="async"
               />
               <div className="space-y-1">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-[#785600]">

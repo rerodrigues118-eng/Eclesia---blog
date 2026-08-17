@@ -31,8 +31,8 @@ export const Header: React.FC<HeaderProps> = ({
   const prevCartCount = useRef(cartCount);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Strict Admin Check
-  const isAdmin = user && (profile?.role === 'admin' || user.email === 'suporte.delski@gmail.com');
+  // Strict Admin/Editor Check from Supabase Auth Profile
+  const isAdmin = Boolean(user && profile && (profile.role === 'admin' || profile.role === 'editor' || user.email === 'suporte.delski@gmail.com'));
 
   // Trigger bounce animation when cart count increases
   useEffect(() => {
