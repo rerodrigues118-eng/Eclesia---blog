@@ -71,7 +71,7 @@ export async function saveArticleToDb(article: Essay): Promise<{ success: boolea
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(article.id);
     const payload: any = {
       title: article.title,
-      slug: article.slug || article.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
+      slug: article.slug || article.title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
       excerpt: article.excerpt || '',
       content: article.content || '',
       cover_image: article.imageUrl || 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=800',
@@ -89,11 +89,15 @@ export async function saveArticleToDb(article: Essay): Promise<{ success: boolea
       published_at: new Date().toISOString()
     };
 
+    let res;
     if (isUuid) {
       payload.id = article.id;
+      res = await supabase.from('articles').upsert(payload, { onConflict: 'id' }).select();
+    } else {
+      res = await supabase.from('articles').upsert(payload, { onConflict: 'slug' }).select();
     }
 
-    const { data, error } = await supabase.from('articles').upsert(payload, { onConflict: 'slug' }).select();
+    const { data, error } = res;
 
     if (error) {
       console.error('[dbService] Erro retornado pelo Supabase no salvar artigo:', error);
@@ -203,24 +207,37 @@ export async function fetchProductsFromDb(): Promise<Product[]> {
 export async function saveProductToDb(product: Product): Promise<{ success: boolean; product: Product }> {
   if (isSupabaseConfigured) {
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(product.id);
+    
+    // Normaliza categoria para enum do banco: 'livro' | 'sacramental' | 'arte' | 'vestuario'
+    let normCat: 'livro' | 'sacramental' | 'arte' | 'vestuario' = 'livro';
+    const c = (product.category || '').toLowerCase();
+    if (c.includes('sacrament')) normCat = 'sacramental';
+    else if (c.includes('arte')) normCat = 'arte';
+    else if (c.includes('vestu')) normCat = 'vestuario';
+    else normCat = 'livro';
+
     const payload: any = {
       name: product.title,
-      slug: product.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
+      slug: product.title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
       subtitle: product.subtitle || '',
       description: product.description || '',
       price_cents: Math.round((product.price || 0) * 100),
       images: product.imageUrl ? [product.imageUrl] : [],
       stock: product.inStock ? 50 : 0,
-      category: product.category || 'livro',
+      category: normCat,
       active: true,
       buy_url: product.buyUrl || ''
     };
 
+    let res;
     if (isUuid) {
       payload.id = product.id;
+      res = await supabase.from('products').upsert(payload, { onConflict: 'id' }).select();
+    } else {
+      res = await supabase.from('products').upsert(payload, { onConflict: 'slug' }).select();
     }
 
-    const { data, error } = await supabase.from('products').upsert(payload, { onConflict: 'slug' }).select();
+    const { data, error } = res;
 
     if (error) {
       console.error('[dbService] Erro ao salvar produto no Supabase:', error);
@@ -329,7 +346,7 @@ export async function savePrayerToDb(prayer: PrayerItem): Promise<{ success: boo
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(prayer.id);
     const payload: any = {
       title: prayer.title,
-      slug: prayer.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
+      slug: prayer.title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
       situation: prayer.category || 'diarias',
       category: prayer.category || 'diarias',
       content: prayer.text || prayer.content || '',
@@ -339,11 +356,15 @@ export async function savePrayerToDb(prayer: PrayerItem): Promise<{ success: boo
       image_url: prayer.imageUrl || null
     };
 
+    let res;
     if (isUuid) {
       payload.id = prayer.id;
+      res = await supabase.from('prayers').upsert(payload, { onConflict: 'id' }).select();
+    } else {
+      res = await supabase.from('prayers').upsert(payload, { onConflict: 'slug' }).select();
     }
 
-    const { data, error } = await supabase.from('prayers').upsert(payload, { onConflict: 'slug' }).select();
+    const { data, error } = res;
 
     if (error) {
       console.error('[dbService] Erro ao salvar oração no Supabase:', error);
@@ -458,7 +479,7 @@ export async function saveSaintToDb(saint: Saint): Promise<{ success: boolean; s
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(saint.id);
     const payload: any = {
       name: saint.name,
-      slug: saint.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
+      slug: saint.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
       title: saint.title || '',
       feast_month: saint.month || 1,
       feast_day: saint.day || 1,
@@ -473,11 +494,15 @@ export async function saveSaintToDb(saint: Saint): Promise<{ success: boolean; s
       featured: !!saint.featured
     };
 
+    let res;
     if (isUuid) {
       payload.id = saint.id;
+      res = await supabase.from('saints').upsert(payload, { onConflict: 'id' }).select();
+    } else {
+      res = await supabase.from('saints').upsert(payload, { onConflict: 'slug' }).select();
     }
 
-    const { data, error } = await supabase.from('saints').upsert(payload, { onConflict: 'slug' }).select();
+    const { data, error } = res;
 
     if (error) {
       console.error('[dbService] Erro ao salvar santo no Supabase:', error);

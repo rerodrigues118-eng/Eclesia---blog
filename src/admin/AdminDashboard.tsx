@@ -2525,7 +2525,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <option value="livro">Livros & Manuscritos</option>
                         <option value="sacramental">Sacramentais</option>
                         <option value="arte">Arte Sacra</option>
-                        <option value="vestuário">Vestuário</option>
+                        <option value="vestuario">Vestuário</option>
                       </select>
                     </div>
 
