@@ -49,6 +49,8 @@ import {
   generateSeoSlug,
   generateSeoMetaDescription,
   calculateSeoScore,
+  generateSmartSeoPackage,
+  CATHOLIC_EDITORIAL_TEMPLATES,
   SeoAuditResult
 } from '../utils/seo';
 import { RichArticleRenderer } from '../components/RichArticleRenderer';
@@ -713,26 +715,42 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleAutoOptimizeSeo = () => {
-    if (!articleTitle.trim()) {
-      notify('Digite ao menos o título do artigo para otimizar o SEO.', 'error');
+    if (!articleTitle.trim() && !articleContent.trim()) {
+      notify('Digite ao menos o título ou conteúdo do artigo para otimizar o SEO.', 'error');
       return;
     }
 
-    const autoSlug = generateSeoSlug(articleTitle);
-    const autoMetaTitle = articleTitle.length > 55 ? articleTitle.slice(0, 55).trim() : articleTitle;
-    const autoDesc = generateSeoMetaDescription(articleContent, articleExcerpt);
-    const autoAlt = `Ilustração sobre ${articleTitle} - Eclesia Editorial`;
-    const defaultKeywords = `${articleCategory.toLowerCase()}, doutrina católica, espiritualidade, tradição católica, eclesia`;
+    const pkg = generateSmartSeoPackage(articleTitle, articleContent, articleCategory);
 
-    setArticleSlug(autoSlug);
-    setArticleMetaTitle(autoMetaTitle);
-    setArticleMetaDescription(autoDesc);
-    setArticleAltText(autoAlt);
-    if (!articleKeywordsInput.trim()) {
-      setArticleKeywordsInput(defaultKeywords);
+    setArticleSlug(pkg.slug);
+    setArticleMetaTitle(pkg.metaTitle);
+    setArticleMetaDescription(pkg.metaDescription);
+    setArticleAltText(`Ilustração e arte sacra sobre ${articleTitle || 'artigo'} - Eclesia`);
+    setArticleKeywordsInput(pkg.keywords.join(', '));
+
+    notify('✨ Título, URL amigável, meta descrição e palavras-chave otimizados com sucesso!');
+  };
+
+  const handleApplyEditorialTemplate = (templateId: string) => {
+    const tpl = CATHOLIC_EDITORIAL_TEMPLATES.find(t => t.id === templateId);
+    if (!tpl) return;
+
+    if (articleContent.trim().length > 30) {
+      if (!confirm('Deseja substituir o conteúdo atual pelo modelo editorial completo com estrutura 100% SEO?')) {
+        return;
+      }
     }
 
-    notify('✨ SEO do artigo otimizado automaticamente para o Google!');
+    setArticleContent(tpl.content);
+    if (!articleTitle.trim()) {
+      setArticleTitle(tpl.title);
+      setArticleSlug(generateSeoSlug(tpl.title));
+    }
+    const pkg = generateSmartSeoPackage(articleTitle || tpl.title, tpl.content, articleCategory);
+    setArticleMetaDescription(pkg.metaDescription);
+    setArticleKeywordsInput(pkg.keywords.join(', '));
+
+    notify(`Modelo editorial "${tpl.title}" aplicado com sucesso!`);
   };
 
   const handleTitleChange = (val: string) => {
@@ -1484,24 +1502,46 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </div>
                   </div>
 
-                  {/* ──────────────── GOOGLE SERP PREVIEW BOX ──────────────── */}
-                  <div className={`border rounded-xl p-4 space-y-2 ${
+                  {/* ──────────────── GOOGLE SERP PREVIEW & LIVE SEO AUDIT ──────────────── */}
+                  <div className={`border rounded-2xl p-5 space-y-4 ${
                     isDark ? 'bg-slate-900/90 border-slate-800' : 'bg-slate-50 border-slate-200'
                   }`}>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
                       <span className={`text-[11px] font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                        <Globe className="w-3.5 h-3.5 text-blue-500" /> Prévia do Google Search
+                        <Globe className="w-3.5 h-3.5 text-blue-500" /> Prévia do Google Search & Painel de SEO
                       </span>
-                      <button
-                        type="button"
-                        onClick={handleAutoOptimizeSeo}
-                        className="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1 shadow-xs"
-                      >
-                        <Sparkles className="w-3 h-3" /> Otimizar SEO Automaticamente
-                      </button>
+                      
+                      <div className="flex flex-wrap items-center gap-2">
+                        {/* Quick Template Inserters */}
+                        <button
+                          type="button"
+                          onClick={() => handleApplyEditorialTemplate('doutrina')}
+                          className="px-2.5 py-1 bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-[11px] font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                          title="Inserir modelo completo de Doutrina (650+ palavras, H2, oração)"
+                        >
+                          📄 Modelo Doutrina
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleApplyEditorialTemplate('santo')}
+                          className="px-2.5 py-1 bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-[11px] font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                          title="Inserir modelo de Vida dos Santos (600+ palavras, H2, oração)"
+                        >
+                          ✝️ Modelo Santo
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleAutoOptimizeSeo}
+                          className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-sm hover:scale-[1.02]"
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-amber-300" /> Otimizar SEO Automaticamente
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="bg-white p-3.5 rounded-lg text-slate-900 font-sans space-y-1 border border-slate-200">
+                    {/* Google Snippet Card */}
+                    <div className="bg-white p-4 rounded-xl text-slate-900 font-sans space-y-1 border border-slate-200 shadow-2xs">
                       <div className="flex items-center gap-1.5 text-[11px] text-slate-600">
                         <span className="font-semibold text-slate-900">Eclesia Editorial</span>
                         <span>› blog › {articleSlug || 'seu-slug'}</span>
@@ -1514,28 +1554,60 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </p>
                     </div>
 
-                    <div className="pt-1 flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className={`font-mono ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Score de SEO:</span>
-                        <span className={`px-2 py-0.5 rounded-full font-mono text-[11px] font-bold ${
-                          seoAudit.score >= 85
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-amber-100 text-amber-800'
-                        }`}>
-                          {seoAudit.score}% — {seoAudit.status.toUpperCase()}
+                    {/* Score Bar & Checklist */}
+                    <div className="space-y-3 pt-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          <span className={`font-mono font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Score de SEO Editorial:</span>
+                          <span className={`px-2.5 py-0.5 rounded-full font-mono text-[11px] font-bold border ${
+                            seoAudit.score >= 85
+                              ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                              : seoAudit.score >= 60
+                              ? 'bg-amber-100 text-amber-900 border-amber-300'
+                              : 'bg-rose-100 text-rose-900 border-rose-300'
+                          }`}>
+                            {seoAudit.score}% — {seoAudit.status.toUpperCase()}
+                          </span>
+                        </div>
+
+                        <span className="text-[11px] text-slate-500 font-mono">
+                          {seoAudit.checks.filter(c => c.passed).length} de {seoAudit.checks.length} critérios atendidos
                         </span>
                       </div>
 
-                      {/* Sanitize long raw base64 button if present in content */}
-                      {articleContent.includes('data:image/') && (
-                        <button
-                          type="button"
-                          onClick={sanitizeRawBase64InText}
-                          className="px-2.5 py-1 bg-amber-500/20 text-amber-700 dark:text-amber-300 hover:bg-amber-500/30 rounded-lg text-xs font-bold cursor-pointer"
-                        >
-                          ⚡ Limpar Links Base64 do Texto
-                        </button>
-                      )}
+                      {/* Progress Bar */}
+                      <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full transition-all duration-500 ${
+                            seoAudit.score >= 85 ? 'bg-emerald-500' : seoAudit.score >= 60 ? 'bg-amber-500' : 'bg-rose-500'
+                          }`}
+                          style={{ width: `${seoAudit.score}%` }}
+                        />
+                      </div>
+
+                      {/* Dynamic Quality Checklist */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
+                        {seoAudit.checks.map((check, idx) => (
+                          <div
+                            key={idx}
+                            className={`p-2.5 rounded-xl border text-[11px] flex items-start gap-2 ${
+                              check.passed
+                                ? isDark
+                                  ? 'bg-emerald-950/20 border-emerald-900/40 text-emerald-300'
+                                  : 'bg-emerald-50/80 border-emerald-200 text-emerald-800'
+                                : isDark
+                                ? 'bg-slate-900 border-slate-800 text-slate-400'
+                                : 'bg-white border-slate-200 text-slate-600'
+                            }`}
+                          >
+                            <span className="shrink-0 mt-0.5">{check.passed ? '✓' : '⚠️'}</span>
+                            <div className="space-y-0.5">
+                              <span className="font-bold block">{check.label}</span>
+                              <span className="text-[10px] opacity-85 block leading-tight">{check.recommendation}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
 

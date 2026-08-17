@@ -1,10 +1,7 @@
+# robots.txt para https://eclesia.blog
 User-agent: *
 Allow: /
 Disallow: /admin
 
-# Googlebot specific
-User-agent: Googlebot
-Allow: /
-Disallow: /admin
-
-Sitemap: https://eclesia.com.br/sitemap.xml
+# Sitemaps
+Sitemap: https://eclesia.blog/sitemap.xml

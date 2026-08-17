@@ -49,35 +49,35 @@ export const GoogleAdSlot: React.FC<GoogleAdSlotProps> = ({
           title: 'Anúncio Topo do Artigo',
           size: 'Leaderboard (728x90 / Banner)',
           heightClass: 'h-[90px] sm:h-[100px]',
-          zoneId: 'zlxbp9tnn8'
+          zoneId: '42nihnnc5l'
         };
       case 'middle':
         return {
           title: 'Anúncio In-Article (Meio do Conteúdo)',
           size: 'Display Nativo In-Feed',
           heightClass: 'h-[140px]',
-          zoneId: 'zlxbp9tnn8'
+          zoneId: '42nihnnc5l'
         };
       case 'sidebar':
         return {
           title: 'Anúncio Barra Lateral (Sidebar)',
           size: 'Retângulo Médio / Vertical (300x250)',
           heightClass: 'h-[250px]',
-          zoneId: 't7mdnha0np'
+          zoneId: '42nihnnc5l'
         };
       case 'bottom':
         return {
           title: 'Anúncio Rodapé do Artigo',
           size: 'Banner Horizontal de Encerramento',
           heightClass: 'h-[100px]',
-          zoneId: 'zlxbp9tnn8'
+          zoneId: '42nihnnc5l'
         };
       default:
         return {
           title: 'Espaço Publicitário',
           size: 'Adcash Zone',
           heightClass: 'h-[100px]',
-          zoneId: 'zlxbp9tnn8'
+          zoneId: '42nihnnc5l'
         };
     }
   };

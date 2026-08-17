@@ -144,9 +144,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
   const currentHero = effectiveSlides[currentHeroIndex] || effectiveSlides[0] || defaultFallbackHero;
 
-  // Orações Dinâmicas do Banco de Dados
+  // Orações Dinâmicas do Banco de Dados (Cadastradas pelo Portal Admin)
   const effectivePrayers = prayers.length > 0
-    ? prayers.slice(0, 4).map((p) => ({
+    ? prayers.slice(0, 8).map((p) => ({
         id: p.id,
         title: p.title,
         category: p.category ? `ORAÇÕES • ${p.category.toUpperCase()}` : 'ORAÇÃO CATÓLICA',
@@ -154,26 +154,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
         action: () => setActiveView('oracoes')
       }))
     : [];
-
-  // Devotion Categories (Ref. Image 4)
-  const devotionCategories = [
-    {
-      title: 'ORAÇÕES A JESUS CRISTO',
-      imageUrl: 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=600'
-    },
-    {
-      title: 'ORAÇÕES AO SAGRADO CORAÇÃO',
-      imageUrl: 'https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&q=80&w=600'
-    },
-    {
-      title: 'ORAÇÕES AO SANTÍSSIMO SACRAMENTO',
-      imageUrl: 'https://images.unsplash.com/photo-1548625361-195979bc7583?auto=format&fit=crop&q=80&w=600'
-    },
-    {
-      title: 'ORAÇÕES ÀS CHAGAS DE JESUS CRISTO',
-      imageUrl: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&q=80&w=600'
-    }
-  ];
 
   return (
     <div className="w-full space-y-16 pb-24">
@@ -433,8 +413,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </button>
         </div>
 
-        {/* 4 Vertical Sacred Art Cards (Dinâmicos do Banco de Dados) */}
-        {effectivePrayers.length > 0 && (
+        {/* Sacred Art Cards (100% Dinâmicos do Banco de Dados / Admin) */}
+        {effectivePrayers.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {effectivePrayers.map((prayer) => (
               <div
@@ -467,31 +447,19 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </div>
             ))}
           </div>
-        )}
-
-        {/* 4 Devotion Sacred Categories (Ref. Image 4) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-4">
-          {devotionCategories.map((cat, i) => (
-            <div
-              key={i}
+        ) : (
+          <div className="p-12 text-center bg-white border border-[#d3c4af]/60 rounded-3xl space-y-3">
+            <p className="font-serif text-base text-[#4f4535]">
+              Nenhuma oração cadastrada no momento. Adicione novas preces pelo painel administrativo.
+            </p>
+            <button
               onClick={() => setActiveView('oracoes')}
-              className="relative h-72 rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-[#d3c4af]/60 flex flex-col justify-end p-5"
+              className="px-5 py-2.5 bg-[#785600] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-md cursor-pointer hover:bg-[#9a7000]"
             >
-              <img
-                src={cat.imageUrl}
-                alt={cat.title}
-                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                loading="lazy"
-                decoding="async"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
-              
-              <h3 className="relative z-10 font-serif text-sm sm:text-base font-bold text-[#f7bd48] text-center tracking-wider leading-snug drop-shadow-md">
-                {cat.title}
-              </h3>
-            </div>
-          ))}
-        </div>
+              Explorar Orações
+            </button>
+          </div>
+        )}
       </section>
 
       {/* =========================================================================

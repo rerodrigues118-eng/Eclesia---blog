@@ -26,57 +26,103 @@ export function generateSeoSlug(title: string): string {
 }
 
 /**
- * Extracts a concise, high-CTR meta description (around 140-155 chars) ending in a full sentence or period.
+ * Extracts a concise, high-CTR meta description (around 130-155 chars) ending in a full sentence or period.
  */
 export function generateSeoMetaDescription(content: string, fallbackExcerpt?: string): string {
   const text = (fallbackExcerpt || content || '')
-    .replace(/<[^>]*>/g, '') // strip HTML
+    .replace(/\[\/?(oracao|citacao_biblica|anuncio|adsense|img-[^\]]+)[^\]]*\]/gi, '') // strip custom tags
+    .replace(/#+\s*/g, '') // strip markdown headings
+    .replace(/[*_`>]/g, '') // strip formatting
     .replace(/\s+/g, ' ')
     .trim();
 
-  if (text.length <= 155) return text;
+  if (text.length <= 155 && text.length >= 100) return text;
   
-  const truncated = text.slice(0, 150);
-  const lastSpace = truncated.lastIndexOf(' ');
-  return (lastSpace > 100 ? truncated.slice(0, lastSpace) : truncated) + '...';
+  if (text.length > 155) {
+    const truncated = text.slice(0, 150);
+    const lastSpace = truncated.lastIndexOf(' ');
+    return (lastSpace > 100 ? truncated.slice(0, lastSpace) : truncated) + '...';
+  }
+
+  // If text is short, create a rich editorial description
+  return text ? `${text} Confira esta reflexão teológica e formativa completa no Portal Eclesia.` : 'Reflexão católica profunda, teologia, tradição e oração no Portal Eclesia.';
 }
 
 /**
- * Analyzes an essay and computes its Google SEO score with recommendations.
+ * Smart Generator: Crafts complete SEO Package with 1-click
+ */
+export function generateSmartSeoPackage(title: string, content: string, category: string) {
+  const cleanTitle = title.trim();
+  const slug = generateSeoSlug(cleanTitle);
+  const metaDescription = generateSeoMetaDescription(content);
+  
+  // High CTR Meta Title (adds site suffix if short)
+  let metaTitle = cleanTitle;
+  if (metaTitle.length < 40 && cleanTitle.length > 0) {
+    metaTitle = `${cleanTitle} | Teologia & Fé Católica`;
+  }
+
+  // Generate relevant Catholic keywords
+  const categoryKeywords: Record<string, string[]> = {
+    'Teologia': ['Teologia Católica', 'Doutrina da Igreja', 'Santo Tomás de Aquino', 'Magistério'],
+    'Liturgia': ['Liturgia Diária', 'Santa Missa', 'Tempo Litúrgico', 'Orações Católicas'],
+    'Santoral': ['Santo do Dia', 'Vida dos Santos', 'Intercessão', 'Espiritualidade'],
+    'História': ['História da Igreja', 'Patrística', 'Tradição Católica', 'Igreja Primitiva'],
+    'Filosofia': ['Filosofia Cristã', 'Escolástica', 'Ética Cristã', 'Santo Agostinho'],
+    'Notícia': ['Igreja Católica', 'Vaticano', 'Papa', 'Notícias Católicas']
+  };
+
+  const keywords = [
+    cleanTitle,
+    category || 'Teologia',
+    ...(categoryKeywords[category] || ['Catolicismo', 'Fé Católica', 'Portal Eclesia'])
+  ].slice(0, 6);
+
+  return {
+    slug,
+    metaTitle,
+    metaDescription,
+    keywords
+  };
+}
+
+/**
+ * Analyzes an essay and computes its Google SEO score with 8 quality checks.
+ * Aligned with Google Search Quality Rater & Adcash/AdSense editorial standards.
  */
 export function calculateSeoScore(essay: Partial<Essay>): SeoAuditResult {
   const checks: { label: string; passed: boolean; recommendation: string }[] = [];
   let passedCount = 0;
-  const totalChecks = 6;
+  const totalChecks = 8;
 
-  // 1. Title Length (Best: 40 - 60 chars)
+  // 1. Title Length (Best: 35 - 65 chars)
   const title = essay.metaTitle || essay.title || '';
   const titleLen = title.trim().length;
-  const titlePassed = titleLen >= 30 && titleLen <= 65;
+  const titlePassed = titleLen >= 35 && titleLen <= 65;
   if (titlePassed) passedCount++;
   checks.push({
-    label: `Tamanho do Título SEO (${titleLen} caracteres)`,
+    label: `Tamanho do Título SEO (${titleLen}/65 caracteres)`,
     passed: titlePassed,
     recommendation: titlePassed
-      ? 'Excelente! Título com tamanho ideal para não ser cortado no Google.'
-      : titleLen < 30
-      ? 'Título muito curto. Adicione detalhes ou palavras-chave (ideal: 40-60 caracteres).'
-      : 'Título muito longo. O Google irá cortar com "..." nos resultados (ideal: máximo 60 caracteres).'
+      ? 'Excelente! Título com tamanho ideal para alta taxa de cliques no Google.'
+      : titleLen < 35
+      ? 'Título muito curto. Adicione detalhes ou palavras-chave (ideal: 35-65 caracteres).'
+      : 'Título muito longo. O Google cortará nos resultados (ideal: máximo 65 caracteres).'
   });
 
-  // 2. Meta Description Length (Best: 120 - 160 chars)
+  // 2. Meta Description Length (Best: 110 - 165 chars)
   const desc = essay.metaDescription || essay.excerpt || '';
   const descLen = desc.trim().length;
-  const descPassed = descLen >= 90 && descLen <= 165;
+  const descPassed = descLen >= 110 && descLen <= 165;
   if (descPassed) passedCount++;
   checks.push({
-    label: `Meta Description (${descLen} caracteres)`,
+    label: `Meta Description (${descLen}/160 caracteres)`,
     passed: descPassed,
     recommendation: descPassed
       ? 'Excelente! Meta descrição atraente e com tamanho perfeito para a SERP.'
-      : descLen < 90
-      ? 'Meta descrição muito curta. Explique melhor o tema para atrair cliques (ideal: 120-160 caracteres).'
-      : 'Meta descrição longa demais. Mantenha em até 160 caracteres.'
+      : descLen < 110
+      ? 'Meta descrição muito curta. Explique o tema para atrair cliques (ideal: 120-160 caracteres).'
+      : 'Meta descrição longa demais. Mantenha em até 160 caracteres para não truncar.'
   });
 
   // 3. Slug / Friendly URL
@@ -88,45 +134,68 @@ export function calculateSeoScore(essay: Partial<Essay>): SeoAuditResult {
     passed: slugPassed,
     recommendation: slugPassed
       ? 'URL limpa, sem caracteres especiais e otimizada para o Googlebot.'
-      : 'Defina uma URL amigável curta (ex: a-graca-e-a-natureza).'
+      : 'Defina uma URL amigável curta em minúsculas (ex: a-teologia-do-amor).'
   });
 
-  // 4. Content Word Count (Best: >= 250 words)
-  const contentWords = (essay.content || '').trim().split(/\s+/).filter(Boolean).length;
-  const contentPassed = contentWords >= 150;
+  // 4. Content Word Count (Adcash/Google standard: >= 400 words)
+  const contentText = (essay.content || '').replace(/<[^>]*>/g, '').trim();
+  const contentWords = contentText ? contentText.split(/\s+/).filter(Boolean).length : 0;
+  const contentPassed = contentWords >= 400;
   if (contentPassed) passedCount++;
   checks.push({
-    label: `Extensão do Conteúdo (${contentWords} palavras)`,
+    label: `Extensão do Artigo (${contentWords} palavras)`,
     passed: contentPassed,
     recommendation: contentPassed
-      ? 'Artigo com densidade adequada para indexação e autoridade temática.'
-      : 'Conteúdo muito breve. Artigos com mais de 250 palavras têm melhor ranqueamento.'
+      ? 'Excelente! Artigo profundo com mais de 400 palavras (autoridade para redes de anúncios).'
+      : contentWords < 200
+      ? 'Conteúdo fino (Thin Content). Redes de anúncios rejeitam artigos curtos. Escreva pelo menos 400 palavras.'
+      : 'Bom, mas recomendamos expandir para 400+ palavras para garantir aprovação no Adcash/Google.'
   });
 
-  // 5. Image & Alt Text
+  // 5. Subheadings Structure (H2 / H3 headers)
+  const hasSubheadings = /##\s+[^\n]+/m.test(essay.content || '');
+  if (hasSubheadings) passedCount++;
+  checks.push({
+    label: 'Estrutura de Subtítulos (H2 / H3)',
+    passed: hasSubheadings,
+    recommendation: hasSubheadings
+      ? 'Excelente! Subtítulos ## organizam a leitura e enriquecem a indexação temática.'
+      : 'Adicione pelo menos 2 subtítulos "## Nome do Tópico" para estruturar a leitura.'
+  });
+
+  // 6. Image & Alt Text
   const hasImage = Boolean(essay.imageUrl && essay.imageUrl.trim().length > 5);
-  const hasAlt = Boolean(essay.altText && essay.altText.trim().length > 3);
-  const imagePassed = hasImage && (hasAlt || essay.title);
+  const hasAlt = Boolean((essay.altText && essay.altText.trim().length > 3) || (essay.title && essay.title.length > 5));
+  const imagePassed = hasImage && hasAlt;
   if (imagePassed) passedCount++;
   checks.push({
-    label: 'Capa & Imagem com Texto Alternativo',
-    passed: Boolean(hasImage),
-    recommendation: hasImage
-      ? 'Imagem de capa configurada para Open Graph e Google Imagens.'
-      : 'Adicione uma imagem de capa de alta resolução.'
+    label: 'Capa & Imagem com Alt Text',
+    passed: imagePassed,
+    recommendation: imagePassed
+      ? 'Imagem de capa configurada com texto alternativo para Open Graph e Google Imagens.'
+      : 'Adicione uma imagem de capa de alta resolução para compartilhamento social.'
   });
 
-  // 6. Keywords / Categorização
-  const hasCategory = Boolean(essay.category && essay.category.trim().length > 0);
-  const hasKeywords = Boolean(essay.keywords && essay.keywords.length > 0);
-  const catPassed = hasCategory;
-  if (catPassed) passedCount++;
+  // 7. Devotional / Religious Enrichment Elements
+  const hasEnrichment = /\[(oracao|citacao_biblica)[^\]]*\]/i.test(essay.content || '') || />\s+[^\n]+/.test(essay.content || '');
+  if (hasEnrichment) passedCount++;
   checks.push({
-    label: 'Categoria & Palavras-chave Católicas',
-    passed: catPassed,
-    recommendation: catPassed
-      ? `Categoria "${essay.category}" definida com sucesso.`
-      : 'Defina a categoria teológica do artigo para breadcrumbs e indexação.'
+    label: 'Elementos Devocionais (Oração / Citação)',
+    passed: hasEnrichment,
+    recommendation: hasEnrichment
+      ? 'Artigo enriquecido com orações [ORACAO], citações bíblicas ou reflexões dos Santos.'
+      : 'Inclua um bloco [ORACAO] ou citação de Santo "> texto" para engajar o leitor católico.'
+  });
+
+  // 8. Keywords & Categorização
+  const hasCategory = Boolean(essay.category && essay.category.trim().length > 0);
+  if (hasCategory) passedCount++;
+  checks.push({
+    label: 'Categoria Teológica',
+    passed: hasCategory,
+    recommendation: hasCategory
+      ? `Categoria "${essay.category}" definida para taxonomia e breadcrumbs.`
+      : 'Selecione a categoria teológica do artigo.'
   });
 
   const score = Math.round((passedCount / totalChecks) * 100);
@@ -139,11 +208,91 @@ export function calculateSeoScore(essay: Partial<Essay>): SeoAuditResult {
 }
 
 /**
+ * Modelos Editoriais Católicos com Alta Otimização de SEO (600+ palavras)
+ */
+export const CATHOLIC_EDITORIAL_TEMPLATES = [
+  {
+    id: 'doutrina',
+    title: 'Doutrina & Teologia Sistemática',
+    description: 'Estrutura completa com introdução, magistério, ensinamentos patrísticos e oração.',
+    content: `Aprofundar os mistérios da fé católica é um chamado para todo cristão que busca amar a Deus não apenas com o coração, mas também com a inteligência. Como nos ensina a tradição da Igreja, a graça não destrói a natureza, mas a eleva e aperfeiçoa.
+
+## Os Fundamentos nas Sagradas Escrituras
+
+Desde o Antigo Testamento até a plenitude da Revelação em Nosso Senhor Jesus Cristo, a verdade divina nos é comunicada com clareza salvífica. A Palavra de Deus é lâmpada para os nossos passos e luz para o nosso caminho.
+
+[citacao_biblica: Evangelho de São João 8, 31-32]
+Se permanecerdes na minha palavra, sereis verdadeiramente meus discípulos; e conhecereis a verdade, e a verdade vos libertará.
+[/citacao_biblica]
+
+Ao meditarmos nesta passagem, percebemos que a liberdade autêntica é inseparável do conhecimento e da obediência à vontade divina. O homem contemporâneo muitas vezes confunde liberdade com mera espontaneidade de impulsos, esquecendo que o pecado escraviza e a verdade liberta.
+
+## O Ensinamento dos Padres da Igreja e do Magistério
+
+Os Santos Padres da Igreja sempre destacaram a harmonia inabalável entre fé e razão. Santo Agostinho de Hipona expressou essa união com a célebre máxima: "Crê para compreender, e compreende para crer".
+
+> "A fé e a razão são como duas asas pelas quais o espírito humano se eleva para a contemplação da verdade." — São João Paulo II
+
+A Igreja Católica, como coluna e sustentáculo da verdade, preservou esse depósito imaculado ao longo de dois milênios, guiando os fiéis em meio às tempestades históricas e culturais de cada época.
+
+## Aplicação Prática na Vida Espiritual Cotidiana
+
+Conhecer a sã doutrina não deve ser um exercício meramente acadêmico ou intelectual; deve transformar nossas escolhas diárias, nossa vida de oração e nosso amor ao próximo. Para vivermos esta verdade hoje, somos chamados a:
+
+1. **Frequência aos Sacramentos:** Especialmente a Santa Eucaristia e a Confissão regular.
+2. **Vida de Oração Diária:** Momentos dedicados de silêncio, terço e meditação das Escrituras.
+3. **Prática da Caridade:** Obras de misericórdia corporais e espirituais em nossa comunidade.
+
+[oracao: Oração pela Fidelidade à Fé]
+Senhor Jesus Cristo, Caminho, Verdade e Vida, concedei-nos a graça de permanecer firmes na santa fé católica. Iluminai nosso intelecto com a luz do vosso Santo Espírito e inflamai nossa vontade no vosso divino amor, para que possamos testemunhar vossa verdade em todos os momentos de nossa existência. Amém.
+[/oracao]
+
+---
+
+Concluímos recordando que a santidade é a meta universal de todos os batizados. Que a Virgem Maria, Mãe da Igreja e Sede da Sabedoria, interceda por nós para que guardemos a fé com fidelidade inabalável até o fim de nossos dias.`
+  },
+  {
+    id: 'santo',
+    title: 'Vida & Exemplo dos Santos (Hagiografia)',
+    description: 'Modelo biográfico hagiográfico de alto valor formativo e devocional.',
+    content: `A vida dos santos constitui o Evangelho vivido e encarnado na história. Olhar para a trajetória daqueles que nos precederam na glória celeste é encontrar um farol seguro de esperança e um convite vigoroso à conversão pessoal.
+
+## Origem, Vocação e os Primeiros Anos
+
+Nascido em tempos de grandes desafios e transformações, este servo de Deus compreendeu desde a juventude que as honras passageiras deste mundo não podem saciar a sede infinita da alma humana, criada para Deus.
+
+Em meio às tentações e pressões do ambiente, sua resposta ao chamado divino foi caracterizada por uma entrega generosa e incondicional. A vocação floresceu no solo fértil da oração fervorosa e do desapego dos bens temporais.
+
+## O Heroísmo das Virtudes e o Combate Espiritual
+
+A santidade não é ausência de lutas, mas a vitória da graça de Deus sobre a fraqueza humana. O testemunho deste santo destacou-se especialmente pelo exercício heroico das virtudes cardeais e teologais:
+
+* **Fé inabalável:** Mesmo nos períodos de escuridão espiritual e perseguição.
+* **Humildade sincera:** Reconhecendo-se como mero instrumento nas mãos da Providência.
+* **Caridade ardente:** Dedicação incansável aos doentes, pobres e necessitados.
+
+> "Nada te perturbe, nada te espante, tudo passa, Deus não muda. A paciência tudo alcança; quem a Deus tem, nada lhe falta: só Deus basta." — Santa Teresa d'Ávila
+
+## Ensinamentos Eternos para o Cristão de Hoje
+
+O exemplo que nos foi legado permanece vivo e plenamente atual. Diante do relativismo e do secularismo de nossos dias, os santos nos ensinam que a fidelidade a Cristo vale mais do que qualquer aprovação mundana.
+
+[oracao: Oração de Intercessão]
+Ó Deus todo-poderoso e eterno, que manifestais a vossa glória na vida dos vossos Santos, concedei-nos, por sua valiosa intercessão, a força para superar as provações terrenas e a graça de crescer no vosso santo amor a cada dia. Por Cristo, nosso Senhor. Amém.
+[/oracao]
+
+---
+
+Que este exemplo luminoso de vida cristã nos inspire a buscar a santidade não amanhã, mas hoje, no cumprimento fiel de nossos deveres ordinários com extraordinário amor a Deus.`
+  }
+];
+
+/**
  * Updates dynamic meta tags in document.head and injects Schema.org Article JSON-LD
  */
 export function updateDocumentSeo(essay: Essay) {
   const siteName = 'Eclesia Editorial';
-  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://eclesia.com.br';
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://eclesia.blog';
   const fullTitle = essay.metaTitle
     ? `${essay.metaTitle} | ${siteName}`
     : `${essay.title} | ${siteName}`;
@@ -222,7 +371,7 @@ export function updateDocumentSeo(essay: Essay) {
       'name': siteName,
       'logo': {
         '@type': 'ImageObject',
-        'url': `${baseUrl}/icon.png`
+        'url': `${baseUrl}/favicon.svg`
       }
     },
     'articleSection': essay.category || 'Teologia',
@@ -243,11 +392,11 @@ export function updateDocumentSeo(essay: Essay) {
  * Resets document title and SEO tags back to portal defaults
  */
 export function resetPortalSeo() {
-  document.title = 'Eclesia | Plataforma Editorial & Tradição Católica';
+  document.title = 'Eclesia | Portal Editorial Católico, Liturgia e Devoção';
   
   const descEl = document.querySelector('meta[name="description"]');
   if (descEl) {
-    descEl.setAttribute('content', 'Portal católico de teologia, santoral, orações diárias, liturgia e curadoria de arte sacra.');
+    descEl.setAttribute('content', 'Reflexões teológicas profundas, liturgia diária completa, santoral com biografias de santos, orações por situação de vida e artigos religiosos.');
   }
 
   const scriptEl = document.getElementById('article-schema-jsonld');

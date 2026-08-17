@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { X, Mail, Lock, User, ShoppingBag, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react';
-import { isSupabaseConfigured } from '../lib/supabase/client';
+import { X, Mail, Lock, User, ShoppingBag, CheckCircle2, AlertCircle, Eye, EyeOff, ArrowLeft, KeyRound } from 'lucide-react';
+import { supabase, isSupabaseConfigured } from '../lib/supabase/client';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -15,9 +15,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onClose,
   onLogin,
   onSignUp,
-  initialTab = 'signup'
+  initialTab = 'login'
 }) => {
-  const [tab, setTab] = useState<'signup' | 'login'>(initialTab);
+  const [tab, setTab] = useState<'signup' | 'login' | 'forgot'>(initialTab);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -30,6 +30,34 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFeedback(null);
+
+    if (tab === 'forgot') {
+      if (!email.trim()) {
+        setFeedback({ type: 'error', message: 'Por favor, informe seu e-mail para recuperar a senha.' });
+        return;
+      }
+      setIsSubmitting(true);
+      try {
+        if (isSupabaseConfigured) {
+          const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+            redirectTo: `${window.location.origin}/admin`
+          });
+          if (error) throw error;
+        }
+        setFeedback({
+          type: 'success',
+          message: 'Link de redefinição de senha enviado! Verifique sua caixa de entrada e spam.'
+        });
+      } catch (err: any) {
+        setFeedback({
+          type: 'error',
+          message: err?.message || 'Erro ao solicitar redefinição de senha.'
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
 
     if (!email || !password) {
       setFeedback({ type: 'error', message: 'Por favor, preencha todos os campos obrigatórios.' });
@@ -81,41 +109,55 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {/* Modal Header */}
         <div className="bg-gradient-to-b from-[#785600]/10 to-transparent p-6 text-center border-b border-[#d3c4af]/30">
           <div className="w-12 h-12 rounded-full bg-[#785600] text-white flex items-center justify-center mx-auto mb-3 shadow-md">
-            <ShoppingBag className="w-6 h-6" />
+            {tab === 'forgot' ? <KeyRound className="w-6 h-6" /> : <ShoppingBag className="w-6 h-6" />}
           </div>
           <h2 className="font-display text-2xl font-bold text-[#1c1b1b]">
-            {tab === 'signup' ? 'Criar Conta Eclesia' : 'Entrar na Conta'}
+            {tab === 'signup' ? 'Criar Nova Conta' : tab === 'forgot' ? 'Recuperar Senha' : 'Bem-vindo de volta'}
           </h2>
           <p className="font-sans text-xs text-[#4f4535] mt-1 max-w-xs mx-auto leading-relaxed">
             {tab === 'signup'
-              ? 'Cadastre-se para adicionar compras ao carrinho, acompanhar pedidos e receber novidades.'
-              : 'Acesse seu carrinho de compras e área exclusiva do portal.'}
+              ? 'Cadastre-se para adicionar compras ao carrinho e acompanhar pedidos.'
+              : tab === 'forgot'
+              ? 'Informe seu e-mail cadastrado e enviaremos um link de redefinição seguro.'
+              : 'Informe seu e-mail e senha cadastrados para acessar sua conta.'}
           </p>
         </div>
 
-        {/* Tabs Switcher */}
-        <div className="flex border-b border-[#d3c4af]/40 bg-[#f0eded] p-1">
-          <button
-            onClick={() => { setTab('signup'); setFeedback(null); }}
-            className={`flex-1 py-2.5 font-sans text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer ${
-              tab === 'signup'
-                ? 'bg-white text-[#785600] shadow-xs'
-                : 'text-[#4f4535] hover:text-[#1c1b1b]'
-            }`}
-          >
-            Criar Conta
-          </button>
-          <button
-            onClick={() => { setTab('login'); setFeedback(null); }}
-            className={`flex-1 py-2.5 font-sans text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer ${
-              tab === 'login'
-                ? 'bg-white text-[#785600] shadow-xs'
-                : 'text-[#4f4535] hover:text-[#1c1b1b]'
-            }`}
-          >
-            Já tenho Conta (Entrar)
-          </button>
-        </div>
+        {/* Tabs Switcher (Only when not in forgot mode) */}
+        {tab !== 'forgot' ? (
+          <div className="flex border-b border-[#d3c4af]/40 bg-[#f0eded] p-1">
+            <button
+              onClick={() => { setTab('login'); setFeedback(null); }}
+              className={`flex-1 py-2.5 font-sans text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer ${
+                tab === 'login'
+                  ? 'bg-white text-[#785600] shadow-xs'
+                  : 'text-[#4f4535] hover:text-[#1c1b1b]'
+              }`}
+            >
+              Entrar na Conta
+            </button>
+            <button
+              onClick={() => { setTab('signup'); setFeedback(null); }}
+              className={`flex-1 py-2.5 font-sans text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer ${
+                tab === 'signup'
+                  ? 'bg-white text-[#785600] shadow-xs'
+                  : 'text-[#4f4535] hover:text-[#1c1b1b]'
+              }`}
+            >
+              Criar Nova Conta
+            </button>
+          </div>
+        ) : (
+          <div className="px-6 pt-3">
+            <button
+              type="button"
+              onClick={() => { setTab('login'); setFeedback(null); }}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#785600] hover:underline cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" /> Voltar para o login
+            </button>
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -154,7 +196,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           {/* Email */}
           <div>
             <label className="block font-sans text-xs font-bold text-[#1c1b1b] uppercase tracking-wider mb-1">
-              E-mail *
+              Endereço de E-mail *
             </label>
             <div className="relative">
               <Mail className="w-4 h-4 text-[#817563] absolute left-3.5 top-3" />
@@ -169,30 +211,43 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
           </div>
 
-          {/* Password */}
-          <div>
-            <label className="block font-sans text-xs font-bold text-[#1c1b1b] uppercase tracking-wider mb-1">
-              Senha *
-            </label>
-            <div className="relative">
-              <Lock className="w-4 h-4 text-[#817563] absolute left-3.5 top-3" />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
-                className="w-full pl-10 pr-10 py-2.5 bg-white border border-[#d3c4af] rounded-xl font-sans text-xs text-[#1c1b1b] focus:border-[#785600] focus:ring-0"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3 text-[#817563] hover:text-[#1c1b1b]"
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
+          {/* Password (Not in forgot mode) */}
+          {tab !== 'forgot' && (
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block font-sans text-xs font-bold text-[#1c1b1b] uppercase tracking-wider">
+                  Senha *
+                </label>
+                {tab === 'login' && (
+                  <button
+                    type="button"
+                    onClick={() => { setTab('forgot'); setFeedback(null); }}
+                    className="text-[11px] font-bold text-[#785600] hover:underline cursor-pointer"
+                  >
+                    Esqueceu a senha?
+                  </button>
+                )}
+              </div>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-[#817563] absolute left-3.5 top-3" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Mínimo 6 caracteres"
+                  className="w-full pl-10 pr-10 py-2.5 bg-white border border-[#d3c4af] rounded-xl font-sans text-xs text-[#1c1b1b] focus:border-[#785600] focus:ring-0"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-[#817563] hover:text-[#1c1b1b] cursor-pointer"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Submit Button */}
           <button
@@ -204,6 +259,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               ? 'Processando...'
               : tab === 'signup'
               ? 'Concluir Cadastro'
+              : tab === 'forgot'
+              ? 'Enviar Link de Recuperação'
               : 'Entrar na Conta'}
           </button>
         </form>

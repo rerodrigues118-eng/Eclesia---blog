@@ -11,10 +11,10 @@ import {
   ShoppingBag,
   Heart,
   BookOpen,
-  ShieldCheck,
-  Sparkles
+  KeyRound
 } from 'lucide-react';
 import { ActiveView } from '../types';
+import { supabase, isSupabaseConfigured } from '../lib/supabase/client';
 
 interface AuthViewProps {
   onLogin: (email: string, pass: string) => Promise<{ success: boolean; message: string }>;
@@ -31,7 +31,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
   user,
   onSignOut
 }) => {
-  const [tab, setTab] = useState<'login' | 'signup'>('login');
+  const [tab, setTab] = useState<'login' | 'signup' | 'forgot'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -90,6 +90,34 @@ export const AuthView: React.FC<AuthViewProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFeedback(null);
+
+    if (tab === 'forgot') {
+      if (!email.trim()) {
+        setFeedback({ type: 'error', message: 'Por favor, informe seu e-mail para recuperar a senha.' });
+        return;
+      }
+      setIsSubmitting(true);
+      try {
+        if (isSupabaseConfigured) {
+          const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+            redirectTo: `${window.location.origin}/admin`
+          });
+          if (error) throw error;
+        }
+        setFeedback({
+          type: 'success',
+          message: 'Link de redefinição de senha enviado com sucesso! Verifique sua caixa de entrada e spam.'
+        });
+      } catch (err: any) {
+        setFeedback({
+          type: 'error',
+          message: err?.message || 'Erro ao solicitar redefinição de senha.'
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
 
     if (!email || !password) {
       setFeedback({ type: 'error', message: 'Por favor, preencha todos os campos obrigatórios.' });
@@ -188,38 +216,52 @@ export const AuthView: React.FC<AuthViewProps> = ({
 
         {/* Right Side: Auth Form Card */}
         <div className="lg:col-span-7 bg-white border border-[#d3c4af] rounded-3xl shadow-xl overflow-hidden">
-          {/* Tabs Selector */}
-          <div className="flex border-b border-[#d3c4af]/40 bg-[#f6f3f2] p-1.5">
-            <button
-              onClick={() => { setTab('login'); setFeedback(null); }}
-              className={`flex-1 py-3 font-sans text-xs font-bold uppercase tracking-wider rounded-2xl transition-all cursor-pointer ${
-                tab === 'login'
-                  ? 'bg-white text-[#785600] shadow-sm'
-                  : 'text-[#4f4535] hover:text-[#1c1b1b]'
-              }`}
-            >
-              Entrar na Conta
-            </button>
-            <button
-              onClick={() => { setTab('signup'); setFeedback(null); }}
-              className={`flex-1 py-3 font-sans text-xs font-bold uppercase tracking-wider rounded-2xl transition-all cursor-pointer ${
-                tab === 'signup'
-                  ? 'bg-white text-[#785600] shadow-sm'
-                  : 'text-[#4f4535] hover:text-[#1c1b1b]'
-              }`}
-            >
-              Criar Nova Conta
-            </button>
-          </div>
+          {/* Tabs Selector (When not in forgot mode) */}
+          {tab !== 'forgot' ? (
+            <div className="flex border-b border-[#d3c4af]/40 bg-[#f6f3f2] p-1.5">
+              <button
+                onClick={() => { setTab('login'); setFeedback(null); }}
+                className={`flex-1 py-3 font-sans text-xs font-bold uppercase tracking-wider rounded-2xl transition-all cursor-pointer ${
+                  tab === 'login'
+                    ? 'bg-white text-[#785600] shadow-sm'
+                    : 'text-[#4f4535] hover:text-[#1c1b1b]'
+                }`}
+              >
+                Entrar na Conta
+              </button>
+              <button
+                onClick={() => { setTab('signup'); setFeedback(null); }}
+                className={`flex-1 py-3 font-sans text-xs font-bold uppercase tracking-wider rounded-2xl transition-all cursor-pointer ${
+                  tab === 'signup'
+                    ? 'bg-white text-[#785600] shadow-sm'
+                    : 'text-[#4f4535] hover:text-[#1c1b1b]'
+                }`}
+              >
+                Criar Nova Conta
+              </button>
+            </div>
+          ) : (
+            <div className="p-4 bg-[#f6f3f2] border-b border-[#d3c4af]/40">
+              <button
+                type="button"
+                onClick={() => { setTab('login'); setFeedback(null); }}
+                className="inline-flex items-center gap-2 text-xs font-bold text-[#785600] hover:underline cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4" /> Voltar para o login
+              </button>
+            </div>
+          )}
 
           <div className="p-8 sm:p-10 space-y-6">
             <div>
               <h2 className="font-display text-2xl font-bold text-[#1c1b1b]">
-                {tab === 'login' ? 'Bem-vindo de volta' : 'Crie sua conta gratuita'}
+                {tab === 'login' ? 'Bem-vindo de volta' : tab === 'forgot' ? 'Recuperar Senha' : 'Crie sua conta gratuita'}
               </h2>
               <p className="font-sans text-xs text-[#817563] mt-1">
                 {tab === 'login'
                   ? 'Informe seu e-mail e senha cadastrados para acessar sua conta.'
+                  : tab === 'forgot'
+                  ? 'Informe seu e-mail cadastrado e enviaremos o link de recuperação seguro.'
                   : 'Preencha seus dados abaixo para se cadastrar na Eclesia.'}
               </p>
             </div>
@@ -275,30 +317,43 @@ export const AuthView: React.FC<AuthViewProps> = ({
                 </div>
               </div>
 
-              {/* Password */}
-              <div>
-                <label className="block font-sans text-xs font-bold text-[#1c1b1b] uppercase tracking-wider mb-1.5">
-                  Senha *
-                </label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-[#817563] absolute left-4 top-3.5" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Mínimo 6 caracteres"
-                    className="w-full pl-11 pr-11 py-3 bg-[#fcf9f8] border border-[#d3c4af] rounded-2xl font-sans text-xs text-[#1c1b1b] focus:border-[#785600] focus:ring-0 placeholder:text-[#817563]"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-3.5 text-[#817563] hover:text-[#1c1b1b]"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+              {/* Password (Not in forgot mode) */}
+              {tab !== 'forgot' && (
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block font-sans text-xs font-bold text-[#1c1b1b] uppercase tracking-wider">
+                      Senha *
+                    </label>
+                    {tab === 'login' && (
+                      <button
+                        type="button"
+                        onClick={() => { setTab('forgot'); setFeedback(null); }}
+                        className="text-[11px] font-bold text-[#785600] hover:underline cursor-pointer"
+                      >
+                        Esqueceu a senha?
+                      </button>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-[#817563] absolute left-4 top-3.5" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Mínimo 6 caracteres"
+                      className="w-full pl-11 pr-11 py-3 bg-[#fcf9f8] border border-[#d3c4af] rounded-2xl font-sans text-xs text-[#1c1b1b] focus:border-[#785600] focus:ring-0 placeholder:text-[#817563]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-3.5 text-[#817563] hover:text-[#1c1b1b] cursor-pointer"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <button
                 type="submit"
@@ -307,9 +362,11 @@ export const AuthView: React.FC<AuthViewProps> = ({
               >
                 {isSubmitting
                   ? 'Processando...'
-                  : tab === 'login'
-                  ? 'Entrar na Conta'
-                  : 'Criar Minha Conta'}
+                  : tab === 'signup'
+                  ? 'Criar Minha Conta'
+                  : tab === 'forgot'
+                  ? 'Enviar Link de Recuperação'
+                  : 'Entrar na Conta'}
               </button>
             </form>
           </div>

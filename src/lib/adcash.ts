@@ -43,9 +43,7 @@ export function initAdcashIfConsented(): void {
         // @ts-ignore
         if (window.aclib) {
           // @ts-ignore
-          window.aclib.runAutoTag({ zoneId: 'zlxbp9tnn8' });
-          // @ts-ignore
-          window.aclib.runAutoTag({ zoneId: 't7mdnha0np' });
+          window.aclib.runAutoTag({ zoneId: '42nihnnc5l' });
         }
       } catch (e) {
         console.warn('[Adcash] Erro na execução de runAutoTag:', e);
@@ -57,9 +55,7 @@ export function initAdcashIfConsented(): void {
       // @ts-ignore
       if (window.aclib) {
         // @ts-ignore
-        window.aclib.runAutoTag({ zoneId: 'zlxbp9tnn8' });
-        // @ts-ignore
-        window.aclib.runAutoTag({ zoneId: 't7mdnha0np' });
+        window.aclib.runAutoTag({ zoneId: '42nihnnc5l' });
       }
     } catch (e) {
       console.warn('[Adcash] Erro na execução:', e);
