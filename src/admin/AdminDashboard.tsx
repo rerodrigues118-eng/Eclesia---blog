@@ -64,17 +64,17 @@ interface ArticleImageItem {
 
 interface AdminDashboardProps {
   articles: Essay[];
-  onSaveArticle: (article: Essay) => void;
-  onDeleteArticle: (id: string) => void;
+  onSaveArticle: (article: Essay) => Promise<void> | void;
+  onDeleteArticle: (id: string) => Promise<void> | void;
   products: Product[];
-  onSaveProduct: (product: Product) => void;
-  onDeleteProduct: (id: string) => void;
+  onSaveProduct: (product: Product) => Promise<void> | void;
+  onDeleteProduct: (id: string) => Promise<void> | void;
   prayers: PrayerItem[];
-  onSavePrayer: (prayer: PrayerItem) => void;
-  onDeletePrayer: (id: string) => void;
+  onSavePrayer: (prayer: PrayerItem) => Promise<void> | void;
+  onDeletePrayer: (id: string) => Promise<void> | void;
   saints: Saint[];
-  onSaveSaint: (saint: Saint) => void;
-  onDeleteSaint: (id: string) => void;
+  onSaveSaint: (saint: Saint) => Promise<void> | void;
+  onDeleteSaint: (id: string) => Promise<void> | void;
   setActiveView: (view: ActiveView) => void;
 }
 
@@ -758,7 +758,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const seoAudit: SeoAuditResult = calculateSeoScore(currentDraftArticle);
 
-  const handleSaveArticleSubmit = (e: React.FormEvent) => {
+  const handleSaveArticleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!articleTitle.trim() || !articleContent.trim()) {
       notify('Preencha o título e o conteúdo do artigo.', 'error');
@@ -785,7 +785,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       metaTitle: finalMetaTitle,
       metaDescription: finalMetaDesc,
       keywords: finalKeywords,
-      canonicalUrl: `https://eclesia.com.br/blog/${finalSlug}`,
+      canonicalUrl: `https://eclesia.blog/blog/${finalSlug}`,
       ogImage: articleImageUrl,
       schemaType: 'Article',
       seoScore: seoAudit.score,
@@ -793,15 +793,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       adConfig: articleAdConfig
     };
 
-    onSaveArticle(payload);
-    notify(
-      editingArticle
-        ? `Artigo "${payload.title}" atualizado com sucesso no banco de dados!`
-        : `Artigo "${payload.title}" publicado com sucesso!`
-    );
-    setIsArticleFormOpen(false);
-    setIsFullScreen(false);
-    setEditingArticle(null);
+    try {
+      await onSaveArticle(payload);
+      notify(
+        editingArticle
+          ? `Artigo "${payload.title}" atualizado com sucesso no banco de dados!`
+          : `Artigo "${payload.title}" publicado com sucesso no banco de dados!`
+      );
+      setIsArticleFormOpen(false);
+      setIsFullScreen(false);
+      setEditingArticle(null);
+    } catch (err: any) {
+      console.error('Erro ao salvar artigo:', err);
+      notify(`Erro ao gravar no banco de dados: ${err?.message || 'Verifique as permissões RLS no Supabase.'}`, 'error');
+    }
   };
 
   // =========================================================================
