@@ -91,7 +91,7 @@ export const BlogView: React.FC<BlogViewProps> = ({ onSelectEssay, articles = []
       </div>
 
       {/* Hero Featured Article/News Banner (Design Retangular, Compacto e Elegante) */}
-      {featuredPost ? (
+      {featuredPost && (
         <section
           onClick={() => onSelectEssay(featuredPost)}
           className="group cursor-pointer bg-white border border-[#d3c4af]/70 rounded-2xl overflow-hidden shadow-xs hover:shadow-md hover:border-[#785600]/60 transition-all grid grid-cols-1 lg:grid-cols-12 items-stretch"
@@ -142,14 +142,6 @@ export const BlogView: React.FC<BlogViewProps> = ({ onSelectEssay, articles = []
             </div>
           </div>
         </section>
-      ) : (
-        <div className="text-center py-12 bg-white border border-[#d3c4af]/50 rounded-2xl p-8 space-y-3">
-          <BookOpen className="w-10 h-10 text-[#785600] mx-auto opacity-50" />
-          <h3 className="font-display text-xl font-bold text-[#1c1b1b]">Nenhum artigo publicado no momento</h3>
-          <p className="font-sans text-xs sm:text-sm text-[#4f4535] max-w-md mx-auto">
-            Os artigos e notícias são sincronizados em tempo real com o banco de dados. Cadastre publicações pelo painel administrativo.
-          </p>
-        </div>
       )}
 
       {/* Filters & Search Bar */}
@@ -179,10 +171,10 @@ export const BlogView: React.FC<BlogViewProps> = ({ onSelectEssay, articles = []
           <Search className="w-4 h-4 text-[#817563] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
+            placeholder="Buscar notícias e artigos..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar notícias e artigos..."
-            className="w-full pl-9 pr-3 py-1.5 bg-white border border-[#d3c4af] rounded-lg font-sans text-xs text-[#1c1b1b] placeholder:text-[#817563] focus:border-[#785600] focus:ring-0"
+            className="w-full pl-9 pr-4 py-2 bg-white border border-[#d3c4af]/60 rounded-lg text-xs font-sans focus:outline-hidden focus:border-[#785600]"
           />
         </div>
       </div>
@@ -196,22 +188,26 @@ export const BlogView: React.FC<BlogViewProps> = ({ onSelectEssay, articles = []
               <BookOpen className="w-10 h-10 text-[#817563] mx-auto opacity-40" />
               <h3 className="font-display text-xl font-bold text-[#1c1b1b]">Nenhuma publicação encontrada</h3>
               <p className="font-sans text-sm text-[#4f4535]">
-                Tente ajustar os filtros de busca ou categoria para encontrar o conteúdo desejado.
+                {searchQuery || selectedCategory !== 'all' || selectedFormat !== 'all'
+                  ? 'Tente ajustar os filtros de busca ou categoria para encontrar o conteúdo desejado.'
+                  : 'Cadastre novos artigos pelo painel administrativo para exibi-los aqui.'}
               </p>
-              <button
-                onClick={() => {
-                  setSelectedFormat('all');
-                  setSelectedCategory('all');
-                  setSearchQuery('');
-                }}
-                className="px-4 py-2 bg-[#1c1b1b] text-white text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#785600] transition-colors mt-2 inline-block cursor-pointer"
-              >
-                Limpar Filtros
-              </button>
+              {(searchQuery || selectedCategory !== 'all' || selectedFormat !== 'all') && (
+                <button
+                  onClick={() => {
+                    setSelectedFormat('all');
+                    setSelectedCategory('all');
+                    setSearchQuery('');
+                  }}
+                  className="px-4 py-2 bg-[#1c1b1b] text-white text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#785600] transition-colors mt-2 inline-block cursor-pointer"
+                >
+                  Limpar Filtros
+                </button>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {(gridPosts.length > 0 ? gridPosts : filteredPosts).map((essay) => (
+              {filteredPosts.map((essay) => (
                 <article
                   key={essay.id}
                   onClick={() => onSelectEssay(essay)}
