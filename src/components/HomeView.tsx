@@ -36,6 +36,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   articles = [],
   products = [],
   saints = [],
+  prayers = [],
 }) => {
   // 1. Strictly the 3 most recently posted articles
   const recentArticles = (articles || []).slice(0, 3);
