@@ -247,64 +247,58 @@ export const App: React.FC = () => {
   // Admin CRUD Handlers with Real-Time Database Sync
   const handleSaveArticle = async (article: Essay) => {
     await saveArticleToDb(article);
-    setArticles(prev => {
-      const exists = prev.some(a => a.id === article.id || (a.slug && article.slug && a.slug === article.slug));
-      if (exists) return prev.map(a => (a.id === article.id || (a.slug && article.slug && a.slug === article.slug)) ? article : a);
-      return [article, ...prev];
-    });
+    const freshArticles = await fetchArticlesFromDb();
+    setArticles(freshArticles);
     if (selectedEssay && (selectedEssay.id === article.id || (selectedEssay.slug && selectedEssay.slug === article.slug))) {
-      setSelectedEssay(article);
+      const updated = freshArticles.find(a => a.id === article.id || a.slug === article.slug);
+      if (updated) setSelectedEssay(updated);
     }
   };
 
   const handleDeleteArticle = async (id: string) => {
     await deleteArticleFromDb(id);
-    setArticles(prev => prev.filter(a => a.id !== id));
+    const freshArticles = await fetchArticlesFromDb();
+    setArticles(freshArticles);
   };
 
   const handleSaveProduct = async (product: Product) => {
     await saveProductToDb(product);
-    setProducts(prev => {
-      const exists = prev.some(p => p.id === product.id);
-      if (exists) return prev.map(p => p.id === product.id ? product : p);
-      return [product, ...prev];
-    });
+    const freshProducts = await fetchProductsFromDb();
+    setProducts(freshProducts);
   };
 
   const handleDeleteProduct = async (id: string) => {
     await deleteProductFromDb(id);
-    setProducts(prev => prev.filter(p => p.id !== id));
+    const freshProducts = await fetchProductsFromDb();
+    setProducts(freshProducts);
   };
 
   const handleSavePrayer = async (prayer: PrayerItem) => {
     await savePrayerToDb(prayer);
-    setPrayers(prev => {
-      const exists = prev.some(p => p.id === prayer.id);
-      if (exists) return prev.map(p => p.id === prayer.id ? prayer : p);
-      return [prayer, ...prev];
-    });
+    const freshPrayers = await fetchPrayersFromDb();
+    setPrayers(freshPrayers);
   };
 
   const handleDeletePrayer = async (id: string) => {
     await deletePrayerFromDb(id);
-    setPrayers(prev => prev.filter(p => p.id !== id));
+    const freshPrayers = await fetchPrayersFromDb();
+    setPrayers(freshPrayers);
   };
 
   const handleSaveSaint = async (saint: Saint) => {
     await saveSaintToDb(saint);
-    setSaints(prev => {
-      const exists = prev.some(s => s.id === saint.id);
-      if (exists) return prev.map(s => s.id === saint.id ? saint : s);
-      return [saint, ...prev];
-    });
+    const freshSaints = await fetchSaintsFromDb();
+    setSaints(freshSaints);
     if (selectedSaint && selectedSaint.id === saint.id) {
-      setSelectedSaint(saint);
+      const updated = freshSaints.find(s => s.id === saint.id);
+      if (updated) setSelectedSaint(updated);
     }
   };
 
   const handleDeleteSaint = async (id: string) => {
     await deleteSaintFromDb(id);
-    setSaints(prev => prev.filter(s => s.id !== id));
+    const freshSaints = await fetchSaintsFromDb();
+    setSaints(freshSaints);
   };
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
