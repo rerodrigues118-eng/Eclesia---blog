@@ -66,6 +66,45 @@ export async function fetchArticlesFromDb(): Promise<Essay[]> {
 }
 
 export async function saveArticleToDb(article: Essay): Promise<{ success: boolean; article: Essay }> {
+  if (isSupabaseConfigured) {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(article.id);
+    const payload: any = {
+      title: article.title,
+      slug: article.slug || article.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
+      excerpt: article.excerpt || '',
+      content: article.content || '',
+      cover_image: article.imageUrl || 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=800',
+      category: article.category || 'Teologia',
+      type: article.type || 'artigo',
+      author_name: article.author || 'Redação Eclesia',
+      read_time: article.readTime || '5 min de leitura',
+      featured: !!article.featured,
+      trending: !!article.trending,
+      meta_title: article.metaTitle || article.title,
+      meta_description: article.metaDescription || article.excerpt,
+      keywords: article.keywords || [],
+      media_map: article.mediaMap || null,
+      status: 'publicado',
+      published_at: new Date().toISOString()
+    };
+
+    if (isUuid) {
+      payload.id = article.id;
+    }
+
+    const { data, error } = await supabase.from('articles').upsert(payload, { onConflict: 'slug' }).select();
+
+    if (error) {
+      console.error('[dbService] Erro retornado pelo Supabase no salvar artigo:', error);
+      throw new Error(`[Supabase ${error.code || 'ERR'}]: ${error.message} ${error.details || ''} ${error.hint || ''}`.trim());
+    }
+
+    if (data && data[0]) {
+      console.log('[dbService] Artigo salvo com sucesso no Supabase:', data[0]);
+    }
+  }
+
+  // Atualiza cache local de backup
   const local = localStorage.getItem(STORAGE_KEY_ARTICLES);
   let current: Essay[] = [];
   if (local) {
@@ -75,50 +114,11 @@ export async function saveArticleToDb(article: Essay): Promise<{ success: boolea
       current = [];
     }
   }
-
   const exists = current.some(a => a.id === article.id || (a.slug && article.slug && a.slug === article.slug));
   const updatedList = exists
     ? current.map(a => (a.id === article.id || (a.slug && article.slug && a.slug === article.slug)) ? article : a)
     : [article, ...current];
   localStorage.setItem(STORAGE_KEY_ARTICLES, JSON.stringify(updatedList));
-
-  if (isSupabaseConfigured) {
-    try {
-      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(article.id);
-      const payload: any = {
-        title: article.title,
-        slug: article.slug || article.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
-        excerpt: article.excerpt || '',
-        content: article.content || '',
-        cover_image: article.imageUrl || 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=800',
-        category: article.category || 'Teologia',
-        type: article.type || 'artigo',
-        author_name: article.author || 'Redação Eclesia',
-        read_time: article.readTime || '5 min de leitura',
-        featured: !!article.featured,
-        trending: !!article.trending,
-        meta_title: article.metaTitle || article.title,
-        meta_description: article.metaDescription || article.excerpt,
-        keywords: article.keywords || [],
-        media_map: article.mediaMap || null,
-        status: 'publicado',
-        published_at: new Date().toISOString()
-      };
-
-      if (isUuid) {
-        payload.id = article.id;
-      }
-
-      const { data, error } = await supabase.from('articles').upsert(payload, { onConflict: 'slug' }).select();
-      if (error) {
-        console.error('[dbService] Erro ao salvar artigo no Supabase:', error);
-      } else if (data && data[0]) {
-        console.log('[dbService] Artigo salvo com sucesso no Supabase:', data[0]);
-      }
-    } catch (err) {
-      console.warn('[dbService] Supabase articles upsert warning:', err);
-    }
-  }
 
   return { success: true, article };
 }
