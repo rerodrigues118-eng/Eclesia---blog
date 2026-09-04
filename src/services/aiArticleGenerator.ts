@@ -12,8 +12,33 @@ const getEnvKey = (key: string) => {
   return '';
 };
 
-export const GROK_API_KEY = getEnvKey('VITE_GROK_API_KEY') || getEnvKey('GROK_API_KEY');
-export const GEMINI_API_KEY = getEnvKey('VITE_GEMINI_API_KEY') || getEnvKey('GEMINI_API_KEY');
+export const getGrokApiKey = (): string => {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('eclesia_grok_key');
+    if (saved && saved.trim()) return saved.trim();
+  }
+  return getEnvKey('VITE_GROK_API_KEY') || getEnvKey('GROK_API_KEY') || '';
+};
+
+export const getGeminiApiKey = (): string => {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('eclesia_gemini_key');
+    if (saved && saved.trim()) return saved.trim();
+  }
+  return getEnvKey('VITE_GEMINI_API_KEY') || getEnvKey('GEMINI_API_KEY') || '';
+};
+
+export const setGrokApiKey = (key: string) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('eclesia_grok_key', key.trim());
+  }
+};
+
+export const setGeminiApiKey = (key: string) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('eclesia_gemini_key', key.trim());
+  }
+};
 
 export interface GeneratedArticleResult {
   title: string;
@@ -35,7 +60,12 @@ export interface GeneratedArticleResult {
 // AUXILIAR: Chamada Grok (xAI) ou Groq (Llama 3)
 // ============================================================================
 async function chamarTextoIA(promptSistema: string, promptUsuario: string): Promise<string> {
-  const isGroq = GROK_API_KEY.startsWith('gsk_');
+  const apiKey = getGrokApiKey();
+  if (!apiKey) {
+    throw new Error('Chave de API do Grok não configurada.');
+  }
+
+  const isGroq = apiKey.startsWith('gsk_');
   
   const endpoint = isGroq
     ? 'https://api.groq.com/openai/v1/chat/completions'
@@ -82,19 +112,20 @@ async function chamarTextoIA(promptSistema: string, promptUsuario: string): Prom
 // AUXILIAR: Geração de Arte Sacra com Google Imagen 3 (Gemini)
 // ============================================================================
 async function gerarImagemComImagen3(promptImagem: string, slug: string): Promise<string> {
-  if (!GEMINI_API_KEY) {
+  const geminiKey = getGeminiApiKey();
+  if (!geminiKey) {
     return 'https://images.unsplash.com/photo-1548625361-195979bc7583?auto=format&fit=crop&q=80&w=1200';
   }
 
   try {
-    const urlEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${GEMINI_API_KEY}`;
+    const urlEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${geminiKey}`;
     const promptSacro = `${promptImagem}, sacred Catholic religious art, neoclassical and baroque oil painting style, masterpiece, beautiful lighting, solemn and revered, 16:9 cinematic, hyper-detailed`;
 
     const response = await fetch(urlEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-goog-api-key': GEMINI_API_KEY
+        'x-goog-api-key': geminiKey
       },
       body: JSON.stringify({
         instances: [{ prompt: promptSacro }],
@@ -157,8 +188,17 @@ export async function generateArticleClientSide(
   tipo: 'liturgia' | 'tema_em_alta' | 'santo' = 'liturgia',
   imagemReferencia?: string
 ): Promise<GeneratedArticleResult> {
-  if (!GROK_API_KEY) {
-    throw new Error('Chave de API do Grok não encontrada no ambiente (.env).');
+  let grokKey = getGrokApiKey();
+  if (!grokKey) {
+    const userInput = typeof window !== 'undefined'
+      ? window.prompt('Para gerar artigos com IA no Eclesia, insira sua chave do Grok / Groq (ex: gsk_...):\n(Ela será salva com segurança no seu navegador)')
+      : null;
+    if (userInput && userInput.trim()) {
+      setGrokApiKey(userInput.trim());
+      grokKey = userInput.trim();
+    } else {
+      throw new Error('Chave de API do Grok não informada. Insira sua chave para gerar o artigo.');
+    }
   }
 
   const hoje = new Date();
