@@ -75,41 +75,57 @@ async function chamarTextoIA(promptSistema: string, promptUsuario: string): Prom
     ? 'https://api.groq.com/openai/v1/chat/completions'
     : 'https://api.x.ai/v1/chat/completions';
 
-  const model = isGroq ? 'llama-3.3-70b-versatile' : 'grok-2-latest';
+  // Modelos homologados e ativos na infraestrutura do Groq
+  const modelos = isGroq
+    ? ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.6-27b']
+    : ['grok-2-latest', 'grok-beta'];
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${GROK_API_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: model,
-      messages: [
-        { role: 'system', content: promptSistema },
-        { role: 'user', content: promptUsuario }
-      ],
-      temperature: 0.7,
-      max_tokens: 3500
-    })
-  });
+  let lastError = '';
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Erro na API de Texto (${isGroq ? 'Groq' : 'xAI'} ${response.status}): ${errorText}`);
+  for (const model of modelos) {
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: [
+            { role: 'system', content: promptSistema },
+            { role: 'user', content: promptUsuario }
+          ],
+          temperature: 0.7,
+          max_tokens: 2800
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        lastError = `(${isGroq ? 'Groq' : 'xAI'} ${response.status}): ${errorText}`;
+        console.warn(`[IA Warning] Modelo ${model} falhou:`, errorText);
+        continue;
+      }
+
+      const data = await response.json();
+      const rawContent = data.choices?.[0]?.message?.content ?? '';
+
+      let jsonString = rawContent.trim();
+      if (jsonString.startsWith('```json')) {
+        jsonString = jsonString.replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim();
+      } else if (jsonString.startsWith('```')) {
+        jsonString = jsonString.replace(/^```\s*/, '').replace(/\s*```$/, '').trim();
+      }
+
+      if (jsonString) return jsonString;
+    } catch (e: any) {
+      lastError = e.message;
+      console.warn(`[IA Exception] Modelo ${model}:`, e);
+    }
   }
 
-  const data = await response.json();
-  const rawContent = data.choices?.[0]?.message?.content ?? '';
-
-  let jsonString = rawContent.trim();
-  if (jsonString.startsWith('```json')) {
-    jsonString = jsonString.replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim();
-  } else if (jsonString.startsWith('```')) {
-    jsonString = jsonString.replace(/^```\s*/, '').replace(/\s*```$/, '').trim();
-  }
-
-  return jsonString;
+  throw new Error(`Erro na API de Texto: ${lastError}`);
 }
 
 // ============================================================================
