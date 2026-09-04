@@ -59,6 +59,7 @@ import { ArticleLivePreviewModal } from '../components/ArticleLivePreviewModal';
 import { GoogleAdSlot } from '../components/GoogleAdSlot';
 import { fetchSiteSettingsFromDb, saveSiteSettingsToDb } from '../services/dbService';
 import { supabase } from '../lib/supabase/client';
+import { generateArticleClientSide } from '../services/aiArticleGenerator';
 
 interface ArticleImageItem {
   id: string;
@@ -766,14 +767,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     notify(`⚡ Conectando ao Grok & Imagen 3 para gerar ${rotuloTipo}... Aguarde alguns instantes.`, 'success');
 
     try {
-      const { data, error } = await supabase.functions.invoke('gerar-artigo-diario', {
-        body: { tipo, statusArtigo: 'rascunho' }
-      });
+      let art: any = null;
 
-      if (error) throw error;
-      if (!data?.success) throw new Error(data?.error || 'Erro retornado pela IA');
+      // 1. Tenta invocar a Edge Function no Supabase
+      try {
+        const { data, error } = await supabase.functions.invoke('gerar-artigo-diario', {
+          body: { tipo, statusArtigo: 'rascunho' }
+        });
 
-      const art = data.article;
+        if (!error && data?.success && data?.article) {
+          art = data.article;
+        }
+      } catch (edgeErr) {
+        console.warn('Edge Function ainda não disponível na nuvem Supabase, ativando gerador direto:', edgeErr);
+      }
+
+      // 2. Fallback automático: Se a Edge Function não estiver publicada ainda, gera diretamente
+      if (!art) {
+        art = await generateArticleClientSide(tipo);
+      }
+
       if (art) {
         setEditingArticle(null);
         setArticleTitle(art.title || '');
@@ -781,7 +794,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         setArticleReadTime(art.read_time || '5 min de leitura');
         setArticleAuthor(art.author_name || 'Redação Eclesia');
         setArticleImageUrl(art.cover_image || '');
-        setArticleAltText(art.title || 'Arte sacra');
+        setArticleAltText(art.alt_text || art.title || 'Arte sacra');
         setArticleExcerpt(art.excerpt || '');
         setArticleContent(art.content || '');
         setArticleSlug(art.slug || '');
@@ -796,7 +809,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       }
     } catch (err: any) {
       console.error('Erro ao gerar artigo com IA:', err);
-      notify(`Falha ao conectar na IA: ${err.message || 'Verifique se a Edge Function foi deployada no Supabase.'}`, 'error');
+      notify(`Falha ao conectar na IA: ${err.message || 'Verifique as chaves de API no .env.'}`, 'error');
     } finally {
       setIsGeneratingAi(false);
     }
