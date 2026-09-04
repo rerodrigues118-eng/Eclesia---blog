@@ -4,6 +4,7 @@
 // ============================================================================
 
 import { supabase } from '../lib/supabase/client';
+import { parseJsonSeguro } from '../utils/jsonParser';
 
 const getEnvKey = (key: string) => {
   const meta = import.meta as any;
@@ -93,11 +94,12 @@ async function chamarTextoIA(promptSistema: string, promptUsuario: string): Prom
         body: JSON.stringify({
           model: model,
           messages: [
-            { role: 'system', content: promptSistema },
+            { role: 'system', content: promptSistema + '\nATENÇÃO: Responda APENAS com um objeto JSON válido, sem texto antes ou depois.' },
             { role: 'user', content: promptUsuario }
           ],
+          response_format: { type: 'json_object' },
           temperature: 0.7,
-          max_tokens: 2800
+          max_tokens: 5000
         })
       });
 
@@ -318,7 +320,7 @@ export async function generateArticleClientSide(
   }
 
   const jsonStr = await chamarTextoIA(promptSistema, promptUsuario);
-  const artigo = JSON.parse(jsonStr);
+  const artigo = parseJsonSeguro(jsonStr);
 
   let urlCapa = imagemReferencia || '';
 
