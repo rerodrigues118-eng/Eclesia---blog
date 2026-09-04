@@ -58,6 +58,7 @@ import { convertFileToWebP } from '../utils/imageOptimizer';
 import { ArticleLivePreviewModal } from '../components/ArticleLivePreviewModal';
 import { GoogleAdSlot } from '../components/GoogleAdSlot';
 import { fetchSiteSettingsFromDb, saveSiteSettingsToDb } from '../services/dbService';
+import { supabase } from '../lib/supabase/client';
 
 interface ArticleImageItem {
   id: string;
@@ -107,6 +108,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [isFormSaving, setIsFormSaving] = useState(false);
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
 
   // Theme State: Light Mode as Default, Dark Mode as optional
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -751,6 +753,53 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setArticleKeywordsInput(pkg.keywords.join(', '));
 
     notify(`Modelo editorial "${tpl.title}" aplicado com sucesso!`);
+  };
+
+  const handleGenerateAiArticle = async (tipo: 'liturgia' | 'tema_em_alta' | 'santo') => {
+    setIsGeneratingAi(true);
+    const rotuloTipo = tipo === 'liturgia' 
+      ? 'a Liturgia Diária' 
+      : tipo === 'tema_em_alta' 
+      ? 'o Artigo com Tema Católico em Alta' 
+      : 'o Santo do Dia';
+
+    notify(`⚡ Conectando ao Grok & Imagen 3 para gerar ${rotuloTipo}... Aguarde alguns instantes.`, 'success');
+
+    try {
+      const { data, error } = await supabase.functions.invoke('gerar-artigo-diario', {
+        body: { tipo, statusArtigo: 'rascunho' }
+      });
+
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Erro retornado pela IA');
+
+      const art = data.article;
+      if (art) {
+        setEditingArticle(null);
+        setArticleTitle(art.title || '');
+        setArticleCategory(art.category || (tipo === 'liturgia' ? 'Liturgia Diária' : tipo === 'santo' ? 'Santo do Dia' : 'Teologia'));
+        setArticleReadTime(art.read_time || '5 min de leitura');
+        setArticleAuthor(art.author_name || 'Redação Eclesia');
+        setArticleImageUrl(art.cover_image || '');
+        setArticleAltText(art.title || 'Arte sacra');
+        setArticleExcerpt(art.excerpt || '');
+        setArticleContent(art.content || '');
+        setArticleSlug(art.slug || '');
+        setArticleMetaTitle(art.meta_title || art.title);
+        setArticleMetaDescription(art.meta_description || art.excerpt);
+        setArticleKeywordsInput((art.keywords || []).join(', '));
+        setArticleImages([]);
+        setIsArticleFormOpen(true);
+        setArticleEditorMode('split');
+
+        notify(`🎉 Novo artigo (${rotuloTipo}) gerado com sucesso com 100% de Score SEO! Foto e textos já inseridos.`);
+      }
+    } catch (err: any) {
+      console.error('Erro ao gerar artigo com IA:', err);
+      notify(`Falha ao conectar na IA: ${err.message || 'Verifique se a Edge Function foi deployada no Supabase.'}`, 'error');
+    } finally {
+      setIsGeneratingAi(false);
+    }
   };
 
   const handleTitleChange = (val: string) => {
@@ -1435,12 +1484,34 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </p>
                 </div>
 
-                <button
-                  onClick={handleOpenNewArticle}
-                  className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold uppercase tracking-wider rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5"
-                >
-                  <Plus className="w-4 h-4" /> Novo Artigo
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={isGeneratingAi}
+                    onClick={() => handleGenerateAiArticle('liturgia')}
+                    className="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+                    title="Gerar artigo da Liturgia Diária de hoje com Grok e imagem litúrgica"
+                  >
+                    📖 {isGeneratingAi ? 'Gerando...' : 'Liturgia Diária (IA)'}
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={isGeneratingAi}
+                    onClick={() => handleGenerateAiArticle('tema_em_alta')}
+                    className="px-3.5 py-2.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+                    title="A IA analisa o dia e escolhe o tema católico em alta (Grok + Imagen 3)"
+                  >
+                    🔥 {isGeneratingAi ? 'Gerando...' : 'Tema em Alta (IA)'}
+                  </button>
+
+                  <button
+                    onClick={handleOpenNewArticle}
+                    className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold uppercase tracking-wider rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Plus className="w-4 h-4" /> Novo Artigo
+                  </button>
+                </div>
               </div>
 
               {/* Rich Article Form Modal / Full Screen Workspace */}
@@ -1512,11 +1583,40 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </span>
                       
                       <div className="flex flex-wrap items-center gap-2">
+                        {/* Quick AI Generators */}
+                        <button
+                          type="button"
+                          disabled={isGeneratingAi}
+                          onClick={() => handleGenerateAiArticle('liturgia')}
+                          className="px-2.5 py-1 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 text-[11px] font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                          title="Gerar artigo da Liturgia Diária de hoje com IA"
+                        >
+                          📖 Liturgia IA
+                        </button>
+                        <button
+                          type="button"
+                          disabled={isGeneratingAi}
+                          onClick={() => handleGenerateAiArticle('tema_em_alta')}
+                          className="px-2.5 py-1 bg-purple-500/15 hover:bg-purple-500/25 text-purple-800 dark:text-purple-300 border border-purple-500/30 text-[11px] font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                          title="Gerar artigo com Tema em Alta escolhido pela IA"
+                        >
+                          🔥 Tema em Alta IA
+                        </button>
+                        <button
+                          type="button"
+                          disabled={isGeneratingAi}
+                          onClick={() => handleGenerateAiArticle('santo')}
+                          className="px-2.5 py-1 bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-[11px] font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                          title="Gerar Santo do Dia de hoje com IA"
+                        >
+                          ✝️ Santo IA
+                        </button>
+
                         {/* Quick Template Inserters */}
                         <button
                           type="button"
                           onClick={() => handleApplyEditorialTemplate('doutrina')}
-                          className="px-2.5 py-1 bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-[11px] font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                          className="px-2.5 py-1 bg-slate-500/15 hover:bg-slate-500/25 text-slate-700 dark:text-slate-300 border border-slate-500/30 text-[11px] font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
                           title="Inserir modelo completo de Doutrina (650+ palavras, H2, oração)"
                         >
                           📄 Modelo Doutrina
@@ -1524,7 +1624,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <button
                           type="button"
                           onClick={() => handleApplyEditorialTemplate('santo')}
-                          className="px-2.5 py-1 bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-[11px] font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                          className="px-2.5 py-1 bg-slate-500/15 hover:bg-slate-500/25 text-slate-700 dark:text-slate-300 border border-slate-500/30 text-[11px] font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
                           title="Inserir modelo de Vida dos Santos (600+ palavras, H2, oração)"
                         >
                           ✝️ Modelo Santo
