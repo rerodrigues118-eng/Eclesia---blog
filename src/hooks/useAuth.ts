@@ -24,14 +24,14 @@ export function useAuth() {
       if (isSupabaseConfigured) {
         const { data, error } = await supabase
           .from('profiles')
-          .select('id, full_name, role, avatar_url, created_at')
+          .select('*')
           .eq('id', u.id)
           .maybeSingle();
 
         if (!error && data) {
           dbRole = (data.role as any) || null;
           fullNameFromDb = data.full_name || null;
-          avatarFromDb = data.avatar_url || null;
+          avatarFromDb = data.avatar_url || (data as any).avatar || null;
           createdAtFromDb = data.created_at || null;
         } else if (error) {
           console.warn('[useAuth] Aviso ao consultar tabela profiles:', error.message);

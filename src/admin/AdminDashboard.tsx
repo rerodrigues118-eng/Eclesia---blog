@@ -59,7 +59,7 @@ import { ArticleLivePreviewModal } from '../components/ArticleLivePreviewModal';
 import { GoogleAdSlot } from '../components/GoogleAdSlot';
 import { fetchSiteSettingsFromDb, saveSiteSettingsToDb } from '../services/dbService';
 import { supabase } from '../lib/supabase/client';
-import { generateArticleClientSide } from '../services/aiArticleGenerator';
+import { generateArticleClientSide, setGrokApiKey } from '../services/aiArticleGenerator';
 
 interface ArticleImageItem {
   id: string;
@@ -809,7 +809,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       }
     } catch (err: any) {
       console.error('Erro ao gerar artigo com IA:', err);
-      notify(`Falha ao conectar na IA: ${err.message || 'Verifique as chaves de API no .env.'}`, 'error');
+      if (err?.message?.includes('Chave de API do Grok') || err?.message?.includes('GROK_API_KEY')) {
+        const inputKey = window.prompt('Para ativar a IA no seu painel Eclesia, insira sua chave do Grok / Groq (ex: gsk_...):\n(Ela será gravada com segurança no seu navegador):');
+        if (inputKey && inputKey.trim()) {
+          setGrokApiKey(inputKey.trim());
+          notify('Chave do Grok salva com sucesso! Clique novamente no botão para gerar o artigo.', 'success');
+          return;
+        }
+      }
+      notify(`Falha ao conectar na IA: ${err.message || 'Verifique as chaves de API.'}`, 'error');
     } finally {
       setIsGeneratingAi(false);
     }

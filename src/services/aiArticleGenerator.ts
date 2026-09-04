@@ -28,6 +28,10 @@ export const getGeminiApiKey = (): string => {
   return getEnvKey('VITE_GEMINI_API_KEY') || getEnvKey('GEMINI_API_KEY') || '';
 };
 
+// Compatibilidade para evitar ReferenceError caso código externo referencie a constante
+export const GROK_API_KEY = getGrokApiKey();
+export const GEMINI_API_KEY = getGeminiApiKey();
+
 export const setGrokApiKey = (key: string) => {
   if (typeof window !== 'undefined') {
     localStorage.setItem('eclesia_grok_key', key.trim());
