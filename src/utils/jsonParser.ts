@@ -1,10 +1,36 @@
 function normalizarCamposObjeto(obj: any): any {
   if (!obj || typeof obj !== 'object') return obj;
+
+  // 1. Converte quebras de linha literais em todas as strings
   for (const k of Object.keys(obj)) {
     if (typeof obj[k] === 'string') {
       obj[k] = obj[k].replace(/\\n/g, '\n').replace(/\\r/g, '').trim();
     }
   }
+
+  // 2. Mapeamento bidirecional de chaves inglês <-> português
+  if (!obj.titulo && (obj.title || obj.headline || obj.name)) {
+    obj.titulo = obj.title || obj.headline || obj.name;
+  }
+  if (!obj.conteudo && (obj.article || obj.content || obj.body || obj.texto || obj.corpo || obj.artigo)) {
+    obj.conteudo = obj.article || obj.content || obj.body || obj.texto || obj.corpo || obj.artigo;
+  }
+  if (!obj.resumo && (obj.excerpt || obj.summary || obj.description)) {
+    obj.resumo = obj.excerpt || obj.summary || obj.description;
+  }
+  if (!obj.categoria && (obj.category || obj.tag)) {
+    obj.categoria = obj.category || obj.tag;
+  }
+  if (!obj.metaTitle && (obj.meta_title || obj.seo_title || obj.titulo || obj.title)) {
+    obj.metaTitle = obj.meta_title || obj.seo_title || obj.titulo || obj.title;
+  }
+  if (!obj.metaDescription && (obj.meta_description || obj.seo_description || obj.resumo || obj.summary)) {
+    obj.metaDescription = obj.meta_description || obj.seo_description || obj.resumo || obj.summary;
+  }
+  if (!obj.slug && (obj.url_slug || obj.slug_url)) {
+    obj.slug = obj.url_slug || obj.slug_url;
+  }
+
   return obj;
 }
 
@@ -100,30 +126,54 @@ export function parseJsonSeguro(raw: string): any {
         return '';
       };
 
-      const titulo = extrairCampo('titulo') || 'Artigo Editorial Eclesia';
-      const slug = extrairCampo('slug') || titulo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-').replace(/[^\w-]/g, '');
-      let conteudo = extrairCampo('conteudo');
+      const titulo = 
+        extrairCampo('titulo') || 
+        extrairCampo('title') || 
+        extrairCampo('headline') || 
+        'Artigo Editorial Eclesia';
+
+      const slug = 
+        extrairCampo('slug') || 
+        titulo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+
+      let conteudo = 
+        extrairCampo('conteudo') || 
+        extrairCampo('article') || 
+        extrairCampo('content') || 
+        extrairCampo('body') || 
+        extrairCampo('texto') || 
+        extrairCampo('corpo');
 
       if (!conteudo) {
-        const idxConteudo = cleaned.indexOf('"conteudo"');
-        if (idxConteudo !== -1) {
-          const posInicio = cleaned.indexOf('"', idxConteudo + 10);
-          if (posInicio !== -1) {
-            conteudo = cleaned.slice(posInicio + 1).replace(/"\s*}?\s*$/, '');
-            conteudo = conteudo.replace(/\\n/g, '\n').replace(/\\"/g, '"').trim();
+        for (const chaveConteudo of ['"conteudo"', '"article"', '"content"', '"body"', '"texto"']) {
+          const idxConteudo = cleaned.indexOf(chaveConteudo);
+          if (idxConteudo !== -1) {
+            const posInicio = cleaned.indexOf('"', idxConteudo + chaveConteudo.length);
+            if (posInicio !== -1) {
+              conteudo = cleaned.slice(posInicio + 1).replace(/"\s*}?\s*$/, '');
+              conteudo = conteudo.replace(/\\n/g, '\n').replace(/\\"/g, '"').trim();
+              break;
+            }
           }
         }
       }
 
+      const resumo = 
+        extrairCampo('resumo') || 
+        extrairCampo('summary') || 
+        extrairCampo('excerpt') || 
+        extrairCampo('description') || 
+        'Reflexão teológica e espiritual no Portal Eclesia.';
+
       const resultado = {
         titulo,
         slug,
-        resumo: extrairCampo('resumo') || 'Reflexão teológica e espiritual no Portal Eclesia.',
+        resumo,
         conteudo: conteudo || cleaned,
-        categoria: extrairCampo('categoria') || 'Teologia',
-        tempoLeitura: extrairCampo('tempoLeitura') || '5 min de leitura',
-        metaTitle: extrairCampo('metaTitle') || titulo,
-        metaDescription: extrairCampo('metaDescription') || extrairCampo('resumo') || 'Artigo católico no Portal Eclesia.',
+        categoria: extrairCampo('categoria') || extrairCampo('category') || 'Teologia',
+        tempoLeitura: extrairCampo('tempoLeitura') || extrairCampo('read_time') || '5 min de leitura',
+        metaTitle: extrairCampo('metaTitle') || extrairCampo('meta_title') || titulo,
+        metaDescription: extrairCampo('metaDescription') || extrairCampo('meta_description') || resumo,
         keywords: ['Teologia', 'Catolicismo', 'Fé Católica', 'Portal Eclesia'],
         promptImagem: extrairCampo('promptImagem') || 'Catholic sacred art oil painting, solemn and reverent',
         altText: extrairCampo('altText') || titulo

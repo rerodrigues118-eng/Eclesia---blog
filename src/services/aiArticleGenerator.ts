@@ -348,10 +348,18 @@ DIRETRIZES DE ESTILO HUMANIZADO E JOVEM:
       - ## Quem Foi e o Seu Chamado à Santidade (história real e conversão).
       - ## As Grandes Batalhas e o Heroísmo da Fé (desafios vencidos pelo amor de Deus).
       - ## Lições para a Nossa Vida Hoje (o que podemos imitar na prática).
-      - Citação do Santo usando "> ".
-      - Bloco [ORACAO: Oração a São/Santa...] ao final.
-
-      Retorne APENAS um JSON válido.
+      Retorne APENAS um JSON válido seguindo estritamente esta estrutura:
+      {
+        "titulo": "Título com nome do Santo (38 a 60 caracteres)",
+        "slug": "santo-do-dia-slug",
+        "metaTitle": "Santo do Dia: Vida e Oração (45 a 60 caracteres)",
+        "metaDescription": "Conheça a história inspiradora e a oração do santo de hoje (125 a 155 caracteres)",
+        "resumo": "História, milagres e ensinamentos práticos para a sua vida cristã (120 a 160 caracteres)",
+        "conteudo": "Escreva aqui todo o artigo completo em Markdown com mais de 650 palavras. Use parágrafos fluidos, subtítulos '## ', citações '> ' e o bloco [ORACAO] ao final.",
+        "categoria": "Santo do Dia",
+        "tempoLeitura": "5 min de leitura",
+        "keywords": ["Santo do Dia", "Vida dos Santos", "Fé Católica", "Igreja"]
+      }
     `;
   } else {
     promptUsuario = `
@@ -375,12 +383,48 @@ DIRETRIZES DE ESTILO HUMANIZADO E JOVEM:
       - Citações de santos reais com "> ".
       - Bloco devocional [ORACAO: ...] ao final.
 
-      Retorne APENAS um JSON válido.
+      Retorne APENAS um JSON válido seguindo estritamente esta estrutura:
+      {
+        "titulo": "Título direto e magnético (38 a 60 caracteres)",
+        "slug": "slug-sem-acentos-e-hifens",
+        "metaTitle": "Título SEO com 45 a 60 caracteres",
+        "metaDescription": "Descrição instigante para o Google com 125 a 155 caracteres",
+        "resumo": "Resumo envolvente para o card com 120 a 160 caracteres",
+        "conteudo": "Escreva aqui todo o artigo completo em Markdown com mais de 650 palavras. Use parágrafos fluidos, subtítulos '## ', citações '> ' e o bloco [ORACAO] ao final.",
+        "categoria": "Juventude & Fé",
+        "tempoLeitura": "5 min de leitura",
+        "keywords": ["Santidade", "Juventude Católica", "Vida de Oração", "Carlo Acutis"]
+      }
     `;
   }
 
   const jsonStr = await chamarTextoIA(promptSistema, promptUsuario);
   const artigo = parseJsonSeguro(jsonStr);
+
+  // Extrai campos com resiliência total a chaves em português ou inglês
+  const conteudoOriginal = 
+    artigo.conteudo || 
+    artigo.article || 
+    artigo.content || 
+    artigo.body || 
+    artigo.texto || 
+    artigo.corpo || 
+    artigo.artigo || 
+    '';
+
+  const tituloOriginal = 
+    artigo.titulo || 
+    artigo.title || 
+    artigo.headline || 
+    artigo.name || 
+    'Reflexão Espiritual Eclesia';
+
+  const resumoOriginal = 
+    artigo.resumo || 
+    artigo.summary || 
+    artigo.excerpt || 
+    artigo.description || 
+    'Reflexão e espiritualidade no Blog Católico Eclesia.';
 
   // Seleciona par de imagens de alta definição correspondente ao tema
   const temaChave = tipo === 'liturgia' 
@@ -414,15 +458,15 @@ DIRETRIZES DE ESTILO HUMANIZADO E JOVEM:
   }
 
   // Higieniza o texto para garantir quebras reais e formatação impecável
-  let conteudoTratado = formatarTextoMarkdown(artigo.conteudo || '');
+  let conteudoTratado = formatarTextoMarkdown(conteudoOriginal);
 
   // Insere a segunda imagem organicamente no meio do artigo
   conteudoTratado = posicionarSegundaImagemNoArtigo(conteudoTratado, urlInterna, legendaInterna);
 
   return {
-    title: (artigo.titulo || 'Reflexão Espiritual Eclesia').replace(/\n/g, ' ').trim(),
+    title: tituloOriginal.replace(/\n/g, ' ').trim(),
     slug: (artigo.slug || 'artigo-catolico').toLowerCase().replace(/[^a-z0-9-]/g, ''),
-    excerpt: (artigo.resumo || 'Reflexão e espiritualidade no Blog Católico Eclesia.').replace(/\n/g, ' ').trim(),
+    excerpt: resumoOriginal.replace(/\n/g, ' ').trim(),
     content: conteudoTratado,
     category: artigo.categoria || (tipo === 'liturgia' ? 'Liturgia Diária' : tipo === 'santo' ? 'Santo do Dia' : 'Juventude & Fé'),
     author_name: 'Redação Eclesia',
@@ -431,8 +475,8 @@ DIRETRIZES DE ESTILO HUMANIZADO E JOVEM:
     secondary_image: urlInterna,
     gallery_images: [urlInterna],
     alt_text: artigo.altText || parPadrao.capa.alt,
-    meta_title: (artigo.metaTitle || artigo.titulo || 'Blog Católico Eclesia').replace(/\n/g, ' ').trim(),
-    meta_description: (artigo.metaDescription || artigo.resumo || 'Artigo católico no Portal Eclesia.').replace(/\n/g, ' ').trim(),
+    meta_title: (artigo.metaTitle || tituloOriginal).replace(/\n/g, ' ').trim(),
+    meta_description: (artigo.metaDescription || resumoOriginal).replace(/\n/g, ' ').trim(),
     keywords: artigo.keywords && artigo.keywords.length > 0 ? artigo.keywords : ['Fé Católica', 'Juventude', 'Espiritualidade', 'Portal Eclesia'],
     trending: isTrending
   };
