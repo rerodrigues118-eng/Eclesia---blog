@@ -801,7 +801,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         setArticleMetaTitle(art.meta_title || art.title);
         setArticleMetaDescription(art.meta_description || art.excerpt);
         setArticleKeywordsInput((art.keywords || []).join(', '));
-        setArticleImages([]);
+        setArticleImages(art.gallery_images || (art.secondary_image ? [art.secondary_image] : []));
         setIsArticleFormOpen(true);
         setArticleEditorMode('split');
 
@@ -1844,7 +1844,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     {articleImageUrl && (
                       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
                         <div className="h-28 w-44 rounded-lg overflow-hidden border border-slate-300 dark:border-slate-700 shrink-0 bg-slate-200">
-                          <img src={articleImageUrl} alt="Capa do Artigo" className="w-full h-full object-cover" />
+                          <img
+                            src={articleImageUrl}
+                            alt="Capa do Artigo"
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1200';
+                            }}
+                          />
                         </div>
 
                         <div className="space-y-2 flex-1">

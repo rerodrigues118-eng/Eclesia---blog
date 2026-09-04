@@ -1,3 +1,13 @@
+function normalizarCamposObjeto(obj: any): any {
+  if (!obj || typeof obj !== 'object') return obj;
+  for (const k of Object.keys(obj)) {
+    if (typeof obj[k] === 'string') {
+      obj[k] = obj[k].replace(/\\n/g, '\n').replace(/\\r/g, '').trim();
+    }
+  }
+  return obj;
+}
+
 export function parseJsonSeguro(raw: string): any {
   if (!raw || typeof raw !== 'string') return {};
 
@@ -20,7 +30,8 @@ export function parseJsonSeguro(raw: string): any {
 
   // 2. Primeira tentativa: JSON.parse nativo
   try {
-    return JSON.parse(cleaned);
+    const res = JSON.parse(cleaned);
+    return normalizarCamposObjeto(res);
   } catch (_err1) {
     // 3. Segunda tentativa: Varredura de caracteres para reparar quebras de linha e strings não finalizadas
     try {
@@ -72,7 +83,8 @@ export function parseJsonSeguro(raw: string): any {
         consertado += '}'.repeat(openBraces - closeBraces);
       }
 
-      return JSON.parse(consertado);
+      const res = JSON.parse(consertado);
+      return normalizarCamposObjeto(res);
     } catch (_err2) {
       // 4. Terceira tentativa: Extrator cirúrgico por Regex de cada campo (à prova de falhas)
       const extrairCampo = (chave: string): string => {
@@ -82,7 +94,8 @@ export function parseJsonSeguro(raw: string): any {
           return match[1]
             .replace(/\\n/g, '\n')
             .replace(/\\"/g, '"')
-            .replace(/\\\\/g, '\\');
+            .replace(/\\\\/g, '\\')
+            .trim();
         }
         return '';
       };
@@ -97,12 +110,12 @@ export function parseJsonSeguro(raw: string): any {
           const posInicio = cleaned.indexOf('"', idxConteudo + 10);
           if (posInicio !== -1) {
             conteudo = cleaned.slice(posInicio + 1).replace(/"\s*}?\s*$/, '');
-            conteudo = conteudo.replace(/\\n/g, '\n').replace(/\\"/g, '"');
+            conteudo = conteudo.replace(/\\n/g, '\n').replace(/\\"/g, '"').trim();
           }
         }
       }
 
-      return {
+      const resultado = {
         titulo,
         slug,
         resumo: extrairCampo('resumo') || 'Reflexão teológica e espiritual no Portal Eclesia.',
@@ -115,6 +128,8 @@ export function parseJsonSeguro(raw: string): any {
         promptImagem: extrairCampo('promptImagem') || 'Catholic sacred art oil painting, solemn and reverent',
         altText: extrairCampo('altText') || titulo
       };
+
+      return normalizarCamposObjeto(resultado);
     }
   }
 }

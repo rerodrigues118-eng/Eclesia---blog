@@ -20,8 +20,11 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
 }) => {
   if (!content) return null;
 
+  // Sanitiza quebras de linha literais (\n) que possam vir como texto da IA
+  const sanitizedContent = content.replace(/\\n/g, '\n');
+
   // Separa o conteúdo em blocos estruturados
-  const rawBlocks = content.split(/\n\n+/);
+  const rawBlocks = sanitizedContent.split(/\n\n+/);
   const targetAdParagraph = adConfig?.middleAdParagraph || 3;
   const hasManualAdTag = rawBlocks.some(b => /^\[(anuncio|adsense)(?::\s*[^\]]+)?\]$/i.test(b.trim()));
 
@@ -212,6 +215,33 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
             <figure
               key={index}
               style={{ width: width && width !== '340px' ? width : undefined, maxWidth: '100%' }}
+              className="my-6 sm:my-8 clear-both w-full max-w-2xl mx-auto rounded-2xl overflow-hidden border border-[#d3c4af] shadow-md bg-white p-2 text-center"
+            >
+              <img
+                src={url}
+                alt={caption || 'Ilustração do artigo'}
+                className="w-full h-auto max-h-[500px] object-cover rounded-xl mx-auto"
+                loading="lazy"
+                decoding="async"
+              />
+              {caption && (
+                <figcaption className="font-sans text-xs text-[#817563] italic pt-2">
+                  {caption}
+                </figcaption>
+              )}
+            </figure>
+          );
+        }
+
+        // 5.1. Imagem Markdown Padrão: ![Legenda](URL)
+        const mdImgMatch = trimmed.match(/^!\[(.*?)\]\((.*?)\)$/);
+        if (mdImgMatch) {
+          const caption = mdImgMatch[1].trim();
+          const url = resolveImgUrl(mdImgMatch[2].trim());
+
+          return (
+            <figure
+              key={index}
               className="my-6 sm:my-8 clear-both w-full max-w-2xl mx-auto rounded-2xl overflow-hidden border border-[#d3c4af] shadow-md bg-white p-2 text-center"
             >
               <img
