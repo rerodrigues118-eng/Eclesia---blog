@@ -767,8 +767,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     notify(`⚡ Conectando ao Grok & Imagen 3 para gerar ${rotuloTipo}... Aguarde alguns instantes.`, 'success');
 
     try {
-      // Geração direta e veloz no frontend (elimina erros de CORS e preflight de Edge Function no console)
-      const art = await generateArticleClientSide(tipo);
+      // Prioriza a execução na Edge Function 'quick-service' configurada no Supabase
+      let art: any = null;
+      try {
+        const { data: edgeData, error: edgeErr } = await supabase.functions.invoke('quick-service', {
+          body: { tipo, statusArtigo: 'rascunho' }
+        });
+
+        if (edgeErr) {
+          console.warn('[Admin AI] Aviso da Edge Function quick-service:', edgeErr);
+          throw edgeErr;
+        }
+
+        if (edgeData?.article) {
+          art = edgeData.article;
+        } else if (edgeData?.success && edgeData?.data) {
+          art = edgeData.data;
+        }
+      } catch (edgeCallError: any) {
+        console.warn('[Admin AI] Edge Function indisponível ou com erro. Acionando gerador cliente...', edgeCallError);
+        art = await generateArticleClientSide(tipo);
+      }
 
       if (art) {
         setEditingArticle(null);

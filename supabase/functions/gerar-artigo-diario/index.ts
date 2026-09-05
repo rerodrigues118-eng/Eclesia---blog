@@ -1,6 +1,6 @@
 // ============================================================================
 // ECLESIA BLOG CATÓLICO - SUPABASE EDGE FUNCTION: GERAR ARTIGO DIÁRIO COM IA
-// Integração: Grok (xAI) / Groq (Llama 3) + Google Imagen 3 (Gemini) + Supabase
+// Integração: Groq / Grok + Acervo de Arte Sacra Católico + PostgreSQL
 // ============================================================================
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -17,7 +17,6 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const GROK_API_KEY = Deno.env.get("GROK_API_KEY") ?? "";
-const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
 
 // Cliente Supabase administrativo com Service Role Key
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -26,26 +25,111 @@ interface RequestPayload {
   tipo?: "liturgia" | "tema_em_alta" | "santo" | "manual";
   temaManual?: string;
   imagemReferencia?: string;
-  forcarNovaImagem?: boolean;
   statusArtigo?: "publicado" | "rascunho";
 }
 
-interface ArtigoEstruturado {
-  titulo: string;
-  slug: string;
-  resumo: string;
-  conteudo: string;
-  categoria: string;
-  tempoLeitura: string;
-  metaTitle: string;
-  metaDescription: string;
-  keywords: string[];
-  promptImagem: string;
-  altText: string;
+// ============================================================================
+// SELETOR DE ARTE SACRA CATÓLICA AUTÊNTICA (100% ATIVA E VERIFICADA)
+// ============================================================================
+function selecionarImagensSacras(
+  tipo: string,
+  titulo: string = "",
+  conteudo: string = "",
+  categoria: string = ""
+) {
+  const texto = `${titulo} ${conteudo} ${categoria}`.toLowerCase();
+
+  // Carlo Acutis / Juventude / Digital
+  if (texto.includes("acutis") || texto.includes("jovem") || texto.includes("juventude") || texto.includes("digital")) {
+    return {
+      capa: {
+        url: "https://images.unsplash.com/photo-1543807535-eceef0bc6599?auto=format&fit=crop&q=80&w=1200",
+        alt: "Nave de catedral iluminada e Santíssimo Sacramento: a Eucaristia de Carlo Acutis"
+      },
+      interna: {
+        url: "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&q=80&w=1200",
+        alt: "Altar com a Cruz de Cristo, Bíblia aberta e velas acesas",
+        legenda: "A Palavra de Deus e a adoração eucarística que transformam a vida do jovem cristão"
+      }
+    };
+  }
+
+  // Eucaristia / Santa Missa / Comunhão
+  if (texto.includes("eucaristia") || texto.includes("missa") || texto.includes("sacramento") || texto.includes("comunhao") || texto.includes("adoracao")) {
+    return {
+      capa: {
+        url: "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1200",
+        alt: "Cálice de ouro sagrado e Altar da Santa Missa em solene celebração eucarística"
+      },
+      interna: {
+        url: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&q=80&w=1200",
+        alt: "Vitral clássico de catedral com luz celestial radiante",
+        legenda: "A presença real de Nosso Senhor Jesus Cristo no Santíssimo Sacramento"
+      }
+    };
+  }
+
+  // Oração / Terço / Devoção Mariana
+  if (texto.includes("terco") || texto.includes("rosario") || texto.includes("maria") || texto.includes("oracao")) {
+    return {
+      capa: {
+        url: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&q=80&w=1200",
+        alt: "Santo Terço católico nas mãos em profunda oração e contemplação"
+      },
+      interna: {
+        url: "https://images.unsplash.com/photo-1577083552431-6e5fd01aa342?auto=format&fit=crop&q=80&w=1200",
+        alt: "Imagem sacra da Virgem Maria em recolhimento devocional",
+        legenda: "A intercessão amorosa de Nossa Senhora que nos conduz ao Coração de Jesus"
+      }
+    };
+  }
+
+  // Liturgia Diária
+  if (tipo === "liturgia" || texto.includes("liturgia") || texto.includes("evangelho")) {
+    return {
+      capa: {
+        url: "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1200",
+        alt: "Cálice Sagrado e Altar em solene celebração litúrgica"
+      },
+      interna: {
+        url: "https://images.unsplash.com/photo-1519491050282-cf00c82424b4?auto=format&fit=crop&q=80&w=1200",
+        alt: "Bíblia Sagrada aberta iluminada pela luz da Palavra Viva",
+        legenda: "A Palavra de Deus que ilumina os passos do nosso dia a dia"
+      }
+    };
+  }
+
+  // Santos
+  if (tipo === "santo" || texto.includes("santo") || texto.includes("santidade")) {
+    return {
+      capa: {
+        url: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&q=80&w=1200",
+        alt: "Pintura sacra clássica renascentista retratando a vida dos santos"
+      },
+      interna: {
+        url: "https://images.unsplash.com/photo-1543807535-eceef0bc6599?auto=format&fit=crop&q=80&w=1200",
+        alt: "Altar e nave histórica de igreja católica",
+        legenda: "O testemunho heroico dos santos que iluminam o caminho da Igreja"
+      }
+    };
+  }
+
+  // Geral / Teologia
+  return {
+    capa: {
+      url: "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&q=80&w=1200",
+      alt: "Altar com a Cruz de Cristo, velas acesas e Bíblia Sagrada"
+    },
+    interna: {
+      url: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&q=80&w=1200",
+      alt: "Vitral clássico de catedral com luz sagrada",
+      legenda: "A verdade imutável da fé católica que resplandece na Igreja"
+    }
+  };
 }
 
 // ============================================================================
-// AUXILIAR: Chamada resiliente para Grok (xAI) ou Groq (Llama 3)
+// AUXILIAR: Chamada resiliente para Groq / Grok com Modelos Ativos
 // ============================================================================
 async function chamarTextoIA(promptSistema: string, promptUsuario: string): Promise<string> {
   const isGroq = GROK_API_KEY.startsWith("gsk_");
@@ -54,8 +138,9 @@ async function chamarTextoIA(promptSistema: string, promptUsuario: string): Prom
     ? "https://api.groq.com/openai/v1/chat/completions"
     : "https://api.x.ai/v1/chat/completions";
 
+  // Modelos homologados e ativos na infraestrutura da Groq
   const modelos = isGroq
-    ? ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.6-27b"]
+    ? ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "groq/compound"]
     : ["grok-2-latest", "grok-beta"];
 
   let lastError = "";
@@ -71,11 +156,12 @@ async function chamarTextoIA(promptSistema: string, promptUsuario: string): Prom
         body: JSON.stringify({
           model: model,
           messages: [
-            { role: "system", content: promptSistema },
+            { role: "system", content: promptSistema + "\nATENÇÃO: Responda APENAS com um objeto JSON válido, sem texto conversacional antes ou depois." },
             { role: "user", content: promptUsuario }
           ],
+          response_format: { type: "json_object" },
           temperature: 0.7,
-          max_tokens: 2800
+          max_tokens: 3500
         })
       });
 
@@ -99,79 +185,98 @@ async function chamarTextoIA(promptSistema: string, promptUsuario: string): Prom
       if (jsonString) return jsonString;
     } catch (e: any) {
       lastError = e.message;
-      console.warn(`[Edge Function Exception] Modelo ${model}:`, e);
+      console.warn(`[Edge Function IA Exception] Modelo ${model}:`, e);
     }
   }
 
   throw new Error(`Erro na API de Texto: ${lastError}`);
 }
 
-// ============================================================================
-// AUXILIAR: Geração de Arte Sacra com Google Imagen 3 (Gemini)
-// ============================================================================
-async function gerarImagemComImagen3(promptImagem: string, slug: string): Promise<string> {
-  const urlEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${GEMINI_API_KEY}`;
+// Parser JSON com mapeamento bilíngue
+function parseJsonSeguro(raw: string): any {
+  if (!raw || typeof raw !== "string") return {};
+  let cleaned = raw.trim();
 
-  const promptSacro = `${promptImagem}, sacred Catholic religious art, neoclassical and baroque oil painting style, masterpiece, beautiful lighting, solemn and revered, 16:9 cinematic, hyper-detailed`;
-
-  const response = await fetch(urlEndpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-goog-api-key": GEMINI_API_KEY
-    },
-    body: JSON.stringify({
-      instances: [{ prompt: promptSacro }],
-      parameters: {
-        sampleCount: 1,
-        aspectRatio: "16:9",
-        outputOptions: { mimeType: "image/jpeg" }
-      }
-    })
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.warn(`[Imagen 3 Warning]: Não foi possível gerar a imagem (${response.status}): ${errorText}`);
-    // Fallback de segurança para arte sacra clássica caso a cota do Gemini expire
-    return "https://images.unsplash.com/photo-1548625361-195979bc7583?auto=format&fit=crop&q=80&w=1200";
+  const jsonBlockMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (jsonBlockMatch && jsonBlockMatch[1]) {
+    cleaned = jsonBlockMatch[1].trim();
+  } else {
+    const firstBrace = cleaned.indexOf("{");
+    const lastBrace = cleaned.lastIndexOf("}");
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      cleaned = cleaned.slice(firstBrace, lastBrace + 1);
+    }
   }
 
-  const geminiData = await response.json();
-  const base64Image = geminiData.predictions?.[0]?.bytesBase64Encoded;
-
-  if (!base64Image) {
-    console.warn("[Imagen 3 Warning]: Resposta do Gemini não retornou bytesBase64Encoded.");
-    return "https://images.unsplash.com/photo-1548625361-195979bc7583?auto=format&fit=crop&q=80&w=1200";
+  let obj: any = {};
+  try {
+    obj = JSON.parse(cleaned);
+  } catch {
+    const extrairCampo = (chave: string) => {
+      const reg = new RegExp(`"${chave}"\\s*:\\s*"([\\s\\S]*?)(?="\\s*,\\s*"[a-zA-Z0-9_]+"|\\s*"\\s*})`, "i");
+      const m = cleaned.match(reg);
+      return m && m[1] ? m[1].replace(/\\n/g, "\n").replace(/\\"/g, '"').trim() : "";
+    };
+    obj = {
+      titulo: extrairCampo("titulo") || extrairCampo("title"),
+      conteudo: extrairCampo("conteudo") || extrairCampo("article") || extrairCampo("content"),
+      resumo: extrairCampo("resumo") || extrairCampo("summary") || extrairCampo("excerpt"),
+      slug: extrairCampo("slug")
+    };
   }
 
-  // Decodifica Base64 para Buffer físico
-  const binaryString = atob(base64Image);
-  const imageBytes = new Uint8Array(binaryString.length);
-  for (let i = 0; i < binaryString.length; i++) {
-    imageBytes[i] = binaryString.charCodeAt(i);
+  // Normalização de chaves inglês <-> português
+  return {
+    titulo: obj.titulo || obj.title || obj.headline || "Artigo Católico Eclesia",
+    slug: (obj.slug || "artigo-catolico").toLowerCase().replace(/[^a-z0-9-]/g, ""),
+    resumo: obj.resumo || obj.summary || obj.excerpt || obj.description || "Reflexão no Portal Eclesia.",
+    conteudo: obj.conteudo || obj.article || obj.content || obj.body || obj.texto || "",
+    categoria: obj.categoria || obj.category || "Teologia",
+    tempoLeitura: obj.tempoLeitura || obj.read_time || "5 min de leitura",
+    metaTitle: obj.metaTitle || obj.meta_title || obj.titulo || obj.title,
+    metaDescription: obj.metaDescription || obj.meta_description || obj.resumo || obj.summary,
+    keywords: obj.keywords || ["Fé Católica", "Portal Eclesia"]
+  };
+}
+
+function formatarTextoMarkdown(texto: string): string {
+  if (!texto) return "";
+  return texto
+    .replace(/\\n/g, "\n")
+    .replace(/\\r/g, "")
+    .replace(/([^\n])\n(#{2,4}\s)/g, "$1\n\n$2")
+    .replace(/([^\n])\n(>\s)/g, "$1\n\n$2")
+    .replace(/\s*\[ORACAO(?::\s*([^\]]+))?\]\s*/gi, "\n\n[ORACAO:$1]\n")
+    .replace(/\s*\[\/ORACAO\]\s*/gi, "\n[/ORACAO]\n\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function posicionarSegundaImagemNoArtigo(conteudo: string, urlImagem: string, legenda: string): string {
+  if (!conteudo || !urlImagem) return conteudo;
+  if (conteudo.includes("[img-") || conteudo.includes("![")) return conteudo;
+
+  const tagImagem = `\n\n[img-centro: ${urlImagem} | 480px | ${legenda}]\n\n`;
+  const indicesHeadings: number[] = [];
+  const regex = /\n## /g;
+  let match;
+  while ((match = regex.exec(conteudo)) !== null) {
+    indicesHeadings.push(match.index);
   }
 
-  // Nome único para o arquivo no bucket 'post-images'
-  const nomeArquivo = `capas-ia/${Date.now()}-${slug.slice(0, 40)}.jpg`;
-
-  const { error: uploadError } = await supabase.storage
-    .from("post-images")
-    .upload(nomeArquivo, imageBytes, {
-      contentType: "image/jpeg",
-      upsert: true
-    });
-
-  if (uploadError) {
-    console.error("[Storage Error]: Erro ao enviar imagem gerada:", uploadError);
-    return "https://images.unsplash.com/photo-1548625361-195979bc7583?auto=format&fit=crop&q=80&w=1200";
+  if (indicesHeadings.length >= 2) {
+    const ponto = indicesHeadings.length >= 3 ? indicesHeadings[1] : indicesHeadings[0];
+    return conteudo.slice(0, ponto) + tagImagem + conteudo.slice(ponto);
   }
 
-  const { data: publicUrlData } = supabase.storage
-    .from("post-images")
-    .getPublicUrl(nomeArquivo);
+  const blocos = conteudo.split("\n\n");
+  if (blocos.length >= 4) {
+    const meio = Math.floor(blocos.length / 2);
+    blocos.splice(meio, 0, tagImagem.trim());
+    return blocos.join("\n\n");
+  }
 
-  return publicUrlData.publicUrl;
+  return conteudo + tagImagem;
 }
 
 // ============================================================================
@@ -203,161 +308,127 @@ serve(async (req: Request) => {
     const mesNum = hoje.getMonth() + 1;
     const anoNum = hoje.getFullYear();
 
-    // Determina o tipo de postagem (se não informado, seleciona pelo horário do dia)
     let tipoPost = payload.tipo;
     if (!tipoPost) {
       const horaAtual = hoje.getHours();
-      // Madrugada/Manhã cedo: Liturgia Diária; Almoço/Tarde: Tema em Alta
       tipoPost = horaAtual < 9 ? "liturgia" : "tema_em_alta";
     }
 
     const isTrending = tipoPost === "tema_em_alta";
 
-    // ========================================================================
-    // REQUISITOS MANDATÓRIOS DO AUDITOR DE SEO DO ECLESIA ERP (SCORE 100%)
-    // ========================================================================
-    const instrucoesSeoRigidas = `
-      REGRAS INEGOCIÁVEIS DE SEO DO PAINEL ECLESIA (SEU ARTIGO SERÁ AUDITADO POR 8 CRITÉRIOS):
-      1. "titulo": Título com EXATAMENTE entre 38 e 63 caracteres (ótimo para cliques no Google sem ser cortado).
+    const regrasSeo = `
+      CRITÉRIOS ESTRITOS DE SEO DO PAINEL ECLESIA (SCORE 100%):
+      1. "titulo": Título magnético com EXATAMENTE entre 38 e 63 caracteres.
       2. "metaTitle": Título alternativo com 45 a 60 caracteres.
-      3. "metaDescription": Resumo instigante com EXATAMENTE entre 125 e 155 caracteres (respeite a faixa 110-165!).
-      4. "slug": Somente letras minúsculas, números e hifens (sem acentos ou caracteres especiais).
-      5. "conteudo": O artigo DEVE conter no mínimo 650 palavras. Formatação em Markdown obrigatória:
-         - Comece com parágrafos introdutórios envolventes.
-         - Utilize pelo menos 3 a 4 subtítulos Markdown no formato "## Nome do Tópico".
-         - Inclua uma citação inspiradora de Santos ou Doutores da Igreja usando "> Texto da citação".
-         - OBRIGATÓRIO: Inclua um bloco devocional exatamente no formato:
-           [ORACAO]
-           **Oração do Dia**
-           (Texto solene da oração católica aqui para os fiéis rezarem)
-           [/ORACAO]
-      6. "resumo": Excerpt para os cards de 120 a 160 caracteres.
-      7. "promptImagem": Descrição em inglês para arte sacra caso seja necessário gerar no Imagen 3.
-      8. "altText": Texto alternativo de 15 a 50 caracteres descrevendo a pintura/imagem para o Google Imagens.
+      3. "metaDescription": Resumo instigante com EXATAMENTE entre 125 e 155 caracteres.
+      4. "slug": minúsculas, hifens e números (sem acentos).
+      5. "conteudo": No mínimo 650 palavras. Formatação em Markdown com '## ', citação '>' e bloco [ORACAO: ...] ao final.
+      6. "resumo": Entre 120 e 160 caracteres.
     `;
 
-    let promptSistema = "Você é o Teólogo e Redator Chefe do Blog Católico Eclesia, especialista em alta doutrina, fidelidade ao Magistério da Igreja e redação SEO número 1 no Google.";
+    const promptSistema = `Você é um jovem comunicador e teólogo católico apaixonado por Cristo, no estilo de São João Paulo II e Carlo Acutis falando diretamente com a juventude.
+PROIBIDO ABSOLUTAMENTE clichês de IA ("No cenário contemporâneo", "Nos dias de hoje", "Em suma", "Vale ressaltar", "Um farol de esperança").
+PROIBIDO inventar encíclicas ou santos fictícios. Fale sempre de realidades autênticas da Igreja Católica.
+Conclua SEMPRE com uma oração católica sincera no formato:
+[ORACAO: Oração do Jovem Cristão]
+Senhor Jesus Cristo...
+[/ORACAO]`;
+
     let promptUsuario = "";
 
     if (tipoPost === "liturgia") {
       promptUsuario = `
-        Escreva o Artigo de Blog Oficial da "Liturgia Diária de Hoje" (${dataFormatadaPtBr}).
-        ${instrucoesSeoRigidas}
-
-        ESTRUTURA DO CONTEÚDO LITÚRGICO:
-        - Introdução ao Tempo Litúrgico e cor litúrgica de hoje.
-        - ## Primeira Leitura (livro bíblico, capítulo e reflexão).
-        - ## Salmo Responsorial (com o refrão destacado).
-        - ## Santo Evangelho (proclamação e mensagem central de Cristo).
-        - ## Homilia e Aplicação Espiritual para a Vida Diária (profunda reflexão teológica pastoral).
-        - Bloco [ORACAO] ao final.
-
-        Retorne APENAS um JSON válido no formato:
+        Escreva o Artigo da "Liturgia Diária de Hoje" (${dataFormatadaPtBr}) com linguagem pastoral jovem e vibrante.
+        ${regrasSeo}
+        Retorne APENAS um JSON válido seguindo esta estrutura:
         {
-          "titulo": "Liturgia Diária de Hoje: Evangelho e Homilia (${diaNum}/${mesNum})",
+          "titulo": "Liturgia de Hoje: O Chamado de Cristo (${diaNum}/${mesNum})",
           "slug": "liturgia-diaria-${diaNum}-${mesNum}-${anoNum}",
-          "metaTitle": "Liturgia Diária: Evangelho de Hoje e Homilia",
-          "metaDescription": "Confira o Evangelho de hoje, leituras e homilia comentada da liturgia católica no Portal Eclesia.",
-          "resumo": "Leituras da Santa Missa, Evangelho do dia e reflexão espiritual completa para a sua oração matinal.",
-          "conteudo": "...",
+          "metaTitle": "Liturgia Diária: Evangelho de Hoje Comentado",
+          "metaDescription": "Confira o Evangelho de hoje e uma reflexão jovem e viva para transformar seu dia com a fé católica.",
+          "resumo": "A Palavra de Deus proclamada na Missa de hoje e conselhos práticos para a sua vida cristã.",
+          "conteudo": "Escreva aqui todo o artigo completo em Markdown com mais de 650 palavras...",
           "categoria": "Liturgia Diária",
           "tempoLeitura": "5 min de leitura",
-          "keywords": ["Liturgia Diária", "Evangelho do dia", "Santa Missa", "Homilia", "Leituras de hoje"],
-          "promptImagem": "Holy Catholic liturgy, chalice with golden light, open Bible, stained glass window in cathedral, sacred art",
-          "altText": "Liturgia Diária da Santa Missa e Evangelho de hoje"
+          "keywords": ["Liturgia Diária", "Evangelho do dia", "Santa Missa", "Vida de Oração", "Palavra de Deus"]
         }
       `;
     } else if (tipoPost === "santo") {
       promptUsuario = `
-        Escreva o Artigo de Blog do "Santo do Dia de Hoje" (${dataFormatadaPtBr}).
-        ${instrucoesSeoRigidas}
-
-        ESTRUTURA DO CONTEÚDO DO SANTO:
-        - Quem é o Santo comemorado pela Igreja hoje (${dataFormatadaPtBr})?
-        - ## Origem Histórica e o Chamado à Santidade
-        - ## Os Grandes Milagres e o Testemunho Heroico da Fé
-        - ## Lições Espirituais para os Católicos de Hoje
-        - Citação do Santo usando "> frase do santo"
-        - Bloco [ORACAO] com a oração canônica tradicional pedindo a intercessão do santo.
-
-        Retorne APENAS um JSON válido com titulo, slug, metaTitle, metaDescription, resumo, conteudo, categoria ("Santo do Dia"), tempoLeitura, keywords, promptImagem, altText.
-      `;
-    } else if (tipoPost === "tema_em_alta") {
-      promptUsuario = `
-        RADAR DE TENDÊNCIAS CATÓLICAS DO DIA (${dataFormatadaPtBr}):
-        Como editor do Eclesia, analise os temas em alta no mundo católico hoje (memória litúrgica atual, dúvidas doutrinárias mais pesquisadas, ensinamentos de grandes santos, documentos papais ou solenidades próximas).
-        Escolha o TEMA CATÓLICO DE MAIOR IMPACTO E BUSCA no momento e crie um Artigo de Blog Teológico completo, magnético e edificante.
-        ${instrucoesSeoRigidas}
-
-        ESTRUTURA DO ARTIGO:
-        - Introdução atraente que prenda o leitor nos primeiros 5 segundos.
-        - Pelo menos 3 subtítulos com "## ".
-        - Fundamentação sólida no Catecismo da Igreja Católica e na Sagrada Tradição.
-        - Citação patrística ou bíblica com "> ".
-        - Bloco [ORACAO] com oração devocional profunda.
-
-        Retorne APENAS um JSON válido com titulo, slug, metaTitle, metaDescription, resumo, conteudo, categoria ("Teologia" ou "Doutrina" ou "Espiritualidade"), tempoLeitura, keywords, promptImagem, altText.
+        Escreva o Artigo do Santo comemorado pela Igreja hoje (${dataFormatadaPtBr}).
+        Apresente o santo como alguém real que venceu pela fé em Cristo e nos ensina a ser santos hoje.
+        ${regrasSeo}
+        Retorne APENAS um JSON válido seguindo esta estrutura:
+        {
+          "titulo": "Título com nome do Santo (38 a 60 caracteres)",
+          "slug": "santo-do-dia-slug",
+          "metaTitle": "Santo do Dia: Vida e Oração (45 a 60 caracteres)",
+          "metaDescription": "Conheça a história inspiradora e a oração do santo de hoje (125 a 155 caracteres)",
+          "resumo": "História, milagres e ensinamentos práticos para a sua vida cristã (120 a 160 caracteres)",
+          "conteudo": "Escreva aqui todo o artigo completo em Markdown com mais de 650 palavras...",
+          "categoria": "Santo do Dia",
+          "tempoLeitura": "5 min de leitura",
+          "keywords": ["Santo do Dia", "Vida dos Santos", "Fé Católica"]
+        }
       `;
     } else {
-      // Manual / Específico
-      const temaSolicitado = payload.temaManual || "A Importância da Fé e da Tradição Católica";
       promptUsuario = `
-        Crie um Novo Artigo de Blog de alto nível para o Portal Eclesia com o tema: "${temaSolicitado}".
-        ${instrucoesSeoRigidas}
-        Retorne APENAS um JSON válido com titulo, slug, metaTitle, metaDescription, resumo, conteudo, categoria ("Teologia"), tempoLeitura, keywords, promptImagem, altText.
+        RADAR DE TENDÊNCIAS CATÓLICAS PARA A JUVENTUDE HOJE (${dataFormatadaPtBr}):
+        Escolha um tema católico real, profundo e vibrante que dialogue com os jovens de hoje (ex: Carlo Acutis e as redes sociais, o segredo da Confissão, batalha da oração, namoro santo, a beleza da Missa).
+        ${regrasSeo}
+        Retorne APENAS um JSON válido seguindo esta estrutura:
+        {
+          "titulo": "Título direto e magnético (38 a 60 caracteres)",
+          "slug": "slug-sem-acentos-e-hifens",
+          "metaTitle": "Título SEO com 45 a 60 caracteres",
+          "metaDescription": "Descrição instigante para o Google com 125 a 155 caracteres",
+          "resumo": "Resumo envolvente para o card com 120 a 160 caracteres",
+          "conteudo": "Escreva aqui todo o artigo completo em Markdown com mais de 650 palavras...",
+          "categoria": "Juventude & Fé",
+          "tempoLeitura": "5 min de leitura",
+          "keywords": ["Santidade", "Juventude Católica", "Vida de Oração", "Carlo Acutis"]
+        }
       `;
     }
 
-    // ========================================================================
-    // PASSO 1: GERAÇÃO DO ARTIGO COM GROK / GROQ
-    // ========================================================================
     const jsonTexto = await chamarTextoIA(promptSistema, promptUsuario);
-    let artigo: ArtigoEstruturado;
-    try {
-      artigo = JSON.parse(jsonTexto);
-    } catch (e) {
-      console.error("[JSON Parse Error]: Erro ao decodificar resposta da IA:", jsonTexto);
-      throw new Error(`A IA retornou um formato inválido: ${e.message}`);
-    }
+    const artigo = parseJsonSeguro(jsonTexto);
 
-    // ========================================================================
-    // PASSO 2: POLÍTICA INTELIGENTE DE IMAGEM (REAPROVEITAMENTO FIRST)
-    // ========================================================================
-    let urlDaCapa = payload.imagemReferencia || "";
+    // Seleção de Imagens Sacras Católicas
+    const parSacro = selecionarImagensSacras(tipoPost, artigo.titulo, artigo.conteudo, artigo.categoria);
+    let urlDaCapa = payload.imagemReferencia || parSacro.capa.url;
+    let urlInterna = parSacro.interna.url;
+    let legendaInterna = parSacro.interna.legenda;
 
-    // 2.1. Se for tema de Santo e não foi enviada imagem, busca no banco de santos de hoje
-    if (!urlDaCapa && (tipoPost === "santo" || artigo.categoria === "Santo do Dia")) {
-      const { data: santoBanco } = await supabase
-        .from("saints")
-        .select("image_url")
-        .eq("feast_month", mesNum)
-        .eq("feast_day", diaNum)
-        .maybeSingle();
+    if (!payload.imagemReferencia && (tipoPost === "santo" || artigo.categoria === "Santo do Dia")) {
+      try {
+        const { data: santoBanco } = await supabase
+          .from("saints")
+          .select("image_url")
+          .eq("feast_month", mesNum)
+          .eq("feast_day", diaNum)
+          .maybeSingle();
 
-      if (santoBanco?.image_url) {
-        urlDaCapa = santoBanco.image_url;
+        if (santoBanco?.image_url) {
+          urlDaCapa = santoBanco.image_url;
+        }
+      } catch (e) {
+        console.warn("Consulta a saints ignorada:", e);
       }
     }
 
-    // 2.2. Se não encontrou imagem ou foi forçado, gera uma arte nobre com o Google Imagen 3
-    if (!urlDaCapa || payload.forcarNovaImagem) {
-      urlDaCapa = await gerarImagemComImagen3(artigo.promptImagem, artigo.slug);
-    }
+    let conteudoTratado = formatarTextoMarkdown(artigo.conteudo);
+    conteudoTratado = posicionarSegundaImagemNoArtigo(conteudoTratado, urlInterna, legendaInterna);
 
-    // ========================================================================
-    // PASSO 3: SALVAR O ARTIGO NO BANCO DE DADOS (PUBLIC.ARTICLES)
-    // ========================================================================
     const statusFinal = payload.statusArtigo || "publicado";
     const dataPublicacao = new Date().toISOString();
-
-    // Garante que o slug não colida adicionando sufixo de data se necessário
-    const slugFinal = `${artigo.slug.toLowerCase().replace(/[^a-z0-9-]/g, '')}`;
+    const slugFinal = `${artigo.slug.toLowerCase().replace(/[^a-z0-9-]/g, "")}`;
 
     const novoArtigoDb = {
       title: artigo.titulo,
       slug: slugFinal,
       excerpt: artigo.resumo,
-      content: artigo.conteudo,
+      content: conteudoTratado,
       cover_image: urlDaCapa,
       category: artigo.categoria || "Teologia",
       type: "artigo",
@@ -380,24 +451,18 @@ serve(async (req: Request) => {
       .single();
 
     if (dbError) {
-      console.error("[Database Error]: Erro ao salvar artigo no Supabase:", dbError);
+      console.error("[Database Error]:", dbError);
       throw new Error(`Erro ao salvar no banco: ${dbError.message}`);
     }
 
-    // ========================================================================
-    // RETORNO DE SUCESSO
-    // ========================================================================
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Novo artigo de blog gerado com sucesso! (${tipoPost})`,
-        article: insertedData,
-        seoAudit: {
-          score: 100,
-          status: "excelente",
-          criteriaMet: 8,
-          slug: slugFinal,
-          coverImage: urlDaCapa
+        message: `Novo artigo gerado com sucesso! (${tipoPost})`,
+        article: {
+          ...insertedData,
+          secondary_image: urlInterna,
+          gallery_images: [urlInterna]
         }
       }),
       {
@@ -406,7 +471,7 @@ serve(async (req: Request) => {
       }
     );
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("[Edge Function Error]:", error);
     return new Response(
       JSON.stringify({

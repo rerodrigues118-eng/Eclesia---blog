@@ -512,7 +512,7 @@ DIRETRIZES DE ESTILO HUMANIZADO E JOVEM:
     cover_image: urlCapa,
     secondary_image: urlInterna,
     gallery_images: [urlInterna],
-    alt_text: artigo.altText || parPadrao.capa.alt,
+    alt_text: artigo.altText || parSacro.capa.alt,
     meta_title: (artigo.metaTitle || tituloOriginal).replace(/\n/g, ' ').trim(),
     meta_description: (artigo.metaDescription || resumoOriginal).replace(/\n/g, ' ').trim(),
     keywords: artigo.keywords && artigo.keywords.length > 0 ? artigo.keywords : ['Fé Católica', 'Juventude', 'Espiritualidade', 'Portal Eclesia'],
