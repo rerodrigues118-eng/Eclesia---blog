@@ -767,25 +767,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     notify(`⚡ Conectando ao Grok & Imagen 3 para gerar ${rotuloTipo}... Aguarde alguns instantes.`, 'success');
 
     try {
-      let art: any = null;
-
-      // 1. Tenta invocar a Edge Function no Supabase
-      try {
-        const { data, error } = await supabase.functions.invoke('gerar-artigo-diario', {
-          body: { tipo, statusArtigo: 'rascunho' }
-        });
-
-        if (!error && data?.success && data?.article) {
-          art = data.article;
-        }
-      } catch (edgeErr) {
-        console.warn('Edge Function ainda não disponível na nuvem Supabase, ativando gerador direto:', edgeErr);
-      }
-
-      // 2. Fallback automático: Se a Edge Function não estiver publicada ainda, gera diretamente
-      if (!art) {
-        art = await generateArticleClientSide(tipo);
-      }
+      // Geração direta e veloz no frontend (elimina erros de CORS e preflight de Edge Function no console)
+      const art = await generateArticleClientSide(tipo);
 
       if (art) {
         setEditingArticle(null);

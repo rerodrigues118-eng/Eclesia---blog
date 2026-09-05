@@ -63,70 +63,109 @@ export interface GeneratedArticleResult {
 }
 
 // ============================================================================
-// CATÁLOGO DE IMAGENS SACRAS DE ALTA DEFINIÇÃO (100% TESTADAS E ATIVAS)
+// ACERVO DE IMAGENS SACRAS CATÓLICAS AUTÊNTICAS (100% TESTADAS E ATIVAS)
 // ============================================================================
 export interface ParImagensSacras {
   capa: { url: string; alt: string };
   interna: { url: string; alt: string; legenda: string };
 }
 
-export const CATALOGO_IMAGENS_SACRAS: Record<string, ParImagensSacras> = {
-  liturgia: {
+export function selecionarImagensSacras(
+  tipo: string,
+  titulo: string = '',
+  conteudo: string = '',
+  categoria: string = ''
+): ParImagensSacras {
+  const texto = `${titulo} ${conteudo} ${categoria}`.toLowerCase();
+
+  // 1. Carlo Acutis / Juventude / Missão Digital / Games
+  if (texto.includes('acutis') || texto.includes('jovem') || texto.includes('juventude') || texto.includes('digital') || texto.includes('internet')) {
+    return {
+      capa: {
+        url: 'https://images.unsplash.com/photo-1543807535-eceef0bc6599?auto=format&fit=crop&q=80&w=1200',
+        alt: 'Nave de catedral iluminada e Santíssimo Sacramento: a Eucaristia como autoestrada para o Céu'
+      },
+      interna: {
+        url: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&q=80&w=1200',
+        alt: 'Altar com a Cruz de Cristo, Bíblia aberta e velas acesas',
+        legenda: 'A Palavra de Deus e a adoração eucarística que transformam a vida do jovem cristão'
+      }
+    };
+  }
+
+  // 2. Eucaristia / Santa Missa / Comunhão / Adoração
+  if (texto.includes('eucaristia') || texto.includes('missa') || texto.includes('sacramento') || texto.includes('comunhao') || texto.includes('adoracao') || texto.includes('hostia')) {
+    return {
+      capa: {
+        url: 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1200',
+        alt: 'Cálice de ouro sagrado e Altar da Santa Missa em solene celebração eucarística'
+      },
+      interna: {
+        url: 'https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&q=80&w=1200',
+        alt: 'Vitral clássico de catedral com luz celestial radiante',
+        legenda: 'A presença real de Nosso Senhor Jesus Cristo no Santíssimo Sacramento'
+      }
+    };
+  }
+
+  // 3. Oração / Santo Rosário / Terço / Nossa Senhora / Confissão
+  if (texto.includes('terco') || texto.includes('rosario') || texto.includes('maria') || texto.includes('oracao') || texto.includes('confissao') || texto.includes('perdao')) {
+    return {
+      capa: {
+        url: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&q=80&w=1200',
+        alt: 'Santo Terço católico nas mãos em profunda oração e contemplação'
+      },
+      interna: {
+        url: 'https://images.unsplash.com/photo-1577083552431-6e5fd01aa342?auto=format&fit=crop&q=80&w=1200',
+        alt: 'Imagem sacra da Virgem Maria em recolhimento devocional',
+        legenda: 'A intercessão amorosa de Nossa Senhora que nos conduz ao Coração de Jesus'
+      }
+    };
+  }
+
+  // 4. Liturgia Diária / Palavra de Deus / Evangelho
+  if (tipo === 'liturgia' || texto.includes('liturgia') || texto.includes('evangelho')) {
+    return {
+      capa: {
+        url: 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1200',
+        alt: 'Cálice Sagrado e Altar em celebração litúrgica'
+      },
+      interna: {
+        url: 'https://images.unsplash.com/photo-1519491050282-cf00c82424b4?auto=format&fit=crop&q=80&w=1200',
+        alt: 'Bíblia Sagrada aberta iluminada pela luz da Palavra Viva',
+        legenda: 'A Palavra de Deus que ilumina os passos do nosso dia a dia'
+      }
+    };
+  }
+
+  // 5. Santos e Doutores da Igreja
+  if (tipo === 'santo' || texto.includes('santo') || texto.includes('santidade') || texto.includes('doutor')) {
+    return {
+      capa: {
+        url: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&q=80&w=1200',
+        alt: 'Pintura sacra clássica renascentista retratando a vida dos santos'
+      },
+      interna: {
+        url: 'https://images.unsplash.com/photo-1543807535-eceef0bc6599?auto=format&fit=crop&q=80&w=1200',
+        alt: 'Altar e nave histórica de igreja católica',
+        legenda: 'O testemunho heroico dos santos que iluminam o caminho da Igreja'
+      }
+    };
+  }
+
+  // 6. Geral / Teologia / Igreja Católica
+  return {
     capa: {
-      url: 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1200',
-      alt: 'Cálice Sagrado e Altar da Santa Missa em celebração eucarística'
+      url: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&q=80&w=1200',
+      alt: 'Altar com a Cruz de Cristo, velas acesas e Bíblia Sagrada'
     },
     interna: {
       url: 'https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&q=80&w=1200',
-      alt: 'Vitral clássico de catedral com iluminação sagrada',
-      legenda: 'A luz de Cristo que ilumina a Palavra e a celebração eucarística'
+      alt: 'Vitral clássico de catedral com luz sagrada',
+      legenda: 'A verdade imutável da fé católica que resplandece na Igreja'
     }
-  },
-  santo: {
-    capa: {
-      url: 'https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&q=80&w=1200',
-      alt: 'Pintura sacra clássica retratando a santidade e a fé viva'
-    },
-    interna: {
-      url: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=1200',
-      alt: 'Capela histórica e recolhimento espiritual dos santos',
-      legenda: 'O silêncio fecundo onde a alma se encontra com o Criador'
-    }
-  },
-  tema_em_alta: {
-    capa: {
-      url: 'https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&q=80&w=1200',
-      alt: 'Jovens católicos em oração, fraternidade e discipulado'
-    },
-    interna: {
-      url: 'https://images.unsplash.com/photo-1543807535-eceef0bc6599?auto=format&fit=crop&q=80&w=1200',
-      alt: 'Altar e nave de igreja histórica com sol radiante',
-      legenda: 'A presença viva de Jesus que renova as forças da juventude'
-    }
-  },
-  juventude: {
-    capa: {
-      url: 'https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&q=80&w=1200',
-      alt: 'Juventude católica unida no seguimento de Cristo'
-    },
-    interna: {
-      url: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&q=80&w=1200',
-      alt: 'Devoção mariana e o terço nas mãos dos jovens',
-      legenda: 'Com Maria, a juventude aprende a dizer sim sem medo'
-    }
-  },
-  eucaristia: {
-    capa: {
-      url: 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1200',
-      alt: 'Adoração ao Santíssimo Sacramento e celebração da Eucaristia'
-    },
-    interna: {
-      url: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&q=80&w=1200',
-      alt: 'Bíblia sagrada aberta ao lado da cruz e velas acesas',
-      legenda: 'A Palavra que alimenta e o Pão da Vida que sustenta'
-    }
-  }
-};
+  };
+}
 
 // ============================================================================
 // FORMATADOR E HIGIENIZADOR DE TEXTO (GARANTE QUEBRAS REAIS E ESPAÇAMENTO)
@@ -426,18 +465,17 @@ DIRETRIZES DE ESTILO HUMANIZADO E JOVEM:
     artigo.description || 
     'Reflexão e espiritualidade no Blog Católico Eclesia.';
 
-  // Seleciona par de imagens de alta definição correspondente ao tema
-  const temaChave = tipo === 'liturgia' 
-    ? 'liturgia' 
-    : tipo === 'santo' 
-    ? 'santo' 
-    : (artigo.categoria?.toLowerCase().includes('eucaristia') ? 'eucaristia' : 'tema_em_alta');
+  // Seleciona par de imagens sacras autênticas e relevantes para o tema
+  const parSacro = selecionarImagensSacras(
+    tipo, 
+    tituloOriginal, 
+    conteudoOriginal, 
+    artigo.categoria || ''
+  );
 
-  const parPadrao = CATALOGO_IMAGENS_SACRAS[temaChave] || CATALOGO_IMAGENS_SACRAS['tema_em_alta'];
-
-  let urlCapa = imagemReferencia || parPadrao.capa.url;
-  let urlInterna = parPadrao.interna.url;
-  let legendaInterna = parPadrao.interna.legenda;
+  let urlCapa = imagemReferencia || parSacro.capa.url;
+  let urlInterna = parSacro.interna.url;
+  let legendaInterna = parSacro.interna.legenda;
 
   // Se for Santo, tenta reaproveitar a foto do banco se existir
   if (!imagemReferencia && (tipo === 'santo' || artigo.categoria === 'Santo do Dia')) {
