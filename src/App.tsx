@@ -20,8 +20,10 @@ import { CartView } from './components/CartView';
 import { AuthModal } from './components/AuthModal';
 import { AuthView } from './components/AuthView';
 import { CookieBanner } from './components/CookieBanner';
+import { SEOHead } from './components/SEOHead';
 import { useAuth } from './hooks/useAuth';
 import { AdminDashboard, AdminLoginView } from './admin';
+import { supabase } from './lib/supabase/client';
 import {
   fetchArticlesFromDb,
   saveArticleToDb,
@@ -108,20 +110,54 @@ export const App: React.FC = () => {
     }
   });
 
-  // Carrega imediatamente do Supabase ao abrir a aplicação
+  // Carrega imediatamente do Supabase ao abrir a aplicação e ativa sincronização Realtime
   useEffect(() => {
     fetchArticlesFromDb().then(data => {
-      if (data) setArticles(data);
+      if (data && data.length > 0) setArticles(data);
     });
     fetchProductsFromDb().then(data => {
-      if (data) setProducts(data);
+      if (data && data.length > 0) setProducts(data);
     });
     fetchPrayersFromDb().then(data => {
-      if (data) setPrayers(data);
+      if (data && data.length > 0) setPrayers(data);
     });
     fetchSaintsFromDb().then(data => {
-      if (data) setSaints(data);
+      if (data && data.length > 0) setSaints(data);
     });
+
+    // Subscrição Realtime: qualquer publicação ou edição reflete instantaneamente em todos os dispositivos
+    const realtimeChannel = supabase
+      .channel('eclesia-realtime-sync')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'articles' },
+        async () => {
+          console.log('[Supabase Realtime] Mudança detectada na tabela articles. Sincronizando...');
+          const fresh = await fetchArticlesFromDb();
+          if (fresh && fresh.length > 0) setArticles(fresh);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'saints' },
+        async () => {
+          const freshSaints = await fetchSaintsFromDb();
+          if (freshSaints && freshSaints.length > 0) setSaints(freshSaints);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'products' },
+        async () => {
+          const freshProducts = await fetchProductsFromDb();
+          if (freshProducts && freshProducts.length > 0) setProducts(freshProducts);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(realtimeChannel);
+    };
   }, []);
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -364,6 +400,13 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#fcf9f8] text-[#1c1b1b] overflow-x-clip w-full">
+      {/* Dynamic SEO Meta Tags, Open Graph & Structured Data (Schema.org JSON-LD) */}
+      <SEOHead
+        activeView={activeView}
+        selectedEssay={selectedEssay}
+        selectedSaint={selectedSaint}
+      />
+
       {/* Navigation Header */}
       <Header
         activeView={activeView}

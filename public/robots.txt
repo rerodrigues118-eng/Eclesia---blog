@@ -1,7 +1,24 @@
-# robots.txt para https://eclesia.blog
+# robots.txt — Portal Eclesia (eclesia.blog)
+# Atualizado automaticamente
+
+# Regras para todos os crawlers
 User-agent: *
 Allow: /
-Disallow: /admin
+Allow: /blog/
+Allow: /santoral/
+Allow: /liturgia
+Allow: /oracoes
+Allow: /loja
 
-# Sitemaps
+# Bloqueios: admin e rotas internas de API
+Disallow: /admin
+Disallow: /admin/
+Disallow: /api/cron/
+Disallow: /api/indexnow
+Disallow: /*.json$
+
+# Sitemap dinâmico (gerado pelo Vercel)
 Sitemap: https://eclesia.blog/sitemap.xml
+
+# IndexNow Key
+# https://eclesia.blog/89f4b5e2a3c7491d90f2b38167cd9e12.txt

@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase/client';
 import { Essay, Product, PrayerItem, Saint } from '../types';
+import { notifyNewContentPublished } from './seoIndexing';
 
 const STORAGE_KEY_ARTICLES = 'eclesia_db_articles';
 const STORAGE_KEY_PRODUCTS = 'eclesia_db_products';
@@ -22,9 +23,7 @@ export async function fetchArticlesFromDb(): Promise<Essay[]> {
 
       if (error) {
         console.error('[dbService] Erro ao buscar artigos do Supabase:', error);
-      }
-
-      if (!error && data) {
+      } else if (data) {
         const mapped: Essay[] = data.map((item: any) => ({
           id: item.id,
           title: item.title || '',
@@ -47,14 +46,19 @@ export async function fetchArticlesFromDb(): Promise<Essay[]> {
           mediaMap: item.media_map
         }));
 
-        localStorage.setItem(STORAGE_KEY_ARTICLES, JSON.stringify(mapped));
+        try {
+          localStorage.setItem(STORAGE_KEY_ARTICLES, JSON.stringify(mapped));
+        } catch (e) {
+          console.warn('[dbService] Falha ao atualizar cache local:', e);
+        }
         return mapped;
       }
     }
   } catch (err) {
-    console.warn('[dbService] Supabase articles fetch warning:', err);
+    console.warn('[dbService] Supabase articles fetch exception:', err);
   }
 
+  // Fallback para cache local apenas em caso de falha de conexão ou offline
   const local = localStorage.getItem(STORAGE_KEY_ARTICLES);
   if (local) {
     try {
@@ -67,66 +71,101 @@ export async function fetchArticlesFromDb(): Promise<Essay[]> {
 }
 
 export async function saveArticleToDb(article: Essay): Promise<{ success: boolean; article: Essay }> {
-  if (isSupabaseConfigured) {
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(article.id);
-    const payload: any = {
-      title: article.title,
-      slug: article.slug || article.title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
-      excerpt: article.excerpt || '',
-      content: article.content || '',
-      cover_image: article.imageUrl || 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=800',
-      category: article.category || 'Teologia',
-      type: article.type || 'artigo',
-      author_name: article.author || 'Redação Eclesia',
-      read_time: article.readTime || '5 min de leitura',
-      featured: !!article.featured,
-      trending: !!article.trending,
-      meta_title: article.metaTitle || article.title,
-      meta_description: article.metaDescription || article.excerpt,
-      keywords: article.keywords || [],
-      media_map: article.mediaMap || null,
-      status: 'publicado',
-      published_at: new Date().toISOString()
-    };
-
-    let res;
-    if (isUuid) {
-      payload.id = article.id;
-      res = await supabase.from('articles').upsert(payload, { onConflict: 'id' }).select();
-    } else {
-      res = await supabase.from('articles').upsert(payload, { onConflict: 'slug' }).select();
-    }
-
-    const { data, error } = res;
-
-    if (error) {
-      console.error('[dbService] Erro retornado pelo Supabase no salvar artigo:', error);
-      throw new Error(`[Supabase ${error.code || 'ERR'}]: ${error.message} ${error.details || ''} ${error.hint || ''}`.trim());
-    }
-
-    if (data && data[0] && data[0].id) {
-      article.id = data[0].id;
-    }
+  if (!isSupabaseConfigured) {
+    throw new Error('Supabase não está configurado. Verifique as credenciais no .env');
   }
 
-  // Backup e sincronização em localStorage
-  const local = localStorage.getItem(STORAGE_KEY_ARTICLES);
-  let current: Essay[] = [];
-  if (local) {
-    try {
-      current = JSON.parse(local);
-    } catch {
-      current = [];
-    }
+  // Verifica se a sessão do Supabase está ativa para garantir autorização
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) {
+    console.warn('[dbService] Atenção: Nenhuma sessão ativa detectada. A operação depende de políticas permissivas ou do email de admin.');
   }
 
-  const exists = current.some(a => a.id === article.id || (a.slug && a.slug === article.slug));
-  const updatedList = exists
-    ? current.map(a => (a.id === article.id || a.slug === article.slug) ? article : a)
-    : [article, ...current];
-  localStorage.setItem(STORAGE_KEY_ARTICLES, JSON.stringify(updatedList));
+  // Garante um UUID válido v4 para o banco de dados
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(article.id);
+  const finalId = isUuid 
+    ? article.id 
+    : (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : undefined);
 
-  return { success: true, article };
+  const cleanSlug = (article.slug || article.title)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '') || `artigo-${Date.now()}`;
+
+  const payload: any = {
+    title: article.title.trim(),
+    slug: cleanSlug,
+    excerpt: article.excerpt?.trim() || '',
+    content: article.content?.trim() || '',
+    cover_image: article.imageUrl || 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=800',
+    category: article.category || 'Teologia',
+    type: article.type || 'artigo',
+    author_name: article.author || 'Redação Eclesia',
+    read_time: article.readTime || '5 min de leitura',
+    featured: Boolean(article.featured),
+    trending: Boolean(article.trending),
+    meta_title: article.metaTitle || article.title,
+    meta_description: article.metaDescription || article.excerpt,
+    keywords: Array.isArray(article.keywords) ? article.keywords : [],
+    media_map: article.mediaMap || null,
+    status: 'publicado',
+    published_at: new Date().toISOString()
+  };
+
+  if (finalId) {
+    payload.id = finalId;
+  }
+
+  let res;
+  if (finalId) {
+    res = await supabase.from('articles').upsert(payload, { onConflict: 'id' }).select();
+  } else {
+    res = await supabase.from('articles').upsert(payload, { onConflict: 'slug' }).select();
+  }
+
+  const { data, error } = res;
+
+  if (error) {
+    console.error('[dbService] Erro crítico ao salvar artigo no Supabase:', error);
+    throw new Error(`[Supabase ${error.code || 'ERR'}]: ${error.message} ${error.details || ''} ${error.hint || ''}`.trim());
+  }
+
+  const savedArticle: Essay = {
+    ...article,
+    id: (data && data[0] && data[0].id) ? data[0].id : (finalId || article.id),
+    slug: (data && data[0] && data[0].slug) ? data[0].slug : cleanSlug
+  };
+
+  // Atualiza o cache local apenas após confirmação real do Supabase
+  try {
+    const local = localStorage.getItem(STORAGE_KEY_ARTICLES);
+    let current: Essay[] = [];
+    if (local) {
+      try { current = JSON.parse(local); } catch { current = []; }
+    }
+    const exists = current.some(a => a.id === savedArticle.id || a.slug === savedArticle.slug);
+    const updatedList = exists
+      ? current.map(a => (a.id === savedArticle.id || a.slug === savedArticle.slug) ? savedArticle : a)
+      : [savedArticle, ...current];
+    localStorage.setItem(STORAGE_KEY_ARTICLES, JSON.stringify(updatedList));
+  } catch (e) {
+    console.warn('[dbService] Aviso ao sincronizar cache local após salvamento:', e);
+  }
+
+  // Notifica Google e Bing via IndexNow em background sem travar o salvamento
+  try {
+    if (savedArticle.slug) {
+      notifyNewContentPublished(savedArticle.slug, 'blog').catch(err => {
+        console.warn('[dbService] Erro não bloqueante ao notificar buscadores:', err);
+      });
+    }
+  } catch {}
+
+  return { success: true, article: savedArticle };
 }
 
 export async function deleteArticleFromDb(id: string): Promise<boolean> {

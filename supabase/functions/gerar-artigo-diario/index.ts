@@ -338,7 +338,7 @@ Senhor Jesus Cristo...
 
     if (tipoPost === "liturgia") {
       promptUsuario = `
-        Escreva o Artigo da "Liturgia Diária de Hoje" (${dataFormatadaPtBr}) com linguagem pastoral jovem e vibrante.
+        Escreva o Artigo da "Liturgia Diária de Hoje" (${dataFormatadaPtBr}) com linguagem pastoral e homilética vibrante.
         ${regrasSeo}
         Retorne APENAS um JSON válido seguindo esta estrutura:
         {
@@ -349,45 +349,62 @@ Senhor Jesus Cristo...
           "resumo": "A Palavra de Deus proclamada na Missa de hoje e conselhos práticos para a sua vida cristã.",
           "conteudo": "Escreva aqui todo o artigo completo em Markdown com mais de 650 palavras...",
           "categoria": "Liturgia Diária",
-          "tempoLeitura": "5 min de leitura",
+          "tempoLeitura": "6 min de leitura",
           "keywords": ["Liturgia Diária", "Evangelho do dia", "Santa Missa", "Vida de Oração", "Palavra de Deus"]
         }
       `;
     } else if (tipoPost === "santo") {
       promptUsuario = `
-        Escreva o Artigo do Santo comemorado pela Igreja hoje (${dataFormatadaPtBr}).
-        Apresente o santo como alguém real que venceu pela fé em Cristo e nos ensina a ser santos hoje.
+        Escreva o Artigo do Santo do Dia oficial comemorado pela Igreja hoje (${dataFormatadaPtBr}).
+        Apresente o santo com suas virtudes heroicas e como ele nos ensina a amar a Cristo e à Igreja hoje.
         ${regrasSeo}
         Retorne APENAS um JSON válido seguindo esta estrutura:
         {
           "titulo": "Título com nome do Santo (38 a 60 caracteres)",
-          "slug": "santo-do-dia-slug",
+          "slug": "santo-do-dia-${diaNum}-${mesNum}",
           "metaTitle": "Santo do Dia: Vida e Oração (45 a 60 caracteres)",
           "metaDescription": "Conheça a história inspiradora e a oração do santo de hoje (125 a 155 caracteres)",
           "resumo": "História, milagres e ensinamentos práticos para a sua vida cristã (120 a 160 caracteres)",
           "conteudo": "Escreva aqui todo o artigo completo em Markdown com mais de 650 palavras...",
           "categoria": "Santo do Dia",
           "tempoLeitura": "5 min de leitura",
-          "keywords": ["Santo do Dia", "Vida dos Santos", "Fé Católica"]
+          "keywords": ["Santo do Dia", "Vida dos Santos", "Fé Católica", "Santidade"]
         }
+      `;
+    } else if (tipoPost === "artigo_slot_1" || tipoPost === "espiritualidade") {
+      promptUsuario = `
+        ESPERITUALIDADE & ORAÇÃO MATINAL (${dataFormatadaPtBr}):
+        Escreva um artigo inspirador sobre a vida de oração pessoal, a beleza da Santa Missa, o silêncio interior, a adoração e como começar o dia com o Coração de Jesus.
+        ${regrasSeo}
+        Retorne APENAS um JSON válido com categoria "Espiritualidade", tempoLeitura "5 min de leitura", slug "oracao-matinal-${diaNum}-${mesNum}", etc.
+      `;
+    } else if (tipoPost === "artigo_slot_2" || tipoPost === "teologia") {
+      promptUsuario = `
+        TEOLOGIA CATÓLICA, DOUTRINA & CATECISMO (${dataFormatadaPtBr}):
+        Escreva um artigo teológico profundo e acessível sobre a Eucaristia, a Santíssima Trindade, os Sacramentos ou a sabedoria de Santo Tomás de Aquino e Santo Agostinho.
+        ${regrasSeo}
+        Retorne APENAS um JSON válido com categoria "Teologia", tempoLeitura "6 min de leitura", slug "teologia-${diaNum}-${mesNum}", etc.
+      `;
+    } else if (tipoPost === "artigo_slot_3" || tipoPost === "apologetica") {
+      promptUsuario = `
+        APOLOGÉTICA, DEFESA DA FÉ & JUVENTUDE CATÓLICA (${dataFormatadaPtBr}):
+        Escreva um artigo contundente e caridoso explicando os fundamentos bíblicos da Igreja Católica, a importância da confissão frequente, Carlo Acutis e a santidade para os jovens.
+        ${regrasSeo}
+        Retorne APENAS um JSON válido com categoria "Juventude & Fé", tempoLeitura "5 min de leitura", slug "juventude-fe-${diaNum}-${mesNum}", etc.
+      `;
+    } else if (tipoPost === "artigo_slot_4" || tipoPost === "vaticano") {
+      promptUsuario = `
+        TEMAS EM ALTA, VATICANO & ATUALIDADES DA IGREJA (${dataFormatadaPtBr}):
+        Escreva um artigo editorial sobre as principais atualidades da Santa Sé, discursos papais relevantes, a missão da Igreja no mundo e a defesa da dignidade humana.
+        ${regrasSeo}
+        Retorne APENAS um JSON válido com categoria "Vaticano", tempoLeitura "5 min de leitura", slug "vaticano-atualidades-${diaNum}-${mesNum}", etc.
       `;
     } else {
       promptUsuario = `
         RADAR DE TENDÊNCIAS CATÓLICAS PARA A JUVENTUDE HOJE (${dataFormatadaPtBr}):
-        Escolha um tema católico real, profundo e vibrante que dialogue com os jovens de hoje (ex: Carlo Acutis e as redes sociais, o segredo da Confissão, batalha da oração, namoro santo, a beleza da Missa).
+        Escolha um tema católico real, profundo e vibrante que dialogue com os cristãos hoje.
         ${regrasSeo}
-        Retorne APENAS um JSON válido seguindo esta estrutura:
-        {
-          "titulo": "Título direto e magnético (38 a 60 caracteres)",
-          "slug": "slug-sem-acentos-e-hifens",
-          "metaTitle": "Título SEO com 45 a 60 caracteres",
-          "metaDescription": "Descrição instigante para o Google com 125 a 155 caracteres",
-          "resumo": "Resumo envolvente para o card com 120 a 160 caracteres",
-          "conteudo": "Escreva aqui todo o artigo completo em Markdown com mais de 650 palavras...",
-          "categoria": "Juventude & Fé",
-          "tempoLeitura": "5 min de leitura",
-          "keywords": ["Santidade", "Juventude Católica", "Vida de Oração", "Carlo Acutis"]
-        }
+        Retorne APENAS um JSON válido seguindo a estrutura padrão.
       `;
     }
 

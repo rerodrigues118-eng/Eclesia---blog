@@ -16,6 +16,18 @@
     <title>Eclesia | Portal Editorial Católico, Liturgia e Devoção</title>
     <meta name="description" content="Reflexões teológicas profundas, liturgia diária completa, santoral com biografias de santos, orações por situação de vida e artigos religiosos." />
     <meta name="keywords" content="catolicismo, liturgia diária, santo do dia, orações católicas, teologia, bíblia, fé católica, eclesia" />
+    <meta name="author" content="Eclesia — Portal Editorial Católico" />
+    <meta name="language" content="pt-BR" />
+    <meta name="geo.region" content="BR" />
+    <meta name="geo.country" content="Brazil" />
+
+    <!-- Canonical padrão (substituído dinamicamente pelo SEOHead por página) -->
+    <link rel="canonical" href="https://eclesia.blog/" />
+
+    <!-- hreflang: sinaliza para o Google que o conteúdo é português do Brasil -->
+    <link rel="alternate" hreflang="pt-BR" href="https://eclesia.blog/" />
+    <link rel="alternate" hreflang="pt" href="https://eclesia.blog/" />
+    <link rel="alternate" hreflang="x-default" href="https://eclesia.blog/" />
 
     <!-- Favicon & Touch Icons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -25,22 +37,84 @@
     <link rel="mask-icon" href="/favicon.svg" color="#785600" />
     <meta name="theme-color" content="#785600" />
 
-    <!-- Open Graph / Facebook -->
+    <!-- Open Graph / Facebook / WhatsApp / Google Discover -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://eclesia.blog.br/" />
+    <meta property="og:url" content="https://eclesia.blog/" />
+    <meta property="og:site_name" content="Eclesia — Portal Editorial Católico" />
+    <meta property="og:locale" content="pt_BR" />
     <meta property="og:title" content="Eclesia | Portal Editorial Católico, Liturgia e Devoção" />
     <meta property="og:description" content="Reflexões teológicas profundas, liturgia diária completa, santoral com biografias de santos e orações." />
     <meta property="og:image" content="https://lh3.googleusercontent.com/aida-public/AB6AXuBMgxJ7BCVSZ5GKf3GowVdz7LNsToPTuRLDhU3adi2xlhRtWOByKtYcXx1eg9tMb7qnELMLXfXiFYNQ72bzaqH2GeALA5XI0TKcv669gw7470MrYrAZstmXibt4gY-Cjrfz1wERr8dcVYyZviCTfSDuWE3_kMVCiJaO0Rlg-Y5Isg0SWQUPKFwtg2MTQZygdspVlHr5NDK5hfVPOLQW8vBBkGU0NfFr0uiXGg6d6GGMmn0EHvB5wuFP" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Portal Eclesia — Fé Católica, Liturgia e Devoção" />
 
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:title" content="Eclesia | Portal Editorial Católico" />
-    <meta property="twitter:description" content="Reflexões teológicas profundas, liturgia diária completa, santoral e orações." />
+    <!-- Twitter / X Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@eclesiadotblog" />
+    <meta name="twitter:creator" content="@eclesiadotblog" />
+    <meta name="twitter:title" content="Eclesia | Portal Editorial Católico" />
+    <meta name="twitter:description" content="Reflexões teológicas profundas, liturgia diária completa, santoral e orações." />
+    <meta name="twitter:image" content="https://lh3.googleusercontent.com/aida-public/AB6AXuBMgxJ7BCVSZ5GKf3GowVdz7LNsToPTuRLDhU3adi2xlhRtWOByKtYcXx1eg9tMb7qnELMLXfXiFYNQ72bzaqH2GeALA5XI0TKcv669gw7470MrYrAZstmXibt4gY-Cjrfz1wERr8dcVYyZviCTfSDuWE3_kMVCiJaO0Rlg-Y5Isg0SWQUPKFwtg2MTQZygdspVlHr5NDK5hfVPOLQW8vBBkGU0NfFr0uiXGg6d6GGMmn0EHvB5wuFP" />
 
-    <!-- Google Fonts Preload -->
+    <!-- Preconnect para performance (reduz tempo de conexão às APIs externas) -->
+    <link rel="preconnect" href="https://sdyytxnmdquriqsxuvhd.supabase.co" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+    <link rel="dns-prefetch" href="https://api.groq.com" />
+    <link rel="dns-prefetch" href="https://generativelanguage.googleapis.com" />
+
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet" />
+
+    <!-- Schema.org JSON-LD — WebSite com SearchAction para Google Sitelinks Search Box -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "@id": "https://eclesia.blog/#website",
+      "name": "Eclesia — Portal Editorial Católico",
+      "url": "https://eclesia.blog/",
+      "description": "Portal editorial católico dedicado à transmissão fiel da fé, liturgia diária comentada, santoral, teologia, apologética e orações da Igreja Católica.",
+      "inLanguage": "pt-BR",
+      "publisher": {
+        "@type": "Organization",
+        "name": "Eclesia Blog",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://eclesia.blog/favicon.png"
+        }
+      },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://eclesia.blog/blog?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <!-- Schema.org JSON-LD — Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "@id": "https://eclesia.blog/#organization",
+      "name": "Eclesia — Portal Editorial Católico",
+      "url": "https://eclesia.blog/",
+      "logo": "https://eclesia.blog/favicon.png",
+      "sameAs": [],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "editorial",
+        "areaServed": "BR",
+        "availableLanguage": "Portuguese"
+      }
+    }
+    </script>
   </head>
   <body class="bg-[#fcf9f8] text-[#1c1b1b] antialiased selection:bg-[#ffdea6] selection:text-[#271900]">
     <div id="root"></div>
