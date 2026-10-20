@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #141210;
+  color: #f4efe6;
+}
+
 @layer utilities {
   .font-display {
     font-family: 'Playfair Display', Georgia, serif;

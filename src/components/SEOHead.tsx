@@ -271,7 +271,41 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
       keywords = ['Orações Católicas', 'Oração da Manhã', 'Santo Terço', 'Novenas Católicas'];
     }
     // ─────────────────────────────────────────────────────────────────────────
-    // 7. CASO: HOME & GLOBAL
+    // 7. CASO: SANTO TERÇO INTERATIVO (/terco)
+    // ─────────────────────────────────────────────────────────────────────────
+    else if (activeView === 'terco') {
+      title = `Santo Terço Interativo com Mistérios Automáticos | Eclesia`;
+      description = 'Reze o Santo Terço católico online passo a passo: seleção automática dos mistérios do dia (Gozosos, Dolorosos, Gloriosos, Luminosos), contador de Ave-Marias e meditações.';
+      canonicalUrl = `${BASE_URL}/terco`;
+      keywords = ['Santo Terço', 'Terço Interativo', 'Mistérios do Terço', 'Rezar o Terço Online', 'Mistérios Gozosos', 'Mistérios Dolorosos', 'Mistérios Gloriosos', 'Mistérios Luminosos'];
+      schemas.push({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+          { '@type': 'ListItem', 'position': 1, 'name': 'Início', 'item': `${BASE_URL}/` },
+          { '@type': 'ListItem', 'position': 2, 'name': 'Santo Terço Interativo', 'item': canonicalUrl }
+        ]
+      });
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+    // 8. CASO: CLUBE DE BENFEITORES (/benfeitores)
+    // ─────────────────────────────────────────────────────────────────────────
+    else if (activeView === 'benfeitores') {
+      title = `Clube de Benfeitores do Eclesia: Apoie o Apostolado Católico Digital`;
+      description = 'Torne-se um benfeitor mensal do Eclesia e ajude a manter a evangelização católica, a formação doutrinária e as publicações diárias no ar.';
+      canonicalUrl = `${BASE_URL}/benfeitores`;
+      keywords = ['Benfeitores Eclesia', 'Apoio Apostolado Católico', 'Doação Católica', 'Evangelização Digital'];
+      schemas.push({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+          { '@type': 'ListItem', 'position': 1, 'name': 'Início', 'item': `${BASE_URL}/` },
+          { '@type': 'ListItem', 'position': 2, 'name': 'Benfeitores do Eclesia', 'item': canonicalUrl }
+        ]
+      });
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+    // 9. CASO: HOME & GLOBAL
     // ─────────────────────────────────────────────────────────────────────────
     else {
       title = 'Eclesia | Portal Editorial Católico, Liturgia Diária e Doutrina';

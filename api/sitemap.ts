@@ -48,9 +48,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const staticRoutes = [
       { loc: `${BASE_URL}/`, lastmod: todayIso, changefreq: 'daily', priority: '1.0' },
       { loc: `${BASE_URL}/blog`, lastmod: todayIso, changefreq: 'daily', priority: '0.9' },
+      { loc: `${BASE_URL}/terco`, lastmod: todayIso, changefreq: 'daily', priority: '0.9' },
       { loc: `${BASE_URL}/liturgia`, lastmod: todayIso, changefreq: 'daily', priority: '0.9' },
       { loc: `${BASE_URL}/santoral`, lastmod: todayIso, changefreq: 'daily', priority: '0.9' },
       { loc: `${BASE_URL}/oracoes`, lastmod: todayIso, changefreq: 'weekly', priority: '0.8' },
+      { loc: `${BASE_URL}/benfeitores`, lastmod: todayIso, changefreq: 'weekly', priority: '0.8' },
       { loc: `${BASE_URL}/loja`, lastmod: todayIso, changefreq: 'weekly', priority: '0.8' },
       { loc: `${BASE_URL}/assinaturas`, lastmod: todayIso, changefreq: 'monthly', priority: '0.7' },
       { loc: `${BASE_URL}/termos`, lastmod: '2026-01-01', changefreq: 'yearly', priority: '0.3' },

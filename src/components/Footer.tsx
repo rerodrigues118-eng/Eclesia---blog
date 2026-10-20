@@ -31,9 +31,11 @@ export const Footer: React.FC<FooterProps> = ({ setActiveView }) => {
               {[
                 { label: 'Início', view: 'home' },
                 { label: 'Blog & Notícias', view: 'blog' },
+                { label: 'Santo Terço', view: 'terco' },
                 { label: 'Santoral', view: 'santoral' },
                 { label: 'Liturgia', view: 'liturgia' },
                 { label: 'Orações', view: 'oracoes' },
+                { label: 'Benfeitores', view: 'benfeitores' },
                 { label: 'Loja', view: 'loja' },
               ].map(({ label, view }) => (
                 <button

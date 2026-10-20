@@ -21,6 +21,8 @@ import { AuthModal } from './components/AuthModal';
 import { AuthView } from './components/AuthView';
 import { CookieBanner } from './components/CookieBanner';
 import { SEOHead } from './components/SEOHead';
+import { TercoInterativo } from './components/TercoInterativo';
+import { BenfeitoresView } from './components/BenfeitoresView';
 import { useAuth } from './hooks/useAuth';
 import { AdminDashboard, AdminLoginView } from './admin';
 import { supabase } from './lib/supabase/client';
@@ -210,14 +212,17 @@ export const App: React.FC = () => {
         window.history.replaceState(null, '', '/');
       }
 
+      // Alias para benfeitores (/apoiar -> benfeitores)
+      const mappedRoot = rootPath === 'apoiar' ? 'benfeitores' : rootPath;
+
       const validViews: ActiveView[] = [
         'home', 'blog', 'loja', 'oracoes', 'liturgia',
-        'santoral', 'admin',
+        'santoral', 'terco', 'benfeitores', 'assinaturas', 'admin',
         'auth', 'termos', 'privacidade', 'conduta'
       ];
 
-      if (validViews.includes(rootPath as ActiveView)) {
-        setActiveView(rootPath as ActiveView);
+      if (validViews.includes(mappedRoot as ActiveView)) {
+        setActiveView(mappedRoot as ActiveView);
         setSelectedEssay(null);
         setSelectedSaint(null);
       } else {
@@ -422,7 +427,7 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#fcf9f8] text-[#1c1b1b] overflow-x-clip w-full">
+    <div className="min-h-screen flex flex-col bg-[#fcf9f8] dark:bg-[#141210] text-[#1c1b1b] dark:text-[#f3ede2] transition-colors overflow-x-clip w-full">
       {/* Dynamic SEO Meta Tags, Open Graph & Structured Data (Schema.org JSON-LD) */}
       <SEOHead
         activeView={activeView}
@@ -487,11 +492,13 @@ export const App: React.FC = () => {
               <SantoralView onSelectSaint={handleSelectSaint} saints={saints} />
             )}
 
+            {activeView === 'terco' && <TercoInterativo />}
+
             {activeView === 'liturgia' && <LiturgiaView />}
 
             {activeView === 'igrejas' && <IgrejasView />}
 
-            {activeView === 'assinaturas' && <AssinaturasView />}
+            {(activeView === 'benfeitores' || activeView === 'assinaturas') && <BenfeitoresView />}
 
             {activeView === 'loja' && (
               <LojaView

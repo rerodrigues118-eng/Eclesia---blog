@@ -1,9 +1,11 @@
-import React, { useEffect } from 'react';
-import { ArrowLeft, BookOpen, Share2, Clock, Calendar, Newspaper, Bookmark, Check } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { ArrowLeft, BookOpen, Share2, Clock, Calendar, Newspaper, Bookmark, Check, Image as ImageIcon } from 'lucide-react';
 import { Essay } from '../types';
 import { updateDocumentSeo, resetPortalSeo } from '../utils/seo';
 import { RichArticleRenderer } from './RichArticleRenderer';
 import { GoogleAdSlot } from './GoogleAdSlot';
+import { AffiliateProductSection } from './AffiliateProductSection';
+import { SocialCardModal, SocialCardData } from './SocialCardModal';
 
 interface EssayDetailViewProps {
   essay: Essay;
@@ -16,6 +18,7 @@ export const EssayDetailView: React.FC<EssayDetailViewProps> = ({ essay, onBack,
   const [copied, setCopied] = React.useState(false);
   const [bookmarked, setBookmarked] = React.useState(false);
   const [shareMenuOpen, setShareMenuOpen] = React.useState(false);
+  const [cardModalData, setCardModalData] = useState<SocialCardData | null>(null);
 
   // Injeta automaticamente as Meta Tags e o Schema.org JSON-LD para o Googlebot
   useEffect(() => {
@@ -92,11 +95,25 @@ export const EssayDetailView: React.FC<EssayDetailViewProps> = ({ essay, onBack,
 
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <button
+            onClick={() => setCardModalData({
+              quote: essay.excerpt || essay.title,
+              author: essay.author || 'Eclesia',
+              subtitle: essay.title,
+              dateStr: essay.date
+            })}
+            className="flex items-center gap-1 sm:gap-1.5 text-xs font-semibold px-2.5 sm:px-3 py-1.5 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 text-[#785600] dark:text-[#ffdea6] transition-all cursor-pointer whitespace-nowrap"
+            title="Gerar Card para Redes Sociais"
+          >
+            <ImageIcon className="w-3.5 h-3.5" />
+            <span className="hidden xs:inline sm:inline">Gerar Card</span>
+          </button>
+
+          <button
             onClick={() => setBookmarked(!bookmarked)}
             className={`flex items-center gap-1 sm:gap-1.5 text-xs font-semibold px-2.5 sm:px-3 py-1.5 rounded-lg border transition-all cursor-pointer whitespace-nowrap ${
               bookmarked
                 ? 'bg-[#785600] text-white border-[#785600]'
-                : 'bg-white text-[#4f4535] border-[#d3c4af] hover:border-[#785600]'
+                : 'bg-white dark:bg-[#1f1b17] text-[#4f4535] dark:text-[#c4b9a7] border-[#d3c4af] dark:border-[#383027] hover:border-[#785600]'
             }`}
             title={bookmarked ? 'Salvo nos favoritos' : 'Salvar artigo'}
           >
@@ -279,13 +296,19 @@ export const EssayDetailView: React.FC<EssayDetailViewProps> = ({ essay, onBack,
         )}
       </div>
 
+      {/* Vitrine de Produtos Católicos Recomendados ao Fim do Artigo */}
+      <AffiliateProductSection
+        title="Livraria & Artigos Católicos Recomendados"
+        subtitle="Aprofunde sua vida de oração com as obras essenciais da tradição católica e sacramentais abençoados."
+      />
+
       {/* Recommended / Related Posts Section */}
       <section className="space-y-6 pt-6">
-        <div className="flex items-center justify-between pb-2 border-b border-[#d3c4af]/50">
-          <h3 className="font-display text-2xl font-bold text-[#1c1b1b]">Outras Publicações Recomendadas</h3>
+        <div className="flex items-center justify-between pb-2 border-b border-[#d3c4af]/50 dark:border-[#383027]">
+          <h3 className="font-display text-2xl font-bold text-[#1c1b1b] dark:text-[#f3ede2]">Outras Publicações Recomendadas</h3>
           <button
             onClick={onBack}
-            className="text-xs font-bold text-[#785600] hover:underline uppercase tracking-wider"
+            className="text-xs font-bold text-[#785600] hover:underline uppercase tracking-wider cursor-pointer"
           >
             Ver Todas
           </button>
@@ -296,7 +319,7 @@ export const EssayDetailView: React.FC<EssayDetailViewProps> = ({ essay, onBack,
             <article
               key={item.id}
               onClick={() => onSelectEssay(item)}
-              className="group cursor-pointer bg-white rounded-lg border border-[#d3c4af]/50 overflow-hidden shadow-2xs hover:border-[#785600] transition-all flex flex-col justify-between"
+              className="group cursor-pointer bg-white dark:bg-[#1a1714] rounded-lg border border-[#d3c4af]/50 dark:border-[#383027] overflow-hidden shadow-2xs hover:border-[#785600] transition-all flex flex-col justify-between"
             >
               <div>
                 <div className="aspect-[16/10] overflow-hidden relative">
@@ -318,13 +341,13 @@ export const EssayDetailView: React.FC<EssayDetailViewProps> = ({ essay, onBack,
                   <span className="font-sans text-[10px] font-bold uppercase tracking-wider text-[#785600]">
                     {item.category}
                   </span>
-                  <h4 className="font-display text-base font-bold text-[#1c1b1b] group-hover:text-[#785600] transition-colors leading-snug line-clamp-2">
+                  <h4 className="font-display text-base font-bold text-[#1c1b1b] dark:text-[#f3ede2] group-hover:text-[#785600] transition-colors leading-snug line-clamp-2">
                     {item.title}
                   </h4>
                 </div>
               </div>
 
-              <div className="px-4 py-2 border-t border-[#d3c4af]/30 bg-[#fcf9f8] flex items-center justify-between text-[10px] text-[#817563]">
+              <div className="px-4 py-2 border-t border-[#d3c4af]/30 dark:border-[#332b23] bg-[#fcf9f8] dark:bg-[#201c18] flex items-center justify-between text-[10px] text-[#817563]">
                 <span>{item.author}</span>
                 <span>{item.readTime}</span>
               </div>
@@ -332,6 +355,15 @@ export const EssayDetailView: React.FC<EssayDetailViewProps> = ({ essay, onBack,
           ))}
         </div>
       </section>
+
+      {/* Social Card Generator Modal */}
+      {cardModalData && (
+        <SocialCardModal
+          isOpen={Boolean(cardModalData)}
+          onClose={() => setCardModalData(null)}
+          data={cardModalData}
+        />
+      )}
     </div>
   );
 };

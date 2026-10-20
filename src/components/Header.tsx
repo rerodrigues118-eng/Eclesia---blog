@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Menu, X, ShoppingBag, User, LogOut, ShieldCheck, ChevronDown } from 'lucide-react';
+import { Search, Menu, X, ShoppingBag, User, LogOut, ShieldCheck, ChevronDown, Sun, Moon, HeartHandshake } from 'lucide-react';
 import { ActiveView, UserProfile } from '../types';
+import { useDarkMode } from '../hooks/useDarkMode';
 
 interface HeaderProps {
   activeView: ActiveView;
@@ -54,8 +55,10 @@ export const Header: React.FC<HeaderProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const { isDark, toggleDarkMode } = useDarkMode();
+
   return (
-    <header className="bg-white/95 backdrop-blur-md border-b border-[#d3c4af]/50 sticky top-0 z-50 transition-all w-full shadow-xs">
+    <header className="bg-white/95 dark:bg-[#161412]/95 backdrop-blur-md border-b border-[#d3c4af]/50 dark:border-[#38322a] sticky top-0 z-50 transition-colors w-full shadow-xs">
       <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 flex justify-between items-center gap-2 sm:gap-4">
         {/* Far Left: Brand Logo & Aligned BLOG Tag with Golden Cross Icon */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
@@ -78,10 +81,10 @@ export const Header: React.FC<HeaderProps> = ({
         <nav className="hidden lg:flex items-center justify-center gap-1 xl:gap-2 flex-nowrap">
           <button
             onClick={() => setActiveView('home')}
-            className={`font-sans text-xs uppercase tracking-wider font-bold py-1 px-3 border-b-2 transition-all duration-150 whitespace-nowrap cursor-pointer ${
+            className={`font-sans text-xs uppercase tracking-wider font-bold py-1 px-2.5 border-b-2 transition-all duration-150 whitespace-nowrap cursor-pointer ${
               activeView === 'home'
-                ? 'border-[#785600] text-[#785600]'
-                : 'border-transparent text-[#4f4535] hover:text-[#785600]'
+                ? 'border-[#785600] text-[#785600] dark:text-[#ffdea6] dark:border-[#ffdea6]'
+                : 'border-transparent text-[#4f4535] dark:text-[#c4b9a7] hover:text-[#785600] dark:hover:text-[#ffdea6]'
             }`}
           >
             Início
@@ -89,21 +92,32 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={() => setActiveView('blog')}
-            className={`font-sans text-xs uppercase tracking-wider font-bold py-1 px-3 border-b-2 transition-all duration-150 whitespace-nowrap cursor-pointer ${
+            className={`font-sans text-xs uppercase tracking-wider font-bold py-1 px-2.5 border-b-2 transition-all duration-150 whitespace-nowrap cursor-pointer ${
               activeView === 'blog'
-                ? 'border-[#785600] text-[#785600]'
-                : 'border-transparent text-[#4f4535] hover:text-[#785600]'
+                ? 'border-[#785600] text-[#785600] dark:text-[#ffdea6] dark:border-[#ffdea6]'
+                : 'border-transparent text-[#4f4535] dark:text-[#c4b9a7] hover:text-[#785600] dark:hover:text-[#ffdea6]'
             }`}
           >
             Artigos
           </button>
 
           <button
+            onClick={() => setActiveView('terco')}
+            className={`font-sans text-xs uppercase tracking-wider font-bold py-1 px-2.5 border-b-2 transition-all duration-150 whitespace-nowrap cursor-pointer ${
+              activeView === 'terco'
+                ? 'border-[#785600] text-[#785600] dark:text-[#ffdea6] dark:border-[#ffdea6]'
+                : 'border-transparent text-[#4f4535] dark:text-[#c4b9a7] hover:text-[#785600] dark:hover:text-[#ffdea6]'
+            }`}
+          >
+            Santo Terço
+          </button>
+
+          <button
             onClick={() => setActiveView('oracoes')}
-            className={`font-sans text-xs uppercase tracking-wider font-bold py-1 px-3 border-b-2 transition-all duration-150 whitespace-nowrap cursor-pointer ${
+            className={`font-sans text-xs uppercase tracking-wider font-bold py-1 px-2.5 border-b-2 transition-all duration-150 whitespace-nowrap cursor-pointer ${
               activeView === 'oracoes'
-                ? 'border-[#785600] text-[#785600]'
-                : 'border-transparent text-[#4f4535] hover:text-[#785600]'
+                ? 'border-[#785600] text-[#785600] dark:text-[#ffdea6] dark:border-[#ffdea6]'
+                : 'border-transparent text-[#4f4535] dark:text-[#c4b9a7] hover:text-[#785600] dark:hover:text-[#ffdea6]'
             }`}
           >
             Orações
@@ -111,10 +125,10 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={() => setActiveView('liturgia')}
-            className={`font-sans text-xs uppercase tracking-wider font-bold py-1 px-3 border-b-2 transition-all duration-150 whitespace-nowrap cursor-pointer ${
+            className={`font-sans text-xs uppercase tracking-wider font-bold py-1 px-2.5 border-b-2 transition-all duration-150 whitespace-nowrap cursor-pointer ${
               activeView === 'liturgia'
-                ? 'border-[#785600] text-[#785600]'
-                : 'border-transparent text-[#4f4535] hover:text-[#785600]'
+                ? 'border-[#785600] text-[#785600] dark:text-[#ffdea6] dark:border-[#ffdea6]'
+                : 'border-transparent text-[#4f4535] dark:text-[#c4b9a7] hover:text-[#785600] dark:hover:text-[#ffdea6]'
             }`}
           >
             Liturgia
@@ -122,21 +136,32 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={() => setActiveView('santoral')}
-            className={`font-sans text-xs uppercase tracking-wider font-bold py-1 px-3 border-b-2 transition-all duration-150 whitespace-nowrap cursor-pointer ${
+            className={`font-sans text-xs uppercase tracking-wider font-bold py-1 px-2.5 border-b-2 transition-all duration-150 whitespace-nowrap cursor-pointer ${
               activeView === 'santoral'
-                ? 'border-[#785600] text-[#785600]'
-                : 'border-transparent text-[#4f4535] hover:text-[#785600]'
+                ? 'border-[#785600] text-[#785600] dark:text-[#ffdea6] dark:border-[#ffdea6]'
+                : 'border-transparent text-[#4f4535] dark:text-[#c4b9a7] hover:text-[#785600] dark:hover:text-[#ffdea6]'
             }`}
           >
             Santoral
           </button>
 
           <button
+            onClick={() => setActiveView('benfeitores')}
+            className={`font-sans text-xs uppercase tracking-wider font-bold py-1 px-2.5 border-b-2 transition-all duration-150 whitespace-nowrap cursor-pointer ${
+              activeView === 'benfeitores'
+                ? 'border-[#785600] text-[#785600] dark:text-[#ffdea6] dark:border-[#ffdea6]'
+                : 'border-transparent text-[#4f4535] dark:text-[#c4b9a7] hover:text-[#785600] dark:hover:text-[#ffdea6]'
+            }`}
+          >
+            Benfeitores
+          </button>
+
+          <button
             onClick={() => setActiveView('loja')}
-            className={`font-sans text-xs uppercase tracking-wider font-bold py-1 px-3 border-b-2 transition-all duration-150 whitespace-nowrap cursor-pointer ${
+            className={`font-sans text-xs uppercase tracking-wider font-bold py-1 px-2.5 border-b-2 transition-all duration-150 whitespace-nowrap cursor-pointer ${
               activeView === 'loja'
-                ? 'border-[#785600] text-[#785600]'
-                : 'border-transparent text-[#4f4535] hover:text-[#785600]'
+                ? 'border-[#785600] text-[#785600] dark:text-[#ffdea6] dark:border-[#ffdea6]'
+                : 'border-transparent text-[#4f4535] dark:text-[#c4b9a7] hover:text-[#785600] dark:hover:text-[#ffdea6]'
             }`}
           >
             Loja
@@ -144,21 +169,35 @@ export const Header: React.FC<HeaderProps> = ({
         </nav>
 
         {/* Far Right Actions */}
-        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          {/* Theme Switcher Toggle (Dark Mode) */}
+          <button
+            onClick={toggleDarkMode}
+            className="p-1.5 sm:p-2 text-[#4f4535] dark:text-[#ffdea6] hover:text-[#785600] rounded-full hover:bg-[#f0eded] dark:hover:bg-[#28231e] transition-colors cursor-pointer"
+            title={isDark ? "Mudar para Modo Claro" : "Mudar para Modo Noturno / Confortável"}
+            aria-label="Alternar tema claro e escuro"
+          >
+            {isDark ? (
+              <Sun className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-amber-400 animate-spin-slow" />
+            ) : (
+              <Moon className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-[#785600]" />
+            )}
+          </button>
+
           {/* Search Pill Input */}
           <button
             onClick={onOpenSearch}
-            className="flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-1.5 bg-[#f6f3f2] hover:bg-[#e8e4e2] border border-[#d3c4af]/60 rounded-full text-xs text-[#817563] cursor-pointer transition-colors"
+            className="flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-1.5 bg-[#f6f3f2] dark:bg-[#24201c] hover:bg-[#e8e4e2] dark:hover:bg-[#2e2924] border border-[#d3c4af]/60 dark:border-[#3a3229] rounded-full text-xs text-[#817563] dark:text-[#b3a898] cursor-pointer transition-colors"
             title="Pesquisar..."
           >
-            <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#785600]" />
+            <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#785600] dark:text-[#ffdea6]" />
             <span className="hidden sm:inline pr-1">Pesquisar</span>
           </button>
 
           {/* Store Cart Icon */}
           <button
             onClick={onOpenCart}
-            className={`relative p-1.5 sm:p-2 text-[#1c1b1b] hover:text-[#785600] transition-colors rounded-full hover:bg-[#f0eded] cursor-pointer ${cartBounce ? 'animate-bounce' : ''}`}
+            className={`relative p-1.5 sm:p-2 text-[#1c1b1b] dark:text-[#f3ede2] hover:text-[#785600] transition-colors rounded-full hover:bg-[#f0eded] dark:hover:bg-[#28231e] cursor-pointer ${cartBounce ? 'animate-bounce' : ''}`}
             title="Ver carrinho de compras"
           >
             <ShoppingBag className={`w-4.5 h-4.5 sm:w-5 sm:h-5 transition-transform ${cartBounce ? 'scale-110' : ''}`} />
@@ -261,15 +300,17 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-[#d3c4af]/30 bg-white px-4 py-6 space-y-4 shadow-xl animate-fade-in">
+        <div className="lg:hidden border-t border-[#d3c4af]/30 dark:border-[#38322a] bg-white dark:bg-[#1a1714] px-4 py-6 space-y-4 shadow-xl animate-fade-in">
           <nav className="flex flex-col space-y-2">
             {[
               { label: 'Início', view: 'home' as ActiveView },
               { label: 'Artigos & Blog', view: 'blog' as ActiveView },
+              { label: 'Santo Terço Interativo', view: 'terco' as ActiveView },
               { label: 'Orações Católicas', view: 'oracoes' as ActiveView },
               { label: 'Liturgia Diária', view: 'liturgia' as ActiveView },
               { label: 'Santoral', view: 'santoral' as ActiveView },
-              { label: 'Loja', view: 'loja' as ActiveView },
+              { label: 'Benfeitores do Eclesia', view: 'benfeitores' as ActiveView },
+              { label: 'Loja Sacra', view: 'loja' as ActiveView },
             ].map((item) => (
               <button
                 key={item.label}
@@ -277,15 +318,29 @@ export const Header: React.FC<HeaderProps> = ({
                   setActiveView(item.view);
                   setMobileMenuOpen(false);
                 }}
-                className={`text-left font-sans text-xs uppercase tracking-widest font-semibold py-2.5 px-3 rounded-lg cursor-pointer ${
+                className={`text-left font-sans text-xs uppercase tracking-widest font-semibold py-2.5 px-3 rounded-lg cursor-pointer transition-colors ${
                   activeView === item.view
-                    ? 'bg-[#f0eded] text-[#785600]'
-                    : 'text-[#4f4535]'
+                    ? 'bg-[#f0eded] dark:bg-[#2b251f] text-[#785600] dark:text-[#ffdea6]'
+                    : 'text-[#4f4535] dark:text-[#c4b9a7]'
                 }`}
               >
                 {item.label}
               </button>
             ))}
+
+            {/* Dark Mode switcher inside mobile drawer */}
+            <button
+              onClick={toggleDarkMode}
+              className="text-left font-sans text-xs uppercase tracking-widest font-semibold py-2.5 px-3 rounded-lg cursor-pointer flex items-center justify-between text-[#4f4535] dark:text-[#c4b9a7] bg-[#fcf9f8] dark:bg-[#24201c] border border-[#d3c4af]/40 dark:border-[#38322a]"
+            >
+              <span className="flex items-center gap-2">
+                {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-[#785600]" />}
+                Modo de Visualização
+              </span>
+              <span className="text-[10px] font-bold text-[#785600] dark:text-[#ffdea6]">
+                {isDark ? 'Noturno Ativo' : 'Claro Ativo'}
+              </span>
+            </button>
 
             {!user && (
               <button

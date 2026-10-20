@@ -8,11 +8,27 @@ export type ActiveView =
   | 'blog' 
   | 'igrejas' 
   | 'oracoes' 
+  | 'terco'
+  | 'benfeitores'
   | 'termos' 
   | 'privacidade' 
   | 'conduta'
   | 'auth'
   | 'admin';
+
+export interface Benefactor {
+  id: string;
+  user_id?: string;
+  name: string;
+  email: string;
+  phone?: string;
+  tier: 'amigo' | 'guardiao' | 'apostolo';
+  tier_name: string;
+  amount: number;
+  payment_method: string;
+  status: string;
+  created_at?: string;
+}
 
 export interface UserProfile {
   id: string;
