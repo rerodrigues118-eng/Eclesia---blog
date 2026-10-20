@@ -548,6 +548,7 @@ export async function fetchSaintOfToday(): Promise<Saint> {
         .select('*')
         .eq('feast_month', month)
         .eq('feast_day', day)
+        .order('featured', { ascending: false }) // Prioriza santos em destaque
         .limit(1);
 
       if (!error && data && data.length > 0) {
@@ -630,7 +631,14 @@ export async function saveSaintToDb(saint: Saint): Promise<{ success: boolean; s
     feast_month: Number(saint.month) || 1,
     feast_day: Number(saint.day) || 1,
     feast_date: saint.feastDate || `${saint.day} de ${getMonthName(saint.month)}`,
-    image_url: saint.imageUrl || 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1200',
+    image_url: (() => {
+      const url = saint.imageUrl || 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1200';
+      // Cache-busting: força recarregamento de imagens do Supabase Storage ao editar
+      if (isUuid && url && url.includes('supabase') && !url.includes('?t=')) {
+        return `${url.split('?')[0]}?t=${Date.now()}`;
+      }
+      return url;
+    })(),
     patronage: (saint.patronage || '').trim(),
     summary: (saint.summary || '').trim(),
     short_bio: (saint.summary || '').trim(),
