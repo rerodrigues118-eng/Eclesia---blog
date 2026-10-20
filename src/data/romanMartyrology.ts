@@ -105,7 +105,7 @@ export const MARTIROLOGIO_CANONICO: Record<string, MartyrologyEntry> = {
     prayer: 'Senhor Deus, que escolhestes São Lucas para revelar em seu Evangelho o mistério do vosso amor pelos pobres e pecadores, concedei-nos viver segundo o vosso Evangelho. Amém.',
     imageUrl: 'https://images.unsplash.com/photo-1519491050282-cf00c82424b4?auto=format&fit=crop&q=80&w=1200'
   },
-  // HOJE: 19 DE OUTUBRO
+  // HOJE: 19 E 20 DE OUTUBRO
   '10-19': {
     day: 19,
     month: 10,
@@ -115,6 +115,17 @@ export const MARTIROLOGIO_CANONICO: Record<string, MartyrologyEntry> = {
     summary: 'Memória de São Pedro de Alcântara, conselheiro de Santa Teresa e Padroeiro do Brasil, e dos Santos Mártires Isaac Jogues e João de Brébeuf.',
     fullBio: 'São Pedro de Alcântara (1499-1562) foi um frade franciscano de penitência e oração heroicas, declarado em 1826 Padroeiro Principal do Império do Brasil pelo Papa Leão XII. Nesta mesma data, a Igreja celebra os Santos Isaac Jogues, João de Brébeuf e Companheiros, jesuítas que derramaram o sangue evangelizando os povos nativos da América do Norte com admirável fortaleza de fé.',
     prayer: 'Deus de infinita santidade, que ilustrastes São Pedro de Alcântara pelo dom admirável da penitência e da altíssima contemplação, concedei-nos, por seus méritos, mortificar na terra os desejos carnais para merecermos participar dos dons celestes. Por Cristo, Nosso Senhor. Amém.',
+    imageUrl: 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1200'
+  },
+  '10-20': {
+    day: 20,
+    month: 10,
+    name: 'Santa Maria Bertilla Boscardin & Santa Irene de Tomar',
+    title: 'Virgem e Mártir da Caridade',
+    patronage: 'Enfermeiros, Cuidadores e Vítimas de Guerras',
+    summary: 'A humilde serva de Deus que viveu a caridade heróica servindo aos doentes e feridos com pureza e silêncio sublime.',
+    fullBio: 'Santa Maria Bertilla Boscardin (1888-1922) nasceu em Brendola, Itália. Religiosa das Irmãs Mestras de Santa Dorotéia, destacou-se pelo cuidado incansável às crianças doentes e aos soldados feridos durante a Primeira Guerra Mundial sob bombardeios, afirmando: "A Jesus toda a glória, ao próximo toda a alegria, a mim todo o sacrifício". Nesta mesma data, a tradição católica recorda Santa Irene de Tomar, virgem e mártir cristã que defendeu sua pureza e fidelidade a Cristo até o martírio no século VII.',
+    prayer: 'Ó Deus, que concedestes a Santa Maria Bertilla Boscardin brilhar pela simplicidade evangélica e pelo amor ardente aos irmãos sofredores, dai-nos, por sua intercessão, a graça de vos servir nos doentes e desvalidos com humilde e operosa caridade. Por Cristo, Nosso Senhor. Amém.',
     imageUrl: 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1200'
   },
   '10-22': {

@@ -2,6 +2,19 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { gerarArtigoEmAlta } from '../../src/services/contentAutomation';
 import { submitToIndexNow, pingSearchEnginesSitemap, SITE_URL } from '../../src/services/seoIndexing';
 
+function inferSlotFromHour(): number {
+  const now = new Date();
+  const utcHours = now.getUTCHours();
+  // Slot 1: ~06:00 BRT (09:00 UTC)
+  // Slot 2: ~10:30 BRT (13:30 UTC)
+  // Slot 3: ~15:00 BRT (18:00 UTC)
+  // Slot 4: ~19:30 BRT (22:30 UTC)
+  if (utcHours >= 6 && utcHours < 12) return 1;
+  if (utcHours >= 12 && utcHours < 16) return 2;
+  if (utcHours >= 16 && utcHours < 21) return 3;
+  return 4;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Verificação opcional do CRON_SECRET para segurança em produção
   const authHeader = req.headers.authorization;
@@ -12,8 +25,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const slotQuery = req.query.slot ? parseInt(req.query.slot as string, 10) : 1;
-    const slot = isNaN(slotQuery) || slotQuery < 1 || slotQuery > 4 ? 1 : slotQuery;
+    const slotQuery = req.query.slot ? parseInt(req.query.slot as string, 10) : undefined;
+    const slot = slotQuery && !isNaN(slotQuery) && slotQuery >= 1 && slotQuery <= 4
+      ? slotQuery
+      : inferSlotFromHour();
 
     console.log(`[Vercel Cron] Iniciando geração de Artigo Católico em Alta (Slot ${slot})...`);
     const result = await gerarArtigoEmAlta(slot);
