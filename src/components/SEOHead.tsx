@@ -63,15 +63,23 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
       el.setAttribute('content', value);
     };
 
-    // Helper para definir link canonical
+    // Helper para definir link canonical — NUNCA usa /home, normaliza trailing slash
     const setCanonical = (href: string) => {
+      // Garante que a URL canônica nunca seja /home (causa do erro no Search Console)
+      let normalizedHref = href
+        .replace(/\/home\/?$/, '/')           // /home → /
+        .replace(/([^/])\/+$/, '$1');          // remove trailing slash exceto na raiz
+      // Garante protocolo correto
+      if (!normalizedHref.startsWith('https://')) {
+        normalizedHref = `${BASE_URL}${normalizedHref.startsWith('/') ? '' : '/'}${normalizedHref}`;
+      }
       let el = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
       if (!el) {
         el = document.createElement('link');
         el.setAttribute('rel', 'canonical');
         document.head.appendChild(el);
       }
-      el.setAttribute('href', href);
+      el.setAttribute('href', normalizedHref);
     };
 
     const hoje = new Date();

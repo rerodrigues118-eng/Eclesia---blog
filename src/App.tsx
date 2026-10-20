@@ -161,14 +161,20 @@ export const App: React.FC = () => {
   }, []);
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // HTML5 URL ROUTING ENGINE (/home, /loja, /blog, /santoral, /blog/:slug, etc.)
+  // HTML5 URL ROUTING ENGINE — URLs canônicas sem trailing slash e sem /home
+  // Homepage usa '/' como URL canônica. Rotas: /blog/:slug, /santoral/:id, etc.
   // ─────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     const handlePopState = () => {
-      const pathname = window.location.pathname.replace(/^\/+|\/+$/g, '');
-      const parts = pathname.split('/');
-      const rootPath = parts[0] || 'home';
+      // Remove trailing slash e normaliza a pathname
+      const rawPath = window.location.pathname;
+      // Se há trailing slash em rota não-raiz, corrige sem redirecionar
+      const pathname = rawPath.length > 1 ? rawPath.replace(/\/+$/, '') : rawPath;
+      const parts = pathname.replace(/^\//, '').split('/');
+      // Rota raiz '/' e '/home' (legado) mapeiam para view 'home'
+      const rootPath = parts[0] === '' || parts[0] === 'home' ? 'home' : parts[0];
 
+      // Artigo individual: /blog/:slug
       if (rootPath === 'blog' && parts[1]) {
         const slug = parts[1];
         const match = articles.find(a => a.slug === slug || a.id === slug);
@@ -176,19 +182,32 @@ export const App: React.FC = () => {
           setSelectedEssay(match);
           setSelectedSaint(null);
           setActiveView('blog');
+          // Normaliza URL: remove trailing slash se houver
+          if (rawPath !== `/blog/${slug}`) {
+            window.history.replaceState(null, '', `/blog/${slug}`);
+          }
           return;
         }
       }
 
+      // Santo individual: /santoral/:id
       if (rootPath === 'santoral' && parts[1]) {
         const saintId = parts[1];
-        const match = saints.find(s => s.id === saintId);
+        const match = saints.find(s => s.id === saintId || s.slug === saintId);
         if (match) {
           setSelectedSaint(match);
           setSelectedEssay(null);
           setActiveView('santoral');
+          if (rawPath !== `/santoral/${saintId}`) {
+            window.history.replaceState(null, '', `/santoral/${saintId}`);
+          }
           return;
         }
+      }
+
+      // Redireciona '/home' legado para '/' sem criar loop
+      if (parts[0] === 'home' && parts.length === 1) {
+        window.history.replaceState(null, '', '/');
       }
 
       const validViews: ActiveView[] = [
@@ -202,15 +221,14 @@ export const App: React.FC = () => {
         setSelectedEssay(null);
         setSelectedSaint(null);
       } else {
+        // URL desconhecida: vai para home sem alterar URL (é rewrite do Vercel)
         setActiveView('home');
         setSelectedEssay(null);
         setSelectedSaint(null);
       }
     };
 
-    // Run on initial page load
     handlePopState();
-
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, [articles, saints]);
@@ -219,7 +237,8 @@ export const App: React.FC = () => {
     setSelectedEssay(null);
     setSelectedSaint(null);
     setActiveView(view);
-    const targetUrl = view === 'home' ? '/home' : `/${view}`;
+    // Homepage usa '/' como URL canônica — NUNCA '/home'
+    const targetUrl = view === 'home' ? '/' : `/${view}`;
     if (window.location.pathname !== targetUrl) {
       window.history.pushState(null, '', targetUrl);
     }
@@ -229,7 +248,8 @@ export const App: React.FC = () => {
   const handleSelectEssay = (essay: Essay) => {
     setSelectedSaint(null);
     setSelectedEssay(essay);
-    const targetUrl = `/blog/${essay.slug || essay.id}`;
+    const slug = essay.slug || essay.id;
+    const targetUrl = `/blog/${slug}`;
     window.history.pushState(null, '', targetUrl);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -237,7 +257,9 @@ export const App: React.FC = () => {
   const handleSelectSaint = (saint: Saint) => {
     setSelectedEssay(null);
     setSelectedSaint(saint);
-    const targetUrl = `/santoral/${saint.id}`;
+    // Usa slug preferenciamente, fallback para id
+    const identifier = saint.slug || saint.id;
+    const targetUrl = `/santoral/${identifier}`;
     window.history.pushState(null, '', targetUrl);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -245,7 +267,8 @@ export const App: React.FC = () => {
   const handleBackFromDetail = () => {
     setSelectedEssay(null);
     setSelectedSaint(null);
-    const targetUrl = activeView === 'home' ? '/home' : `/${activeView}`;
+    // Homepage retorna para '/', não '/home'
+    const targetUrl = activeView === 'home' ? '/' : `/${activeView}`;
     window.history.pushState(null, '', targetUrl);
   };
 
