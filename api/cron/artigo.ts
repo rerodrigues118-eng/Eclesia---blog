@@ -32,6 +32,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       success: true,
       timestamp: new Date().toISOString(),
       slot,
+      trendUsed: result.trendUsed || null,
+      cover_image: result.article?.cover_image || null,
       article: result.article
     });
   } catch (error: any) {

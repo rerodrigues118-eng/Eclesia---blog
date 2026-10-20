@@ -5,6 +5,8 @@
 // ============================================================================
 
 import { createClient } from '@supabase/supabase-js';
+import { obterPautaDoSlot, CatholicTrend } from './fetchCatholicTrends';
+import { obterImagemDestacada } from './imageService';
 
 // Utilitário de ambiente cross-platform (Vercel Serverless, Node e Vite)
 const getEnv = (key: string): string => {
@@ -273,6 +275,23 @@ export async function gerarArtigoEmAlta(slot: number = 1): Promise<any> {
 
   const config = configuracoesSlot[slot] || configuracoesSlot[1];
 
+  // 1. Monitora fontes católicas oficiais (Vatican News, ACI Digital, CNBB, Canção Nova)
+  let trend: CatholicTrend | null = null;
+  try {
+    trend = await obterPautaDoSlot(slot);
+    console.log(`[contentAutomation] Pauta católica selecionada para Slot ${slot} (${config.categoria}):`, trend?.title, `[${trend?.source}]`);
+  } catch (trendErr) {
+    console.warn('[contentAutomation] Falha ao coletar trend católica externa, usando pauta curada:', trendErr);
+  }
+
+  const pautaNoticiaContexto = trend ? `
+PAUTA EM ALTA MONITORADA DE FONTE CATÓLICA OFICIAL:
+- Fonte: ${trend.source}
+- Título da Matéria: "${trend.title}"
+- Resumo/Contexto Factual: "${trend.description}"
+${trend.link ? `- Link Original da Notícia: ${trend.link}` : ''}
+- DIRETRIZ EDITORIAL: Desenvolva um artigo editorial profundo e original do "Portal Eclesia" inspirado nesta notícia/acontecimento. Aprofunde teologicamente a questão à luz da Doutrina da Igreja Católica, do Catecismo (CIC), dos Santos Padres e das Sagradas Escrituras. NÃO copie a notícia: ofereça a interpretação doutrinária, pastoral e espiritual que os fiéis precisam.` : '';
+
   const promptSistema = `Você é um redator sênior, teólogo e comunicador católico apaixonado por Cristo e pela Santa Igreja.
 Seu estilo é claro, profundo, ortodoxo com o Magistério e contagiante como São João Paulo II falando à juventude.
 PROIBIDO clichês de IA ("No cenário contemporâneo", "Nos dias de hoje", "Em suma", "Vale ressaltar").
@@ -284,6 +303,7 @@ Escreva um artigo católico completo, profundo e inédito para publicação hoje
 - Eixo Temático: ${config.tema}
 - Foco Editorial: ${config.foco}
 - Categoria do Portal: ${config.categoria}
+${pautaNoticiaContexto}
 
 Critérios Estritos de SEO do Portal Eclesia:
 1. "titulo": Título magnético e direto com EXATAMENTE entre 38 e 62 caracteres.
@@ -300,7 +320,11 @@ Retorne em formato JSON.`;
   const rawJson = await chamarIA(promptSistema, promptUsuario);
   const parsed = limparJson(rawJson);
 
-  const arteSacra = selecionarArteSacra(parsed.titulo || config.tema, config.categoria);
+  // 2. Geração e Associação de Imagem Destacada (Estratégia Dupla: IA + Acervo Sacro Curado)
+  const temaImagem = parsed.titulo || trend?.title || config.tema;
+  const imagemDestacada = await obterImagemDestacada(temaImagem, config.categoria);
+  const arteSacra = selecionarArteSacra(temaImagem, config.categoria);
+
   let conteudoFinal = formatarMarkdown(parsed.conteudo || '');
   conteudoFinal = inserirSegundaImagem(conteudoFinal, arteSacra.interna.url, arteSacra.interna.legenda);
 
@@ -314,13 +338,13 @@ Retorne em formato JSON.`;
     slug: cleanSlug,
     excerpt: parsed.resumo || parsed.metaDescription,
     content: conteudoFinal,
-    cover_image: arteSacra.capa.url,
+    cover_image: imagemDestacada.url || arteSacra.capa.url,
     category: config.categoria,
     type: slot === 4 ? 'noticia' : 'artigo',
     author_name: 'Redação Eclesia',
     read_time: parsed.tempoLeitura || '5 min de leitura',
     status: 'publicado',
-    source: 'n8n_ia',
+    source: 'n8n',
     featured: slot === 1 || slot === 4,
     trending: true,
     meta_title: parsed.metaTitle || parsed.titulo,
@@ -339,7 +363,7 @@ Retorne em formato JSON.`;
     throw new Error(`Erro ao persistir artigo no Supabase: ${error.message}`);
   }
 
-  return { success: true, slot, article: data };
+  return { success: true, slot, article: data, trendUsed: trend?.title };
 }
 
 // ============================================================================
@@ -418,6 +442,7 @@ Retorne estritamente um JSON com a seguinte estrutura:
   }
 
   // 2. Cria também o Artigo no Blog para que os leitores encontrem pelo feed e Google
+  const imagemLiturgia = await obterImagemDestacada('Liturgia da Palavra Evangelho Santa Missa', 'Liturgia');
   const arteSacra = selecionarArteSacra('liturgia evangelho da santa missa', 'Liturgia');
   const evangelhoTexto = Array.isArray(parsed.gospel?.text) ? parsed.gospel.text.join('\n\n') : (parsed.gospel?.text || '');
   const primeiraLeituraTexto = Array.isArray(parsed.first_reading?.text) ? parsed.first_reading.text.join('\n\n') : (parsed.first_reading?.text || '');
@@ -466,13 +491,13 @@ Senhor Deus e Pai de infinita misericórdia, que pela Tua Palavra proclamada na 
     slug: slugLiturgia,
     excerpt: `Confira as leituras da Santa Missa de hoje (${dataExtenso}), o Evangelho proclamado e uma homilia para iluminar o seu dia com a Palavra de Deus.`,
     content: artigoConteudo,
-    cover_image: arteSacra.capa.url,
+    cover_image: imagemLiturgia.url || arteSacra.capa.url,
     category: 'Liturgia Diária',
     type: 'artigo',
     author_name: 'Redação Eclesia',
     read_time: '6 min de leitura',
     status: 'publicado',
-    source: 'n8n_ia',
+    source: 'n8n',
     featured: true,
     trending: false,
     meta_title: `Liturgia Diária: Evangelho de Hoje (${dataExtenso})`,
@@ -521,6 +546,7 @@ Retorne estritamente um JSON com:
   const rawJson = await chamarIA(promptSistema, promptUsuario);
   const parsed = limparJson(rawJson);
 
+  const imagemSanto = await obterImagemDestacada(parsed.nome || 'Santo Católico', 'Santo');
   const arteSacra = selecionarArteSacra(parsed.nome || 'Santo Católico', 'Santo');
   const slugSanto = (parsed.nome || 'santo-do-dia')
     .toLowerCase()
@@ -530,7 +556,7 @@ Retorne estritamente um JSON com:
     .replace(/[^a-z0-9-]/g, '')
     .replace(/-+/g, '-');
 
-  // 1. Grava na tabela saints (para SantoralView)
+  // 1. Grava na tabela saints (para SantoralView) com image_url obrigatório
   const registroSanto = {
     name: parsed.nome,
     slug: `${slugSanto}-${diaNum}-${mesNum}`,
@@ -541,7 +567,7 @@ Retorne estritamente um JSON com:
     full_bio: parsed.biografia_completa,
     patronage: parsed.patronato,
     category: parsed.categoria || 'Geral',
-    image_url: arteSacra.capa.url,
+    image_url: imagemSanto.url || arteSacra.capa.url,
     prayer: parsed.oracao,
     quotes: parsed.frases || [],
     featured: true
@@ -557,7 +583,7 @@ Retorne estritamente um JSON com:
     console.warn('[saints upsert warning]:', santoError.message);
   }
 
-  // 2. Publica o Artigo no Blog
+  // 2. Publica o Artigo no Blog com cover_image obrigatório
   const artigoConteudo = formatarMarkdown(`
 # ${parsed.nome}: ${parsed.titulo || 'Testemunha da Fé'}
 
@@ -578,13 +604,13 @@ ${parsed.oracao || 'Concedei-nos, Senhor, pela intercessão do Teu santo servo, 
     slug: slugArtigoSanto,
     excerpt: parsed.resumo || `Conheça a história e a oração do Santo comemorado hoje pela Igreja Católica.`,
     content: artigoConteudo,
-    cover_image: arteSacra.capa.url,
+    cover_image: imagemSanto.url || arteSacra.capa.url,
     category: 'Santo do Dia',
     type: 'artigo',
     author_name: 'Redação Eclesia',
     read_time: '5 min de leitura',
     status: 'publicado',
-    source: 'n8n_ia',
+    source: 'n8n',
     featured: false,
     trending: true,
     meta_title: `Santo do Dia: ${parsed.nome} — Vida e Oração`,

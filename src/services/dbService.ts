@@ -112,6 +112,7 @@ export async function saveArticleToDb(article: Essay): Promise<{ success: boolea
     meta_description: article.metaDescription || article.excerpt,
     keywords: Array.isArray(article.keywords) ? article.keywords : [],
     media_map: article.mediaMap || null,
+    source: 'manual',
     status: 'publicado',
     published_at: new Date().toISOString()
   };
