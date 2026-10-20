@@ -68,8 +68,11 @@ export const SaintDetailView: React.FC<SaintDetailViewProps> = ({ saint, onBack,
           {/* Saint Artwork Frame */}
           <div className="md:col-span-4 lg:col-span-4 aspect-[3/4] relative p-2 bg-[#fcf9f8] border-2 border-[#785600]/30 rounded-lg shadow-sm">
             <img
-              src={saint.imageUrl}
+              src={saint.imageUrl ? `${saint.imageUrl}${saint.imageUrl.includes('?') ? '&' : '?'}v=${encodeURIComponent(saint.id)}` : 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1200'}
               alt={saint.name}
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1200';
+              }}
               className="w-full h-full object-cover rounded-md"
               loading="lazy"
               decoding="async"

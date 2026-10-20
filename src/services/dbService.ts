@@ -608,62 +608,99 @@ export async function fetchSaintOfToday(): Promise<Saint> {
 }
 
 export async function saveSaintToDb(saint: Saint): Promise<{ success: boolean; saint: Saint }> {
-  if (isSupabaseConfigured) {
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(saint.id);
-    const payload: any = {
-      name: saint.name,
-      slug: saint.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
-      title: saint.title || '',
-      feast_month: saint.month || 1,
-      feast_day: saint.day || 1,
-      feast_date: saint.feastDate || `${saint.day} de ${getMonthName(saint.month)}`,
-      image_url: saint.imageUrl || null,
-      patronage: saint.patronage || '',
-      summary: saint.summary || '',
-      short_bio: saint.summary || '',
-      full_bio: saint.fullBio || '',
-      prayer: saint.prayer || '',
-      quotes: saint.quotes || [],
-      featured: !!saint.featured
-    };
+  if (!isSupabaseConfigured) {
+    throw new Error('Supabase não está configurado.');
+  }
 
-    let res;
-    if (isUuid) {
+  // Verifica se o ID é um UUID existente no banco
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(saint.id);
+
+  const cleanSlug = (saint.name || 'santo')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '') || `santo-${Date.now()}`;
+
+  const payload: any = {
+    name: saint.name.trim(),
+    title: (saint.title || '').trim(),
+    feast_month: Number(saint.month) || 1,
+    feast_day: Number(saint.day) || 1,
+    feast_date: saint.feastDate || `${saint.day} de ${getMonthName(saint.month)}`,
+    image_url: saint.imageUrl || 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1200',
+    patronage: (saint.patronage || '').trim(),
+    summary: (saint.summary || '').trim(),
+    short_bio: (saint.summary || '').trim(),
+    full_bio: (saint.fullBio || '').trim(),
+    prayer: (saint.prayer || '').trim(),
+    quotes: Array.isArray(saint.quotes) ? saint.quotes : [],
+    featured: Boolean(saint.featured),
+    updated_at: new Date().toISOString()
+  };
+
+  let res;
+  if (isUuid) {
+    // 1. Edição explícita via UPDATE filtrando por id
+    console.log(`[dbService] Executando UPDATE no santo ID: ${saint.id}`);
+    res = await supabase
+      .from('saints')
+      .update(payload)
+      .eq('id', saint.id)
+      .select();
+
+    // Se o update não encontrou linhas (ID não existia), faz insert
+    if (!res.error && (!res.data || res.data.length === 0)) {
       payload.id = saint.id;
-      res = await supabase.from('saints').upsert(payload, { onConflict: 'id' }).select();
-    } else {
-      res = await supabase.from('saints').upsert(payload, { onConflict: 'slug' }).select();
+      payload.slug = cleanSlug;
+      res = await supabase
+        .from('saints')
+        .insert(payload)
+        .select();
     }
+  } else {
+    // 2. Novo cadastro: gera UUID v4 e faz INSERT explícito
+    const newId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : undefined;
+    if (newId) payload.id = newId;
+    payload.slug = `${cleanSlug}-${saint.day}-${saint.month}`;
 
-    const { data, error } = res;
-
-    if (error) {
-      console.error('[dbService] Erro ao salvar santo no Supabase:', error);
-      throw new Error(`[Supabase ${error.code || 'ERR'}]: ${error.message}`);
-    }
-
-    if (data && data[0] && data[0].id) {
-      saint.id = data[0].id;
-    }
+    console.log(`[dbService] Executando INSERT de novo santo: ${payload.name}`);
+    res = await supabase
+      .from('saints')
+      .insert(payload)
+      .select();
   }
 
-  const local = localStorage.getItem(STORAGE_KEY_SAINTS);
-  let current: Saint[] = [];
-  if (local) {
-    try {
-      current = JSON.parse(local);
-    } catch {
-      current = [];
-    }
+  const { data, error } = res;
+
+  if (error) {
+    console.error('[dbService] Erro crítico ao salvar santo no Supabase:', error);
+    throw new Error(`[Supabase ${error.code || 'ERR'}]: ${error.message} ${error.details || ''} ${error.hint || ''}`.trim());
   }
 
-  const exists = current.some(s => s.id === saint.id);
-  const updatedList = exists
-    ? current.map(s => s.id === saint.id ? saint : s)
-    : [saint, ...current];
-  localStorage.setItem(STORAGE_KEY_SAINTS, JSON.stringify(updatedList));
+  const savedRecord = data && data[0] ? data[0] : null;
+  const returnedSaint: Saint = {
+    ...saint,
+    id: savedRecord?.id || saint.id,
+    imageUrl: savedRecord?.image_url || payload.image_url
+  };
 
-  return { success: true, saint };
+  // Atualiza cache local sincronizado
+  try {
+    const local = localStorage.getItem(STORAGE_KEY_SAINTS);
+    let current: Saint[] = local ? JSON.parse(local) : [];
+    const exists = current.some(s => s.id === returnedSaint.id);
+    const updated = exists
+      ? current.map(s => s.id === returnedSaint.id ? returnedSaint : s)
+      : [returnedSaint, ...current];
+    localStorage.setItem(STORAGE_KEY_SAINTS, JSON.stringify(updated));
+  } catch (e) {
+    console.warn('[dbService] Falha ao atualizar cache local:', e);
+  }
+
+  return { success: true, saint: returnedSaint };
 }
 
 export async function deleteSaintFromDb(id: string): Promise<boolean> {

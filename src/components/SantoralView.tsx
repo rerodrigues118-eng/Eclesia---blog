@@ -181,17 +181,25 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
     return gridSaints.slice(start, start + itemsPerPage);
   }, [gridSaints, currentPage]);
 
-  // Sanitizador de imagens com fallback visual sagrado católico
-  const getSanitizedImageUrl = (url?: string, name?: string): string => {
+  // Sanitizador de imagens com suporte a Supabase Storage, cache-busting e fallback visual sagrado
+  const getSanitizedImageUrl = (url?: string, saintId?: string): string => {
+    if (!url) return BANCO_SACRO_FALLBACK[0].url;
+
+    // Se for data URL de imagem importada localmente, aceita diretamente
+    if (url.startsWith('data:image/')) {
+      return url;
+    }
+
     if (
-      url &&
       url.startsWith('http') &&
-      !url.startsWith('data:') &&
       !url.includes('temple-bali') &&
       !url.includes('vr-headset')
     ) {
-      return url;
+      // Adiciona query param de cache-busting para forçar navegador e CDN a baixar a foto recém-editada
+      const sep = url.includes('?') ? '&' : '?';
+      return `${url}${sep}v=${encodeURIComponent(saintId || 'eclesia')}`;
     }
+
     // Fallback sagrado
     return BANCO_SACRO_FALLBACK[0].url;
   };
@@ -291,7 +299,7 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
             <div className="w-full md:w-1/2 p-3 relative h-72 md:h-96 bg-amber-50/50">
               <div className="absolute inset-3 border border-[#B8860B]/40 pointer-events-none z-10 rounded"></div>
               <img
-                src={getSanitizedImageUrl(featuredSaint.imageUrl, featuredSaint.name)}
+                src={getSanitizedImageUrl(featuredSaint.imageUrl, featuredSaint.id)}
                 alt={featuredSaint.name}
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = BANCO_SACRO_FALLBACK[0].url;
@@ -374,7 +382,7 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
                   <div className="w-full h-52 p-2 relative bg-amber-50/30">
                     <div className="absolute inset-2 border border-[#B8860B]/30 pointer-events-none z-10 rounded"></div>
                     <img
-                      src={getSanitizedImageUrl(saint.imageUrl, saint.name)}
+                      src={getSanitizedImageUrl(saint.imageUrl, saint.id)}
                       alt={saint.name}
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = BANCO_SACRO_FALLBACK[0].url;

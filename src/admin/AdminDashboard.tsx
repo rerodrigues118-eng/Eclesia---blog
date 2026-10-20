@@ -264,11 +264,57 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     return acc;
   }, {} as Record<string, string>);
 
-  // Robust Local Machine Image Upload handler (Automatically converts PNG/JPG/WebP into lightweight WebP)
+  // Helper para upload de imagens diretamente no Supabase Storage
+  const handleUploadImageToStorage = async (
+    file: File,
+    bucket: 'saints' | 'images' | 'post-images' = 'saints'
+  ): Promise<string> => {
+    const fileExt = file.name.split('.').pop() || 'webp';
+    const cleanFileName = file.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 30);
+    const fileName = `${Date.now()}_${cleanFileName}.${fileExt}`;
+    const filePath = fileName;
+
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadError) {
+        console.warn(`[Supabase Storage upload warning no bucket ${bucket}]:`, uploadError.message);
+        // Tenta bucket alternativo se o primeiro falhar
+        if (bucket === 'saints') {
+          const { error: fallbackError } = await supabase.storage
+            .from('post-images')
+            .upload(filePath, file, { cacheControl: '3600', upsert: true });
+
+          if (!fallbackError) {
+            const { data: pubData } = supabase.storage.from('post-images').getPublicUrl(filePath);
+            return pubData.publicUrl;
+          }
+        }
+        // Fallback local se o storage falhar
+        return await convertFileToWebP(file, 1280, 1280, 0.85);
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(filePath);
+
+      return publicUrlData.publicUrl;
+    } catch (storageErr) {
+      console.warn('[Storage upload exception]:', storageErr);
+      return await convertFileToWebP(file, 1280, 1280, 0.85);
+    }
+  };
+
+  // Robust Local Machine Image Upload handler (Faz upload para o Supabase Storage com fallback WebP)
   const handleLocalImageFile = async (
     e: React.ChangeEvent<HTMLInputElement>,
     setter: (url: string) => void,
-    onSuccessText = 'Foto convertida para WebP e importada com sucesso!'
+    onSuccessText = 'Foto importada com sucesso!'
   ) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -278,12 +324,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       }
 
       try {
-        const webpDataUrl = await convertFileToWebP(file, 1280, 1280, 0.85);
-        setter(webpDataUrl);
+        notify('Enviando imagem para o armazenamento em nuvem...');
+        const publicUrl = await handleUploadImageToStorage(file, 'saints');
+        setter(publicUrl);
         notify(onSuccessText);
-      } catch (err) {
-        console.error('Erro na conversão WebP:', err);
-        notify('Erro ao converter a imagem para WebP. Tente novamente.', 'error');
+      } catch (err: any) {
+        console.error('Erro na importação da foto:', err);
+        try {
+          const webpDataUrl = await convertFileToWebP(file, 1280, 1280, 0.85);
+          setter(webpDataUrl);
+          notify('Foto importada localmente!');
+        } catch {
+          notify(`Erro ao importar foto: ${err?.message || 'Falha no upload'}`, 'error');
+        }
       }
       e.target.value = '';
     }
@@ -1088,6 +1141,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
     const calculatedFeast = saintFeastDate.trim() || `${saintDay} de ${monthNames[(Number(saintMonth) || 1) - 1]}`;
 
+    // Força URL válida ou acervo sacro
+    const finalImageUrl = saintImageUrl.trim() || 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1200';
+
     const payload: Saint = {
       id: editingSaint ? editingSaint.id : `saint-${saintName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}`,
       name: saintName.trim(),
@@ -1095,7 +1151,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       feastDate: calculatedFeast,
       month: Number(saintMonth) || 1,
       day: Number(saintDay) || 1,
-      imageUrl: saintImageUrl || 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=800',
+      imageUrl: finalImageUrl,
       patronage: saintPatronage.trim(),
       summary: saintSummary.trim(),
       fullBio: saintFullBio.trim(),
@@ -1106,12 +1162,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setIsFormSaving(true);
     try {
       await onSaveSaint(payload);
-      notify(`Santo "${payload.name}" salvo no Santoral!`);
+      notify(`Santo "${payload.name}" salvo com sucesso no banco de dados!`);
       setIsSaintFormOpen(false);
       setEditingSaint(null);
     } catch (err: any) {
-      console.error('Erro ao salvar santo:', err);
-      notify(`Erro ao salvar santo: ${err?.message || 'Erro de banco de dados'}`, 'error');
+      console.error('[AdminDashboard] Erro crítico ao salvar santo:', err);
+      const errMsg = err?.message || 'Falha na comunicação com o Supabase';
+      notify(`ERRO AO SALVAR: ${errMsg}`, 'error');
+      alert(`⚠️ Erro ao salvar Santo no Supabase:\n\n${errMsg}\n\nAs alterações NÃO foram gravadas no banco de dados. Verifique suas permissões ou conexão.`);
     } finally {
       setIsFormSaving(false);
     }
