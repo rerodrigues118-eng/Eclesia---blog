@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { ActiveView, Saint, Essay, Product, PrayerItem } from '../types';
 import { TODAY_LITURGY_MOCK } from '../data/liturgiaData';
+import { obterSantoDoCalendario } from '../data/romanMartyrology';
 
 interface HomeViewProps {
   setActiveView: (view: ActiveView) => void;
@@ -58,8 +59,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const currentDay = today.getDate();
   const saintOfDay =
     saints.find(s => s.month === currentMonth && s.day === currentDay) ||
-    saints.find(s => s.featured) ||
-    saints[0];
+    obterSantoDoCalendario(currentMonth, currentDay);
 
   const saintSlide = saintOfDay ? [{
     id: `saint-${saintOfDay.id}`,

@@ -1,6 +1,7 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase/client';
 import { Essay, Product, PrayerItem, Saint } from '../types';
 import { notifyNewContentPublished } from './seoIndexing';
+import { obterSantoDoCalendario } from '../data/romanMartyrology';
 
 const STORAGE_KEY_ARTICLES = 'eclesia_db_articles';
 const STORAGE_KEY_PRODUCTS = 'eclesia_db_products';
@@ -486,7 +487,9 @@ export async function fetchSaintsFromDb(): Promise<Saint[]> {
           feastDate: item.feast_date || `${item.feast_day} de ${getMonthName(item.feast_month)}`,
           month: item.feast_month || 1,
           day: item.feast_day || 1,
-          imageUrl: item.image_url || 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=800',
+          imageUrl: (item.image_url && item.image_url.startsWith('http') && !item.image_url.startsWith('data:'))
+            ? item.image_url
+            : 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1200',
           patronage: item.patronage || 'Igreja Católica',
           summary: item.summary || item.short_bio || '',
           fullBio: item.full_bio || '',
@@ -512,6 +515,96 @@ export async function fetchSaintsFromDb(): Promise<Saint[]> {
     }
   }
   return [];
+}
+
+/**
+ * Busca de alta precisão pelo Santo do Dia atual (ou do fuso brasileiro)
+ * Ordem de Prioridade:
+ * 1. Supabase public.saints por feast_month e feast_day
+ * 2. Supabase public.articles categoria 'Santo do Dia' de hoje
+ * 3. Fallback canônico infalível: Martirológio Romano oficial
+ */
+export async function fetchSaintOfToday(): Promise<Saint> {
+  const now = new Date();
+  let day = now.getDate();
+  let month = now.getMonth() + 1;
+
+  try {
+    const brDateStr = now.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+    const [diaStr, mesStr] = brDateStr.split('/');
+    if (diaStr && mesStr) {
+      day = parseInt(diaStr, 10);
+      month = parseInt(mesStr, 10);
+    }
+  } catch (e) {
+    console.warn('[fetchSaintOfToday] Fallback de timezone:', e);
+  }
+
+  if (isSupabaseConfigured) {
+    try {
+      // 1. Busca na tabela de santos por dia e mês de hoje
+      const { data, error } = await supabase
+        .from('saints')
+        .select('*')
+        .eq('feast_month', month)
+        .eq('feast_day', day)
+        .limit(1);
+
+      if (!error && data && data.length > 0) {
+        const item = data[0];
+        const validImage = (item.image_url && item.image_url.startsWith('http') && !item.image_url.startsWith('data:'))
+          ? item.image_url
+          : 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1200';
+
+        return {
+          id: item.id,
+          name: item.name || '',
+          title: item.title || '',
+          feastDate: item.feast_date || `${day} de ${getMonthName(month)}`,
+          month: item.feast_month || month,
+          day: item.feast_day || day,
+          imageUrl: validImage,
+          patronage: item.patronage || 'Igreja Católica',
+          summary: item.summary || item.short_bio || '',
+          fullBio: item.full_bio || '',
+          prayer: item.prayer || '',
+          quotes: item.quotes || [],
+          featured: true
+        };
+      }
+
+      // 2. Busca na tabela de artigos por Santo do Dia publicado
+      const { data: artData } = await supabase
+        .from('articles')
+        .select('*')
+        .or(`category.eq.Santo do Dia,slug.ilike.%santo-do-dia%`)
+        .order('published_at', { ascending: false })
+        .limit(1);
+
+      if (artData && artData.length > 0) {
+        const art = artData[0];
+        return {
+          id: art.id,
+          name: art.title.replace(/^Santo do Dia:\s*/i, ''),
+          title: 'Memória Sagrada de Hoje',
+          feastDate: `${day} de ${getMonthName(month)}`,
+          month,
+          day,
+          imageUrl: art.cover_image || 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1200',
+          patronage: 'Igreja Católica',
+          summary: art.excerpt || '',
+          fullBio: art.content || '',
+          prayer: 'Concedei-nos, Senhor, a graça de imitar a santidade e a dedicação dos vossos santos. Amém.',
+          featured: true
+        };
+      }
+    } catch (err) {
+      console.warn('[dbService] Erro ao consultar Santo do Dia no Supabase:', err);
+    }
+  }
+
+  // 3. Fallback canônico do Martirológio Romano
+  return obterSantoDoCalendario(month, day);
 }
 
 export async function saveSaintToDb(saint: Saint): Promise<{ success: boolean; saint: Saint }> {
