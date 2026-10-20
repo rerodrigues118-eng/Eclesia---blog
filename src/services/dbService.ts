@@ -335,8 +335,87 @@ export async function deleteProductFromDb(id: string): Promise<boolean> {
 }
 
 // =========================================================================
+// 2b. DAILY LITURGY DATABASE SERVICE (100% DINÂMICO SUPABASE)
+// =========================================================================
+
+/**
+ * Busca a liturgia de um dia específico pelo formato exato YYYY-MM-DD.
+ * Usada pelo componente LiturgiaView e pela Edge Function de automação.
+ */
+export async function fetchLiturgyByDate(dateISO: string): Promise<any | null> {
+  if (!isSupabaseConfigured) return null;
+
+  // Garante formato YYYY-MM-DD
+  const safeDate = dateISO?.match(/^\d{4}-\d{2}-\d{2}$/) ? dateISO : new Date().toISOString().split('T')[0];
+
+  try {
+    const { data, error } = await supabase
+      .from('daily_liturgy')
+      .select('*')
+      .eq('date', safeDate)
+      .maybeSingle();
+
+    if (error) {
+      console.error(`[dbService] Erro ao buscar liturgia de ${safeDate}:`, error.message);
+      return null;
+    }
+    return data || null;
+  } catch (err) {
+    console.error('[dbService] Exceção em fetchLiturgyByDate:', err);
+    return null;
+  }
+}
+
+/**
+ * Salva ou atualiza um registro de liturgia diária no Supabase.
+ * Usa upsert com conflito na coluna `date` (chave natural).
+ * Formato de data obrigatório: YYYY-MM-DD
+ */
+export async function saveLiturgyToDb(liturgyPayload: {
+  date: string;             // YYYY-MM-DD
+  liturgical_season: string;
+  liturgical_color: string;
+  color_hex?: string;
+  full_date_str?: string;
+  first_reading?: object;
+  psalm?: object;
+  second_reading?: object | null;
+  gospel?: object;
+  inserted_manually?: boolean;
+}): Promise<{ success: boolean; data: any }> {
+  if (!isSupabaseConfigured) {
+    throw new Error('[dbService] Supabase não configurado');
+  }
+
+  // Valida formato YYYY-MM-DD
+  if (!liturgyPayload.date?.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    throw new Error(`[dbService] Data inválida: "${liturgyPayload.date}". Use o formato YYYY-MM-DD.`);
+  }
+
+  const payload = {
+    ...liturgyPayload,
+    inserted_manually: liturgyPayload.inserted_manually ?? false,
+  };
+
+  const { data, error } = await supabase
+    .from('daily_liturgy')
+    .upsert(payload, { onConflict: 'date' })
+    .select()
+    .maybeSingle();
+
+  if (error) {
+    console.error('[dbService] Erro ao salvar liturgia no Supabase:', error);
+    throw new Error(`[Supabase ${error.code || 'ERR'}]: ${error.message}`);
+  }
+
+  console.log(`[dbService] ✅ Liturgia de ${liturgyPayload.date} salva com sucesso.`);
+  return { success: true, data };
+}
+
+// =========================================================================
 // 3. PRAYERS DATABASE SERVICE (100% DINÂMICO SUPABASE)
 // =========================================================================
+
 
 export async function fetchPrayersFromDb(): Promise<PrayerItem[]> {
   try {
