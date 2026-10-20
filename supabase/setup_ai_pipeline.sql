@@ -40,11 +40,11 @@ BEGIN
 END $$;
 
 -- =====================================================================
--- DISPARO 1: LITURGIA DIÁRIA DA PALAVRA ÀS 04:00 BRT (07:00 UTC)
+-- DISPARO 1: LITURGIA DIÁRIA DA PALAVRA ÀS 03:00 BRT (06:00 UTC)
 -- =====================================================================
 SELECT cron.schedule(
-  'eclesia-1-liturgia-4am',
-  '0 7 * * *',
+  'eclesia-1-liturgia-3am',
+  '0 6 * * *',
   $$
   SELECT net.http_post(
     url := 'https://sdyytxnmdquriqsxuvhd.supabase.co/functions/v1/gerar-artigo-diario',

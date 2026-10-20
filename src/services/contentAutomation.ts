@@ -367,12 +367,42 @@ Retorne em formato JSON.`;
 }
 
 // ============================================================================
-// 2. ROTINA DA LITURGIA DIÁRIA DA PALAVRA (04:00 BRT)
+// 2. ROTINA DA LITURGIA DIÁRIA DA PALAVRA (03:00 BRT = 06:00 UTC)
 // ============================================================================
-export async function gerarLiturgiaDiaria(): Promise<any> {
-  const hoje = new Date();
-  const dataIso = hoje.toISOString().split('T')[0];
-  const dataExtenso = hoje.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+export async function gerarLiturgiaDiaria(forcarDataIso?: string, forceRegen = false): Promise<any> {
+  // Usa fuso de Brasília para determinar o dia correto (03:00 BRT = 06:00 UTC)
+  const agora = new Date();
+  let dataIso: string;
+  if (forcarDataIso && /^\d{4}-\d{2}-\d{2}$/.test(forcarDataIso)) {
+    dataIso = forcarDataIso;
+  } else {
+    try {
+      const brDateStr = agora.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+      const [d, m, y] = brDateStr.split('/');
+      dataIso = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+    } catch {
+      dataIso = agora.toISOString().split('T')[0];
+    }
+  }
+
+  const dataExtenso = new Date(dataIso + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+  const hoje = new Date(dataIso + 'T12:00:00');
+
+  // Verifica se já existe registro para este dia — evita geração dupla (a não ser que forceRegen seja true)
+  if (!forceRegen) {
+    const { data: jaExiste } = await adminSupabase
+      .from('daily_liturgy')
+      .select('id, date')
+      .eq('date', dataIso)
+      .maybeSingle();
+
+    if (jaExiste) {
+      console.log(`[gerarLiturgiaDiaria] Liturgia de ${dataIso} já existe (id: ${jaExiste.id}). Pulando geração.`);
+      return { success: true, skipped: true, date: dataIso, liturgy: jaExiste, article: null };
+    }
+  }
+
+  console.log(`[gerarLiturgiaDiaria] Gerando liturgia para ${dataIso} (${dataExtenso}) via IA...`);
 
   const promptSistema = `Você é um biblista e liturgista católico da Comissão Episcopal Pastoral para a Liturgia da Igreja Católica.
 Você conhece o Lecionário Dominical e Semanal oficial da Igreja Católica em língua portuguesa.
@@ -418,17 +448,18 @@ Retorne estritamente um JSON com a seguinte estrutura:
   const parsed = limparJson(rawJson);
 
   // 1. Grava na tabela daily_liturgy (usada pelo componente LiturgiaView)
+  //    Formato de data obrigatório: YYYY-MM-DD
   const registroLiturgia = {
-    date: dataIso,
+    date: dataIso,                                                // YYYY-MM-DD (fuso BRT)
     liturgical_season: parsed.liturgical_season || 'Tempo Comum',
     liturgical_color: parsed.liturgical_color || 'Verde',
     color_hex: parsed.color_hex || '#1c5d3a',
     full_date_str: parsed.full_date_str || `Liturgia Diária — ${dataExtenso}`,
-    first_reading: parsed.first_reading,
-    psalm: parsed.psalm,
-    second_reading: parsed.second_reading,
-    gospel: parsed.gospel,
-    source: 'liturgia_ia'
+    first_reading: parsed.first_reading || null,
+    psalm: parsed.psalm || null,
+    second_reading: parsed.second_reading || null,
+    gospel: parsed.gospel || null,
+    inserted_manually: false
   };
 
   const { data: liturgiaData, error: liturgiaError } = await adminSupabase
@@ -438,8 +469,11 @@ Retorne estritamente um JSON com a seguinte estrutura:
     .single();
 
   if (liturgiaError) {
-    console.warn('[daily_liturgy upsert warning]:', liturgiaError.message);
+    // Se falhar na persistência, lança para o cron capturar e logar
+    throw new Error(`[daily_liturgy] Falha ao salvar liturgia de ${dataIso}: ${liturgiaError.message}`);
   }
+
+  console.log(`[gerarLiturgiaDiaria] ✅ Liturgia de ${dataIso} salva com sucesso (id: ${liturgiaData?.id}).`);
 
   // 2. Cria também o Artigo no Blog para que os leitores encontrem pelo feed e Google
   const imagemLiturgia = await obterImagemDestacada('Liturgia da Palavra Evangelho Santa Missa', 'Liturgia');

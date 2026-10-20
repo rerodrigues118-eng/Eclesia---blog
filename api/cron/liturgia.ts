@@ -11,8 +11,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    console.log('[Vercel Cron] Iniciando publicação da Liturgia Diária da Palavra...');
-    const result = await gerarLiturgiaDiaria();
+    const targetDate = typeof req.query.date === 'string' ? req.query.date : undefined;
+    const force = req.query.force === 'true' || req.query.force === '1';
+
+    console.log(`[Vercel Cron] Iniciando publicação da Liturgia Diária da Palavra (Data: ${targetDate || 'Hoje BRT'})...`);
+    const result = await gerarLiturgiaDiaria(targetDate, force);
 
     // Notificação imediata ao Google, Bing e Yandex sobre nova liturgia
     console.log('[Vercel Cron] Notificando mecanismos de busca sobre nova Liturgia Diária...');
