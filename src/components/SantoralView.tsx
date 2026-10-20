@@ -210,31 +210,31 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
     featuredSaint.day === currentDay;
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12 overflow-x-hidden">
       {/* Header Section */}
       <section className="flex flex-col items-center text-center max-w-2xl mx-auto gap-4">
         <span className="bg-[#6E1E1E] text-white font-sans text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest shadow-xs">
           Santoral Católico
         </span>
-        <h1 className="font-display text-4xl md:text-5xl font-bold text-[#785600]">
+        <h1 className="font-display text-4xl md:text-5xl font-bold text-[#785600] dark:text-amber-400">
           Os Santos da Igreja
         </h1>
-        <p className="font-sans text-base text-[#4f4535] leading-relaxed">
+        <p className="font-sans text-base text-[#4f4535] dark:text-zinc-300 leading-relaxed">
           Conheça a vida, os ensinamentos e a intercessão daqueles que nos precederam na glória celeste. Um guia litúrgico vivo para a sua devoção diária.
         </p>
       </section>
 
       {/* Filters & Search Bar */}
-      <section className="flex flex-col md:flex-row gap-4 justify-between items-center bg-white p-6 rounded-lg border border-[#d3c4af]/70 shadow-xs">
+      <section className="flex flex-col md:flex-row gap-4 justify-between items-center bg-white dark:bg-zinc-900/90 p-6 rounded-2xl border border-[#d3c4af]/70 dark:border-zinc-800 shadow-xs">
         <div className="flex gap-4 w-full md:w-auto">
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="border-b-2 border-[#d3c4af] border-0 focus:ring-0 focus:border-[#785600] bg-transparent text-[#4f4535] font-sans text-sm w-full md:w-48 py-2 cursor-pointer font-medium"
+            className="border-b-2 border-[#d3c4af] dark:border-zinc-700 border-0 focus:ring-0 focus:border-[#785600] bg-transparent text-[#4f4535] dark:text-zinc-200 font-sans text-sm w-full md:w-48 py-2 cursor-pointer font-medium"
           >
-            <option value="">Todos os Meses</option>
+            <option value="" className="dark:bg-zinc-900">Todos os Meses</option>
             {months.map((m) => (
-              <option key={m.value} value={m.value}>
+              <option key={m.value} value={m.value} className="dark:bg-zinc-900">
                 {m.label}
               </option>
             ))}
@@ -243,11 +243,11 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
           <select
             value={selectedDay}
             onChange={(e) => setSelectedDay(e.target.value)}
-            className="border-b-2 border-[#d3c4af] border-0 focus:ring-0 focus:border-[#785600] bg-transparent text-[#4f4535] font-sans text-sm w-full md:w-32 py-2 cursor-pointer font-medium"
+            className="border-b-2 border-[#d3c4af] dark:border-zinc-700 border-0 focus:ring-0 focus:border-[#785600] bg-transparent text-[#4f4535] dark:text-zinc-200 font-sans text-sm w-full md:w-32 py-2 cursor-pointer font-medium"
           >
-            <option value="">Dia</option>
+            <option value="" className="dark:bg-zinc-900">Dia</option>
             {Array.from({ length: 31 }, (_, i) => (
-              <option key={i + 1} value={i + 1}>
+              <option key={i + 1} value={i + 1} className="dark:bg-zinc-900">
                 {i + 1}
               </option>
             ))}
@@ -259,7 +259,7 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
                 setSelectedMonth('');
                 setSelectedDay('');
               }}
-              className="text-xs text-[#785600] hover:underline self-center font-bold px-2 py-1 bg-amber-50 rounded"
+              className="text-xs text-[#785600] dark:text-amber-400 hover:underline self-center font-bold px-2 py-1 bg-amber-50 dark:bg-zinc-800 rounded"
               title="Voltar para o Santo de Hoje"
             >
               Hoje
@@ -273,7 +273,7 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Buscar por nome, virtude ou padroeiro..."
-            className="w-full border-b-2 border-[#d3c4af] border-0 focus:ring-0 focus:border-[#785600] bg-transparent text-[#1c1b1b] font-sans text-sm pl-8 py-2"
+            className="w-full border-b-2 border-[#d3c4af] dark:border-zinc-700 border-0 focus:ring-0 focus:border-[#785600] bg-transparent text-[#1c1b1b] dark:text-zinc-100 font-sans text-sm pl-8 py-2"
           />
           <Search className="w-4 h-4 absolute left-0 top-1/2 -translate-y-1/2 text-[#817563]" />
           {searchQuery && (
@@ -293,10 +293,10 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
         {featuredSaint && (
           <article
             onClick={() => onSelectSaint(featuredSaint)}
-            className="bg-white rounded-xl overflow-hidden border border-[#d3c4af] shadow-md group cursor-pointer hover:shadow-xl transition-all duration-300 flex flex-col md:flex-row hover:border-[#785600]"
+            className="bg-white dark:bg-zinc-900/90 rounded-2xl overflow-hidden border border-[#d3c4af] dark:border-zinc-800 shadow-md group cursor-pointer hover:shadow-xl transition-all duration-300 flex flex-col md:flex-row hover:border-[#785600] dark:hover:border-amber-500/70"
           >
             {/* Imagem do Santo */}
-            <div className="w-full md:w-1/2 p-3 relative h-72 md:h-96 bg-amber-50/50">
+            <div className="w-full md:w-1/2 p-3 relative h-72 md:h-96 bg-amber-50/50 dark:bg-zinc-950">
               <div className="absolute inset-3 border border-[#B8860B]/40 pointer-events-none z-10 rounded"></div>
               <img
                 src={getSanitizedImageUrl(featuredSaint.imageUrl, featuredSaint.id)}
@@ -304,7 +304,7 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = BANCO_SACRO_FALLBACK[0].url;
                 }}
-                className="w-full h-full object-cover rounded transition-transform duration-700 group-hover:scale-102"
+                className="w-full h-full max-w-full object-cover rounded transition-transform duration-700 group-hover:scale-102"
                 loading="eager"
               />
             </div>
@@ -315,44 +315,44 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
                 <div className="flex justify-between items-start flex-wrap gap-2">
                   <div className="flex items-center gap-2 flex-wrap">
                     {isTodayActive ? (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-400/80 shadow-xs">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-400/80 shadow-xs">
                         <Sparkles className="w-3.5 h-3.5 text-amber-600 animate-pulse" /> Santo de Hoje
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-800 border border-slate-300">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-slate-100 dark:bg-zinc-800 text-slate-800 dark:text-zinc-200 border border-slate-300 dark:border-zinc-700">
                         <Calendar className="w-3.5 h-3.5 text-slate-600" /> Memória Litúrgica
                       </span>
                     )}
 
-                    <span className="font-sans text-xs font-bold text-[#785600] uppercase tracking-wider">
+                    <span className="font-sans text-xs font-bold text-[#785600] dark:text-amber-400 uppercase tracking-wider">
                       {featuredSaint.feastDate || `${featuredSaint.day} de ${MONTH_NAMES[featuredSaint.month]}`}
                     </span>
                   </div>
 
-                  <ArrowRight className="w-5 h-5 text-[#817563] group-hover:text-[#785600] group-hover:translate-x-1 transition-all" />
+                  <ArrowRight className="w-5 h-5 text-[#817563] dark:text-zinc-400 group-hover:text-[#785600] dark:group-hover:text-amber-400 group-hover:translate-x-1 transition-all" />
                 </div>
 
-                <h2 className="font-display text-2xl md:text-4xl font-bold text-[#1c1b1b] leading-tight group-hover:text-[#785600] transition-colors">
+                <h2 className="font-display text-2xl md:text-4xl font-bold text-[#1c1b1b] dark:text-[#F9FAFB] leading-tight group-hover:text-[#785600] dark:group-hover:text-amber-400 transition-colors">
                   {featuredSaint.name}
                 </h2>
 
                 {featuredSaint.title && (
-                  <p className="font-serif italic text-sm text-[#785600] font-medium">
+                  <p className="font-serif italic text-sm text-[#785600] dark:text-amber-300 font-medium">
                     {featuredSaint.title}
                   </p>
                 )}
 
-                <p className="font-sans text-sm md:text-base text-[#4f4535] leading-relaxed line-clamp-4 pt-1">
+                <p className="font-sans text-sm md:text-base text-[#4f4535] dark:text-zinc-300 leading-relaxed line-clamp-4 pt-1">
                   {featuredSaint.summary || (featuredSaint.fullBio ? featuredSaint.fullBio.slice(0, 220) + '...' : '')}
                 </p>
               </div>
 
-              <div className="pt-4 border-t border-[#d3c4af]/40 flex justify-between items-center">
-                <span className="text-xs text-[#817563] font-sans">
-                  Padroeiro: <strong className="text-[#4f4535]">{featuredSaint.patronage || 'Igreja Católica'}</strong>
+              <div className="pt-4 border-t border-[#d3c4af]/40 dark:border-zinc-800 flex justify-between items-center">
+                <span className="text-xs text-[#817563] dark:text-zinc-400 font-sans">
+                  Padroeiro: <strong className="text-[#4f4535] dark:text-zinc-200">{featuredSaint.patronage || 'Igreja Católica'}</strong>
                 </span>
 
-                <span className="font-sans text-xs font-bold text-[#785600] uppercase tracking-widest flex items-center gap-1.5 group-hover:underline">
+                <span className="font-sans text-xs font-bold text-[#785600] dark:text-amber-400 uppercase tracking-widest flex items-center gap-1.5 group-hover:underline">
                   Ver Biografia Completa <ArrowRight className="w-4 h-4" />
                 </span>
               </div>
@@ -363,11 +363,11 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
         {/* Grade de Santos (Grid de 3 Colunas) */}
         {gridSaints.length > 0 && (
           <div className="space-y-6 pt-4">
-            <div className="flex items-center justify-between border-b border-[#d3c4af]/50 pb-2">
-              <h3 className="font-display text-xl font-bold text-[#785600]">
+            <div className="flex items-center justify-between border-b border-[#d3c4af]/50 dark:border-zinc-800 pb-2">
+              <h3 className="font-display text-xl font-bold text-[#785600] dark:text-amber-400">
                 {selectedMonth ? `Santos do Mês de ${MONTH_NAMES[parseInt(selectedMonth, 10)]}` : 'Outros Santos do Calendário'}
               </h3>
-              <span className="text-xs text-[#817563] font-sans font-medium">
+              <span className="text-xs text-[#817563] dark:text-zinc-400 font-sans font-medium">
                 {gridSaints.length} {gridSaints.length === 1 ? 'santo catalogado' : 'santos catalogados'}
               </span>
             </div>
@@ -377,9 +377,9 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
                 <article
                   key={saint.id}
                   onClick={() => onSelectSaint(saint)}
-                  className="bg-white rounded-lg flex flex-col overflow-hidden border border-[#d3c4af]/60 shadow-xs group cursor-pointer hover:shadow-md transition-all hover:border-[#785600]"
+                  className="bg-white dark:bg-zinc-900/90 rounded-2xl flex flex-col overflow-hidden border border-[#d3c4af]/60 dark:border-zinc-800 shadow-xs group cursor-pointer hover:shadow-md transition-all hover:border-[#785600] dark:hover:border-amber-500/70"
                 >
-                  <div className="w-full h-52 p-2 relative bg-amber-50/30">
+                  <div className="w-full h-52 p-2 relative bg-amber-50/30 dark:bg-zinc-950">
                     <div className="absolute inset-2 border border-[#B8860B]/30 pointer-events-none z-10 rounded"></div>
                     <img
                       src={getSanitizedImageUrl(saint.imageUrl, saint.id)}
@@ -387,26 +387,26 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = BANCO_SACRO_FALLBACK[0].url;
                       }}
-                      className="w-full h-full object-cover rounded transition-transform duration-500 group-hover:scale-103"
+                      className="w-full h-full max-w-full object-cover rounded transition-transform duration-500 group-hover:scale-103"
                       loading="lazy"
                       decoding="async"
                     />
                   </div>
                   <div className="p-6 flex flex-col gap-2 flex-1 justify-between">
                     <div>
-                      <span className="font-sans text-xs font-bold text-[#785600] uppercase tracking-wider block mb-1">
+                      <span className="font-sans text-xs font-bold text-[#785600] dark:text-amber-400 uppercase tracking-wider block mb-1">
                         {saint.feastDate || `${saint.day} de ${MONTH_NAMES[saint.month]}`}
                       </span>
-                      <h4 className="font-display text-xl font-bold text-[#1c1b1b] group-hover:text-[#785600] transition-colors leading-snug">
+                      <h4 className="font-display text-xl font-bold text-[#1c1b1b] dark:text-zinc-100 group-hover:text-[#785600] dark:group-hover:text-amber-400 transition-colors leading-snug">
                         {saint.name}
                       </h4>
-                      <p className="font-sans text-sm text-[#4f4535] mt-2 line-clamp-3 leading-relaxed">
+                      <p className="font-sans text-sm text-[#4f4535] dark:text-zinc-300 mt-2 line-clamp-3 leading-relaxed">
                         {saint.summary || (saint.fullBio ? saint.fullBio.slice(0, 140) + '...' : '')}
                       </p>
                     </div>
-                    <div className="pt-3 border-t border-[#d3c4af]/30 flex justify-between items-center text-xs text-[#817563]">
+                    <div className="pt-3 border-t border-[#d3c4af]/30 dark:border-zinc-800 flex justify-between items-center text-xs text-[#817563] dark:text-zinc-400">
                       <span className="truncate max-w-[180px]">{saint.patronage || 'Igreja Católica'}</span>
-                      <span className="font-bold text-[#785600] group-hover:underline flex items-center gap-1">
+                      <span className="font-bold text-[#785600] dark:text-amber-400 group-hover:underline flex items-center gap-1">
                         Ler <ArrowRight className="w-3 h-3" />
                       </span>
                     </div>
@@ -424,10 +424,10 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
               <button
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
-                className={`w-10 h-10 flex items-center justify-center border border-[#d3c4af] rounded transition-colors ${
+                className={`w-10 h-10 flex items-center justify-center border border-[#d3c4af] dark:border-zinc-700 rounded transition-colors ${
                   currentPage === 1
                     ? 'opacity-40 cursor-not-allowed text-slate-400'
-                    : 'text-[#817563] hover:border-[#785600] hover:text-[#785600] cursor-pointer'
+                    : 'text-[#817563] dark:text-zinc-300 hover:border-[#785600] hover:text-[#785600] cursor-pointer'
                 }`}
               >
                 <ChevronLeft className="w-5 h-5" />
@@ -439,8 +439,8 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
                   onClick={() => setCurrentPage(pageNum)}
                   className={`w-10 h-10 flex items-center justify-center rounded font-sans text-sm font-bold cursor-pointer transition-all ${
                     currentPage === pageNum
-                      ? 'bg-[#785600] text-white shadow-xs'
-                      : 'border border-[#d3c4af] text-[#1c1b1b] hover:border-[#785600]'
+                      ? 'bg-[#785600] dark:bg-amber-600 text-white shadow-xs'
+                      : 'border border-[#d3c4af] dark:border-zinc-700 text-[#1c1b1b] dark:text-zinc-200 hover:border-[#785600]'
                   }`}
                 >
                   {pageNum}

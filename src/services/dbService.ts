@@ -245,6 +245,56 @@ export async function fetchProductsFromDb(): Promise<Product[]> {
   return [];
 }
 
+/**
+ * Busca produtos ativos cadastrados na Loja diretamente do Supabase.
+ * Utilizado pela vitrine dinâmica de recomendação (AffiliateProductSection) ao fim de artigos e santos.
+ */
+export async function fetchActiveStoreProducts(limit: number = 4): Promise<Product[]> {
+  try {
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('active', true)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (error) {
+        console.error('[dbService] Erro ao buscar produtos ativos do Supabase:', error);
+      }
+
+      if (!error && data && data.length > 0) {
+        return data.map((item: any) => ({
+          id: item.id,
+          title: item.name || '',
+          subtitle: item.subtitle || '',
+          price: (item.price_cents || 0) / 100,
+          category: item.category || 'livro',
+          imageUrl: (item.images && item.images[0]) || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&q=80&w=600',
+          description: item.description || item.subtitle || '',
+          inStock: (item.stock || 0) > 0,
+          buyUrl: item.buy_url || ''
+        }));
+      }
+    }
+  } catch (err) {
+    console.warn('[dbService] Erro na consulta de produtos ativos:', err);
+  }
+
+  // Fallback offline com produtos do cache local
+  try {
+    const local = localStorage.getItem(STORAGE_KEY_PRODUCTS);
+    if (local) {
+      const parsed: Product[] = JSON.parse(local);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.slice(0, limit);
+      }
+    }
+  } catch {}
+
+  return [];
+}
+
 export async function saveProductToDb(product: Product): Promise<{ success: boolean; product: Product }> {
   if (isSupabaseConfigured) {
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(product.id);

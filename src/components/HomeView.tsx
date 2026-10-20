@@ -277,9 +277,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           {/* Left Column: ⁝ Leitura recomendada */}
           <div className="lg:col-span-7 space-y-6">
-            <div className="flex items-center gap-2 border-b border-[#d3c4af]/50 pb-3">
-              <span className="text-[#e65100] font-bold text-lg">⁝</span>
-              <h2 className="font-display text-2xl font-bold text-[#1c1b1b]">
+            <div className="flex items-center gap-2 border-b border-[#d3c4af]/50 dark:border-zinc-800 pb-3">
+              <span className="text-[#e65100] dark:text-amber-400 font-bold text-lg">⁝</span>
+              <h2 className="font-display text-2xl font-bold text-[#1c1b1b] dark:text-[#F9FAFB]">
                 Leitura recomendada
               </h2>
             </div>
@@ -290,14 +290,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 <div
                   key={essay.id}
                   onClick={() => onSelectEssay(essay)}
-                  className="bg-white rounded-2xl border border-[#d3c4af]/60 p-4 sm:p-5 flex flex-col sm:flex-row gap-5 hover:border-[#785600] hover:shadow-md transition-all cursor-pointer group"
+                  className="bg-white dark:bg-zinc-900/90 rounded-2xl border border-[#d3c4af]/60 dark:border-zinc-800 p-4 sm:p-5 flex flex-col sm:flex-row gap-5 hover:border-[#785600] dark:hover:border-amber-500/70 hover:shadow-md transition-all cursor-pointer group"
                 >
                   {/* Square Sacred Art Image */}
-                  <div className="w-full sm:w-44 h-36 rounded-xl overflow-hidden shrink-0 bg-[#f6f3f2]">
+                  <div className="w-full sm:w-44 h-36 rounded-xl overflow-hidden shrink-0 bg-[#f6f3f2] dark:bg-zinc-800">
                     <img
                       src={essay.imageUrl}
                       alt={essay.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full max-w-full object-cover group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
                       decoding="async"
                     />
@@ -306,19 +306,19 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   {/* Content */}
                   <div className="flex-1 flex flex-col justify-between space-y-2">
                     <div>
-                      <span className="inline-block px-2.5 py-0.5 bg-[#fff3e0] text-[#e65100] border border-[#ffe0b2] text-[10px] font-bold uppercase tracking-wider rounded-md mb-1.5">
+                      <span className="inline-block px-2.5 py-0.5 bg-[#fff3e0] dark:bg-amber-950/40 text-[#e65100] dark:text-amber-300 border border-[#ffe0b2] dark:border-amber-900/50 text-[10px] font-bold uppercase tracking-wider rounded-md mb-1.5">
                         {essay.category}
                       </span>
-                      <h3 className="font-display text-base sm:text-lg font-bold text-[#1c1b1b] leading-snug group-hover:text-[#785600] transition-colors">
+                      <h3 className="font-display text-base sm:text-lg font-bold text-[#1c1b1b] dark:text-zinc-100 leading-snug group-hover:text-[#785600] dark:group-hover:text-amber-300 transition-colors">
                         {essay.title}
                       </h3>
-                      <p className="font-sans text-xs text-[#4f4535] mt-1 line-clamp-2 leading-relaxed">
+                      <p className="font-sans text-xs text-[#4f4535] dark:text-zinc-300 mt-1 line-clamp-2 leading-relaxed">
                         {essay.excerpt}
                       </p>
                     </div>
 
                     <div className="pt-1">
-                      <span className="text-[#c2410c] text-xs font-bold flex items-center gap-1 group-hover:underline">
+                      <span className="text-[#c2410c] dark:text-amber-400 text-xs font-bold flex items-center gap-1 group-hover:underline">
                         Ler leitura →
                       </span>
                     </div>
@@ -330,9 +330,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
           {/* Right Column: ⁝ Mais lidas do mês */}
           <div className="lg:col-span-5 space-y-6">
-            <div className="flex items-center gap-2 border-b border-[#d3c4af]/50 pb-3">
-              <span className="text-[#e65100] font-bold text-lg">⁝</span>
-              <h2 className="font-display text-2xl font-bold text-[#1c1b1b]">
+            <div className="flex items-center gap-2 border-b border-[#d3c4af]/50 dark:border-zinc-800 pb-3">
+              <span className="text-[#e65100] dark:text-amber-400 font-bold text-lg">⁝</span>
+              <h2 className="font-display text-2xl font-bold text-[#1c1b1b] dark:text-[#F9FAFB]">
                 Mais lidas do mês
               </h2>
             </div>
@@ -341,26 +341,26 @@ export const HomeView: React.FC<HomeViewProps> = ({
             {articles[0] && (
               <div
                 onClick={() => onSelectEssay(articles[0])}
-                className="bg-white rounded-2xl border border-[#d3c4af]/60 overflow-hidden hover:border-[#785600] hover:shadow-md transition-all cursor-pointer group space-y-4"
+                className="bg-white dark:bg-zinc-900/90 rounded-2xl border border-[#d3c4af]/60 dark:border-zinc-800 overflow-hidden hover:border-[#785600] dark:hover:border-amber-500/70 hover:shadow-md transition-all cursor-pointer group space-y-4"
               >
-                <div className="h-52 bg-gray-200 overflow-hidden relative">
+                <div className="h-52 bg-gray-200 dark:bg-zinc-800 overflow-hidden relative">
                   <img
                     src={articles[0].imageUrl}
                     alt={articles[0].title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full max-w-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"
                     decoding="async"
                   />
                 </div>
 
                 <div className="p-5 pt-0 space-y-2">
-                  <h3 className="font-display text-lg sm:text-xl font-bold text-[#1c1b1b] leading-snug group-hover:text-[#785600] transition-colors">
+                  <h3 className="font-display text-lg sm:text-xl font-bold text-[#1c1b1b] dark:text-zinc-100 leading-snug group-hover:text-[#785600] dark:group-hover:text-amber-300 transition-colors">
                     {articles[0].title}
                   </h3>
-                  <p className="font-sans text-xs text-[#4f4535] line-clamp-3 leading-relaxed">
+                  <p className="font-sans text-xs text-[#4f4535] dark:text-zinc-300 line-clamp-3 leading-relaxed">
                     {articles[0].excerpt}
                   </p>
-                  <span className="text-[#c2410c] text-xs font-bold inline-block pt-1 group-hover:underline">
+                  <span className="text-[#c2410c] dark:text-amber-400 text-xs font-bold inline-block pt-1 group-hover:underline">
                     Ler leitura →
                   </span>
                 </div>
@@ -368,21 +368,21 @@ export const HomeView: React.FC<HomeViewProps> = ({
             )}
 
             {/* List of Other Top Reads */}
-            <div className="bg-white rounded-2xl border border-[#d3c4af]/50 p-4 divide-y divide-[#d3c4af]/30">
+            <div className="bg-white dark:bg-zinc-900/90 rounded-2xl border border-[#d3c4af]/50 dark:border-zinc-800 p-4 divide-y divide-[#d3c4af]/30 dark:divide-zinc-800">
               {articles.slice(1, 4).map((essay, i) => (
                 <div
                   key={essay.id}
                   onClick={() => onSelectEssay(essay)}
                   className="py-3 first:pt-0 last:pb-0 flex items-start gap-3 cursor-pointer group"
                 >
-                  <span className="font-display text-lg font-bold text-[#785600] shrink-0">
+                  <span className="font-display text-lg font-bold text-[#785600] dark:text-amber-400 shrink-0">
                     0{i + 2}.
                   </span>
                   <div>
-                    <h4 className="font-display text-xs sm:text-sm font-bold text-[#1c1b1b] group-hover:text-[#785600] leading-snug">
+                    <h4 className="font-display text-xs sm:text-sm font-bold text-[#1c1b1b] dark:text-zinc-100 group-hover:text-[#785600] dark:group-hover:text-amber-300 leading-snug transition-colors">
                       {essay.title}
                     </h4>
-                    <span className="text-[11px] text-[#817563]">{essay.author}</span>
+                    <span className="text-[11px] text-[#817563] dark:text-zinc-400">{essay.author}</span>
                   </div>
                 </div>
               ))}
@@ -395,19 +395,19 @@ export const HomeView: React.FC<HomeViewProps> = ({
           3. SEÇÃO DE ORAÇÕES CATÓLICAS COM CARDS SACROS (Ref. Imagens 3 e 4)
       ========================================================================= */}
       <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-[#d3c4af]/50 pb-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-[#d3c4af]/50 dark:border-zinc-800 pb-4">
           <div>
-            <span className="text-[#785600] font-sans text-xs font-bold uppercase tracking-widest block mb-1">
+            <span className="text-[#785600] dark:text-amber-400 font-sans text-xs font-bold uppercase tracking-widest block mb-1">
               Tesouro da Tradição
             </span>
-            <h2 className="font-display text-3xl font-bold text-[#1c1b1b]">
+            <h2 className="font-display text-3xl font-bold text-[#1c1b1b] dark:text-[#F9FAFB]">
               Orações Católicas Tradicionais
             </h2>
           </div>
 
           <button
             onClick={() => setActiveView('oracoes')}
-            className="px-5 py-2.5 bg-[#f6f3f2] hover:bg-[#e8e2de] border border-[#d3c4af] text-[#785600] font-sans text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
+            className="px-5 py-2.5 bg-[#f6f3f2] dark:bg-zinc-800 hover:bg-[#e8e2de] dark:hover:bg-zinc-700 border border-[#d3c4af] dark:border-zinc-700 text-[#785600] dark:text-amber-300 font-sans text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
           >
             Ver Acervo Completo →
           </button>
@@ -420,13 +420,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
               <div
                 key={prayer.id}
                 onClick={prayer.action}
-                className="relative h-[380px] rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-[#d3c4af]/60"
+                className="relative h-[380px] rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-[#d3c4af]/60 dark:border-zinc-800"
               >
                 {/* Background Art */}
                 <img
                   src={prayer.imageUrl}
                   alt={prayer.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full max-w-full object-cover group-hover:scale-105 transition-transform duration-500"
                   loading="lazy"
                   decoding="async"
                 />
@@ -438,9 +438,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   {prayer.category}
                 </span>
 
-                {/* Bottom White Inscription Box */}
-                <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-xs p-3.5 rounded-xl border border-white/40 shadow-lg">
-                  <h3 className="font-serif text-xs font-bold text-[#1c1b1b] leading-snug line-clamp-3">
+                {/* Bottom Inscription Box */}
+                <div className="absolute bottom-4 left-4 right-4 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xs p-3.5 rounded-xl border border-white/40 dark:border-zinc-800 shadow-lg">
+                  <h3 className="font-serif text-xs font-bold text-[#1c1b1b] dark:text-zinc-100 leading-snug line-clamp-3">
                     {prayer.title}
                   </h3>
                 </div>
@@ -448,8 +448,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
             ))}
           </div>
         ) : (
-          <div className="p-12 text-center bg-white border border-[#d3c4af]/60 rounded-3xl space-y-3">
-            <p className="font-serif text-base text-[#4f4535]">
+          <div className="p-12 text-center bg-white dark:bg-zinc-900/90 border border-[#d3c4af]/60 dark:border-zinc-800 rounded-3xl space-y-3">
+            <p className="font-serif text-base text-[#4f4535] dark:text-zinc-300">
               Nenhuma oração cadastrada no momento. Adicione novas preces pelo painel administrativo.
             </p>
             <button
@@ -466,12 +466,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
           4. SEÇÃO DA LOJA CATÓLICA & SACRAMENTAIS
       ========================================================================= */}
       <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-[#d3c4af]/50 pb-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-[#d3c4af]/50 dark:border-zinc-800 pb-4">
           <div>
-            <span className="text-[#785600] font-sans text-xs font-bold uppercase tracking-widest block mb-1">
+            <span className="text-[#785600] dark:text-amber-400 font-sans text-xs font-bold uppercase tracking-widest block mb-1">
               Curadoria Católica
             </span>
-            <h2 className="font-display text-3xl font-bold text-[#1c1b1b]">
+            <h2 className="font-display text-3xl font-bold text-[#1c1b1b] dark:text-[#F9FAFB]">
               Livros Raros, Arte Sacra & Sacramentais
             </h2>
           </div>
@@ -490,37 +490,37 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <div
               key={product.id}
               onClick={() => setActiveView('loja')}
-              className="bg-white rounded-2xl border border-[#d3c4af]/70 overflow-hidden shadow-xs hover:shadow-md hover:border-[#785600] transition-all cursor-pointer flex flex-col justify-between group"
+              className="bg-white dark:bg-zinc-900/90 rounded-2xl border border-[#d3c4af]/70 dark:border-zinc-800 overflow-hidden shadow-xs hover:shadow-md hover:border-[#785600] dark:hover:border-amber-500/70 transition-all cursor-pointer flex flex-col justify-between group"
             >
               <div>
-                <div className="h-48 bg-[#f6f3f2] overflow-hidden relative">
+                <div className="h-48 bg-[#f6f3f2] dark:bg-zinc-950 overflow-hidden relative">
                   <img
                     src={product.imageUrl}
                     alt={product.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full max-w-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"
                     decoding="async"
                   />
-                  <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-xs text-[#785600] font-sans text-[10px] font-bold uppercase px-2.5 py-1 rounded-full shadow-xs">
+                  <span className="absolute top-3 right-3 bg-white/90 dark:bg-zinc-800/90 backdrop-blur-xs text-[#785600] dark:text-amber-300 font-sans text-[10px] font-bold uppercase px-2.5 py-1 rounded-full shadow-xs">
                     {product.category}
                   </span>
                 </div>
 
                 <div className="p-4 space-y-1">
-                  <h3 className="font-display text-sm font-bold text-[#1c1b1b] group-hover:text-[#785600] transition-colors line-clamp-1">
+                  <h3 className="font-display text-sm font-bold text-[#1c1b1b] dark:text-zinc-100 group-hover:text-[#785600] dark:group-hover:text-amber-300 transition-colors line-clamp-1">
                     {product.title}
                   </h3>
-                  <p className="font-sans text-xs text-[#817563] line-clamp-2">
+                  <p className="font-sans text-xs text-[#817563] dark:text-zinc-400 line-clamp-2">
                     {product.subtitle}
                   </p>
                 </div>
               </div>
 
-              <div className="p-4 pt-0 border-t border-[#d3c4af]/30 flex items-center justify-between mt-2">
-                <span className="font-display text-base font-bold text-[#785600]">
+              <div className="p-4 pt-0 border-t border-[#d3c4af]/30 dark:border-zinc-800 flex items-center justify-between mt-2">
+                <span className="font-display text-base font-bold text-[#785600] dark:text-amber-300">
                   R$ {product.price.toFixed(2).replace('.', ',')}
                 </span>
-                <span className="text-xs font-bold text-[#785600] group-hover:underline flex items-center gap-1">
+                <span className="text-xs font-bold text-[#785600] dark:text-amber-400 group-hover:underline flex items-center gap-1">
                   Comprar →
                 </span>
               </div>

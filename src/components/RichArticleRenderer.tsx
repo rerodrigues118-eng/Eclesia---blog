@@ -80,7 +80,7 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
   let adInserted = false;
 
   return (
-    <div className="rich-article-content font-sans text-[#1c1b1b] text-base md:text-lg leading-relaxed space-y-6 pt-2 clearfix">
+    <div className="rich-article-content font-sans text-[#1c1b1b] dark:text-[#D1D5DB] text-base md:text-lg leading-relaxed space-y-6 pt-2 clearfix">
       {rawBlocks.map((block, index) => {
         const trimmed = block.trim();
         if (!trimmed) return null;
@@ -108,13 +108,13 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
           return (
             <div
               key={index}
-              className="my-8 bg-gradient-to-br from-amber-50/80 via-white to-amber-50/50 border-2 border-[#785600]/40 rounded-3xl p-6 md:p-8 shadow-xs relative overflow-hidden"
+              className="my-8 bg-gradient-to-br from-amber-50/80 via-white to-amber-50/50 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900 border-2 border-[#785600]/40 dark:border-amber-600/40 rounded-3xl p-6 md:p-8 shadow-xs relative overflow-hidden"
             >
-              <div className="flex items-center gap-2 mb-3 text-[#785600]">
+              <div className="flex items-center gap-2 mb-3 text-[#785600] dark:text-amber-400">
                 <Sparkles className="w-4 h-4" />
                 <span className="font-sans text-xs font-bold uppercase tracking-widest">{prayerTitle}</span>
               </div>
-              <p className="font-serif italic text-base md:text-lg text-[#2e261d] leading-relaxed whitespace-pre-line">
+              <p className="font-serif italic text-base md:text-lg text-[#2e261d] dark:text-zinc-200 leading-relaxed whitespace-pre-line">
                 {formatInlineText(prayerBody)}
               </p>
             </div>
@@ -130,13 +130,13 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
           return (
             <blockquote
               key={index}
-              className="my-6 p-6 bg-[#fbf8f5] border-l-4 border-[#785600] rounded-r-2xl shadow-xs space-y-2"
+              className="my-6 p-6 bg-[#fbf8f5] dark:bg-zinc-800/80 border-l-4 border-[#785600] dark:border-amber-500 rounded-r-2xl shadow-xs space-y-2"
             >
-              <div className="flex items-center gap-2 text-[#785600] text-xs font-bold uppercase tracking-wider">
+              <div className="flex items-center gap-2 text-[#785600] dark:text-amber-400 text-xs font-bold uppercase tracking-wider">
                 <BookOpen className="w-3.5 h-3.5" />
                 <span>{refTitle}</span>
               </div>
-              <p className="font-serif italic text-base md:text-lg text-[#1c1b1b] leading-relaxed">
+              <p className="font-serif italic text-base md:text-lg text-[#1c1b1b] dark:text-zinc-100 leading-relaxed">
                 "{formatInlineText(quoteBody)}"
               </p>
             </blockquote>
@@ -155,7 +155,7 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
             <figure
               key={index}
               style={{ width: width && width !== '100%' ? width : undefined }}
-              className="float-none sm:float-left sm:mr-8 mb-6 sm:mb-4 w-full sm:w-[340px] max-w-full rounded-2xl overflow-hidden border border-[#d3c4af] shadow-md bg-white p-2"
+              className="float-none sm:float-left sm:mr-8 mb-6 sm:mb-4 w-full sm:w-[340px] max-w-full rounded-2xl overflow-hidden border border-[#d3c4af] dark:border-zinc-700 shadow-md bg-white dark:bg-zinc-800 p-2"
             >
               <img
                 src={url}
@@ -165,7 +165,7 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
                 decoding="async"
               />
               {caption && (
-                <figcaption className="text-center font-sans text-xs text-[#817563] italic pt-2 px-2">
+                <figcaption className="text-center font-sans text-xs text-[#817563] dark:text-zinc-400 italic pt-2 px-2">
                   {caption}
                 </figcaption>
               )}
@@ -185,7 +185,7 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
             <figure
               key={index}
               style={{ width: width && width !== '100%' ? width : undefined }}
-              className="float-none sm:float-right sm:ml-8 mb-6 sm:mb-4 w-full sm:w-[340px] max-w-full rounded-2xl overflow-hidden border border-[#d3c4af] shadow-md bg-white p-2"
+              className="float-none sm:float-right sm:ml-8 mb-6 sm:mb-4 w-full sm:w-[340px] max-w-full rounded-2xl overflow-hidden border border-[#d3c4af] dark:border-zinc-700 shadow-md bg-white dark:bg-zinc-800 p-2"
             >
               <img
                 src={url}
@@ -195,7 +195,7 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
                 decoding="async"
               />
               {caption && (
-                <figcaption className="text-center font-sans text-xs text-[#817563] italic pt-2 px-2">
+                <figcaption className="text-center font-sans text-xs text-[#817563] dark:text-zinc-400 italic pt-2 px-2">
                   {caption}
                 </figcaption>
               )}
@@ -215,7 +215,7 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
             <figure
               key={index}
               style={{ width: width && width !== '340px' ? width : undefined, maxWidth: '100%' }}
-              className="my-6 sm:my-8 clear-both w-full max-w-2xl mx-auto rounded-2xl overflow-hidden border border-[#d3c4af] shadow-md bg-white p-2 text-center"
+              className="my-6 sm:my-8 clear-both w-full max-w-2xl mx-auto rounded-2xl overflow-hidden border border-[#d3c4af] dark:border-zinc-700 shadow-md bg-white dark:bg-zinc-800 p-2 text-center"
             >
               <img
                 src={url}
@@ -225,7 +225,7 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
                 decoding="async"
               />
               {caption && (
-                <figcaption className="font-sans text-xs text-[#817563] italic pt-2">
+                <figcaption className="font-sans text-xs text-[#817563] dark:text-zinc-400 italic pt-2">
                   {caption}
                 </figcaption>
               )}
@@ -242,7 +242,7 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
           return (
             <figure
               key={index}
-              className="my-6 sm:my-8 clear-both w-full max-w-2xl mx-auto rounded-2xl overflow-hidden border border-[#d3c4af] shadow-md bg-white p-2 text-center"
+              className="my-6 sm:my-8 clear-both w-full max-w-2xl mx-auto rounded-2xl overflow-hidden border border-[#d3c4af] dark:border-zinc-700 shadow-md bg-white dark:bg-zinc-800 p-2 text-center"
             >
               <img
                 src={url}
@@ -252,7 +252,7 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
                 decoding="async"
               />
               {caption && (
-                <figcaption className="font-sans text-xs text-[#817563] italic pt-2">
+                <figcaption className="font-sans text-xs text-[#817563] dark:text-zinc-400 italic pt-2">
                   {caption}
                 </figcaption>
               )}
@@ -263,28 +263,28 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
         // 6. Headings (#, ##, ###, ####)
         if (trimmed.startsWith('#### ')) {
           return (
-            <h4 key={index} className="font-display text-base sm:text-lg lg:text-xl font-bold text-[#1c1b1b] mt-6 mb-2 tracking-tight break-words">
+            <h4 key={index} className="font-display text-base sm:text-lg lg:text-xl font-bold text-[#1c1b1b] dark:text-[#F9FAFB] mt-6 mb-2 tracking-tight break-words">
               {formatInlineText(trimmed.replace('#### ', ''))}
             </h4>
           );
         }
         if (trimmed.startsWith('### ')) {
           return (
-            <h3 key={index} className="font-display text-lg sm:text-xl lg:text-2xl font-bold text-[#785600] mt-8 mb-3 tracking-tight break-words">
+            <h3 key={index} className="font-display text-lg sm:text-xl lg:text-2xl font-bold text-[#785600] dark:text-amber-400 mt-8 mb-3 tracking-tight break-words">
               {formatInlineText(trimmed.replace('### ', ''))}
             </h3>
           );
         }
         if (trimmed.startsWith('## ')) {
           return (
-            <h2 key={index} className="font-display text-xl sm:text-2xl lg:text-3xl font-bold text-[#1c1b1b] mt-8 sm:mt-10 mb-3 sm:mb-4 tracking-tight border-b border-[#d3c4af]/40 pb-2 break-words">
+            <h2 key={index} className="font-display text-xl sm:text-2xl lg:text-3xl font-bold text-[#1c1b1b] dark:text-[#F9FAFB] mt-8 sm:mt-10 mb-3 sm:mb-4 tracking-tight border-b border-[#d3c4af]/40 dark:border-zinc-800 pb-2 break-words">
               {formatInlineText(trimmed.replace('## ', ''))}
             </h2>
           );
         }
         if (trimmed.startsWith('# ')) {
           return (
-            <h1 key={index} className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-[#1c1b1b] mt-8 sm:mt-10 mb-3 sm:mb-4 tracking-tight break-words">
+            <h1 key={index} className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-[#1c1b1b] dark:text-[#F9FAFB] mt-8 sm:mt-10 mb-3 sm:mb-4 tracking-tight break-words">
               {formatInlineText(trimmed.replace('# ', ''))}
             </h1>
           );
@@ -295,9 +295,9 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
           return (
             <blockquote
               key={index}
-              className="my-4 sm:my-6 p-4 sm:p-6 bg-gradient-to-r from-amber-50 to-[#fcf9f8] border-l-4 border-[#785600] rounded-r-2xl shadow-xs"
+              className="my-4 sm:my-6 p-4 sm:p-6 bg-gradient-to-r from-amber-50 to-[#fcf9f8] dark:from-zinc-800/90 dark:to-zinc-900/90 border-l-4 border-[#785600] dark:border-amber-500 rounded-r-2xl shadow-xs"
             >
-              <p className="font-serif italic text-sm sm:text-base md:text-lg text-[#4f4535] leading-relaxed break-words">
+              <p className="font-serif italic text-sm sm:text-base md:text-lg text-[#4f4535] dark:text-zinc-200 leading-relaxed break-words">
                 "{formatInlineText(trimmed.replace(/^>\s*/, ''))}"
               </p>
             </blockquote>
@@ -307,10 +307,10 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
         // 8. Divisor Decorativo
         if (trimmed === '---' || trimmed === '⸻') {
           return (
-            <div key={index} className="my-6 sm:my-8 clear-both flex items-center justify-center gap-3 text-[#d3c4af]">
-              <span className="w-12 sm:w-16 h-px bg-[#d3c4af]" />
-              <span className="text-sm font-bold text-[#785600]">✤ ✤ ✤</span>
-              <span className="w-12 sm:w-16 h-px bg-[#d3c4af]" />
+            <div key={index} className="my-6 sm:my-8 clear-both flex items-center justify-center gap-3 text-[#d3c4af] dark:text-zinc-600">
+              <span className="w-12 sm:w-16 h-px bg-[#d3c4af] dark:bg-zinc-700" />
+              <span className="text-sm font-bold text-[#785600] dark:text-amber-400">✤ ✤ ✤</span>
+              <span className="w-12 sm:w-16 h-px bg-[#d3c4af] dark:bg-zinc-700" />
             </div>
           );
         }
@@ -330,7 +330,7 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
 
         return (
           <React.Fragment key={index}>
-            <p className="font-sans text-sm sm:text-base md:text-lg text-[#1c1b1b] leading-relaxed break-words">
+            <p className="font-sans text-sm sm:text-base md:text-lg text-[#1c1b1b] dark:text-[#D1D5DB] leading-relaxed break-words">
               {formatInlineText(trimmed)}
             </p>
             {isMiddleAdTarget && (

@@ -7,8 +7,25 @@ html.dark {
 }
 
 html.dark body {
-  background-color: #141210;
-  color: #f4efe6;
+  background-color: #121212;
+  color: #D1D5DB;
+}
+
+body {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Regras globais de acessibilidade para títulos e parágrafos em Dark Mode */
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5 {
+  color: #F9FAFB;
+}
+
+html.dark .font-display {
+  color: #F9FAFB;
 }
 
 @layer utilities {

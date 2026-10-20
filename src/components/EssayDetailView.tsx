@@ -88,7 +88,7 @@ export const EssayDetailView: React.FC<EssayDetailViewProps> = ({ essay, onBack,
       <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 border-b border-[#d3c4af]/50 pb-4">
         <button
           onClick={onBack}
-          className="flex items-center gap-1.5 sm:gap-2 text-xs font-bold uppercase tracking-wider text-[#785600] hover:text-[#9a7000] bg-[#f6f3f2] hover:bg-[#e8e2de] px-3 sm:px-4 py-2 rounded-full border border-[#d3c4af]/60 transition-all cursor-pointer shrink-0 whitespace-nowrap"
+          className="flex items-center gap-1.5 sm:gap-2 text-xs font-bold uppercase tracking-wider text-[#785600] dark:text-amber-400 hover:text-[#9a7000] bg-[#f6f3f2] hover:bg-[#e8e2de] dark:bg-zinc-800 dark:hover:bg-zinc-700 px-3 sm:px-4 py-2 rounded-full border border-[#d3c4af]/60 dark:border-zinc-700 transition-all cursor-pointer shrink-0 whitespace-nowrap"
         >
           <ArrowLeft className="w-4 h-4" /> <span>Voltar</span><span className="hidden sm:inline"> para o Blog</span>
         </button>
@@ -113,7 +113,7 @@ export const EssayDetailView: React.FC<EssayDetailViewProps> = ({ essay, onBack,
             className={`flex items-center gap-1 sm:gap-1.5 text-xs font-semibold px-2.5 sm:px-3 py-1.5 rounded-lg border transition-all cursor-pointer whitespace-nowrap ${
               bookmarked
                 ? 'bg-[#785600] text-white border-[#785600]'
-                : 'bg-white dark:bg-[#1f1b17] text-[#4f4535] dark:text-[#c4b9a7] border-[#d3c4af] dark:border-[#383027] hover:border-[#785600]'
+                : 'bg-white dark:bg-zinc-800 text-[#4f4535] dark:text-zinc-200 border-[#d3c4af] dark:border-zinc-700 hover:border-[#785600]'
             }`}
             title={bookmarked ? 'Salvo nos favoritos' : 'Salvar artigo'}
           >
@@ -152,46 +152,46 @@ export const EssayDetailView: React.FC<EssayDetailViewProps> = ({ essay, onBack,
 
       {/* Main Article Layout (With optional Sidebar when sidebar ads are enabled) */}
       <div className={`grid grid-cols-1 ${hasSidebarAd ? 'lg:grid-cols-12 gap-8' : 'gap-0'}`}>
-        <article className={`bg-white border border-[#d3c4af]/60 rounded-2xl p-4 sm:p-8 md:p-12 space-y-6 sm:space-y-8 shadow-xs ${
+        <article className={`bg-white dark:bg-zinc-900/90 border border-[#d3c4af]/60 dark:border-zinc-800 rounded-2xl p-4 sm:p-8 md:p-12 space-y-6 sm:space-y-8 shadow-xs ${
           hasSidebarAd ? 'lg:col-span-8' : 'w-full'
         }`}>
           {/* Article Meta Header */}
-          <header className="space-y-3 sm:space-y-4 border-b border-[#d3c4af]/40 pb-6 sm:pb-8">
+          <header className="space-y-3 sm:space-y-4 border-b border-[#d3c4af]/40 dark:border-zinc-800 pb-6 sm:pb-8">
             <div className="flex flex-wrap items-center gap-2">
               <span className={`px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-bold uppercase tracking-widest rounded text-white ${
                 essay.type === 'noticia' ? 'bg-[#9a3e3c]' : 'bg-[#785600]'
               }`}>
                 {essay.type === 'noticia' ? 'Notícia' : 'Artigo'}
               </span>
-              <span className="font-sans text-[11px] sm:text-xs font-bold uppercase tracking-widest text-[#785600] bg-[#ffdea6]/40 px-2.5 sm:px-3 py-1 rounded">
+              <span className="font-sans text-[11px] sm:text-xs font-bold uppercase tracking-widest text-[#785600] dark:text-amber-400 bg-[#ffdea6]/40 dark:bg-amber-950/40 px-2.5 sm:px-3 py-1 rounded">
                 {essay.category}
               </span>
             </div>
 
-            <h1 className="font-display text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-[#1c1b1b] leading-tight sm:leading-[1.15] tracking-tight break-words">
+            <h1 className="font-display text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-[#1c1b1b] dark:text-[#F9FAFB] leading-tight sm:leading-[1.15] tracking-tight break-words">
               {essay.title}
             </h1>
 
             {essay.excerpt && (
-              <p className="font-sans text-sm sm:text-lg md:text-xl text-[#4f4535] leading-relaxed italic border-l-4 border-[#785600] pl-3 sm:pl-4 py-1.5 bg-[#fcf9f8] rounded-r-lg">
+              <p className="font-sans text-sm sm:text-lg md:text-xl text-[#4f4535] dark:text-zinc-200 leading-relaxed italic border-l-4 border-[#785600] dark:border-amber-500 pl-3 sm:pl-4 py-1.5 bg-[#fcf9f8] dark:bg-zinc-800/80 rounded-r-lg">
                 {essay.excerpt}
               </p>
             )}
 
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 sm:pt-4 text-xs font-sans text-[#817563]">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 sm:pt-4 text-xs font-sans text-[#817563] dark:text-zinc-400">
               <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-[#817563] block">Escrito por</span>
-                  <span className="font-bold text-[#1c1b1b] text-xs sm:text-sm">{essay.author}</span>
+                  <span className="text-[10px] uppercase font-bold text-[#817563] dark:text-zinc-400 block">Escrito por</span>
+                  <span className="font-bold text-[#1c1b1b] dark:text-zinc-200 text-xs sm:text-sm">{essay.author}</span>
                 </div>
-                <span className="text-[#d3c4af] hidden xs:inline">|</span>
+                <span className="text-[#d3c4af] dark:text-zinc-700 hidden xs:inline">|</span>
                 <div className="flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-[#785600]" />
+                  <Calendar className="w-3.5 h-3.5 text-[#785600] dark:text-amber-400" />
                   <span>{essay.date}</span>
                 </div>
-                <span className="text-[#d3c4af] hidden xs:inline">|</span>
+                <span className="text-[#d3c4af] dark:text-zinc-700 hidden xs:inline">|</span>
                 <div className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-[#785600]" />
+                  <Clock className="w-3.5 h-3.5 text-[#785600] dark:text-amber-400" />
                   <span>{essay.readTime}</span>
                 </div>
               </div>
@@ -199,11 +199,11 @@ export const EssayDetailView: React.FC<EssayDetailViewProps> = ({ essay, onBack,
           </header>
 
           {/* Featured Image */}
-          <div className="aspect-[16/9] md:aspect-[21/9] rounded-xl overflow-hidden border border-[#d3c4af]/50 shadow-xs relative">
+          <div className="aspect-[16/9] md:aspect-[21/9] rounded-xl overflow-hidden border border-[#d3c4af]/50 dark:border-zinc-800 shadow-xs relative">
             <img
               src={essay.imageUrl}
               alt={essay.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full max-w-full object-cover"
               loading="lazy"
               decoding="async"
             />
@@ -237,11 +237,11 @@ export const EssayDetailView: React.FC<EssayDetailViewProps> = ({ essay, onBack,
           )}
 
           {/* Article Footer & Author Signature with Sharing Links */}
-          <div className="pt-8 border-t border-[#d3c4af]/50 max-w-3xl mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#fcf9f8] p-6 rounded-2xl border">
+          <div className="pt-8 border-t border-[#d3c4af]/50 dark:border-zinc-800 max-w-3xl mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#fcf9f8] dark:bg-zinc-800/60 p-6 rounded-2xl border border-[#d3c4af]/40 dark:border-zinc-700/60">
             <div className="space-y-1">
-              <span className="text-xs font-bold uppercase tracking-widest text-[#785600]">Eclesia Editorial</span>
-              <p className="text-sm font-semibold text-[#1c1b1b]">Gostou deste conteúdo?</p>
-              <p className="text-xs text-[#4f4535]">Compartilhe com amigos, sua comunidade de fé ou grupo de oração.</p>
+              <span className="text-xs font-bold uppercase tracking-widest text-[#785600] dark:text-amber-400">Eclesia Editorial</span>
+              <p className="text-sm font-semibold text-[#1c1b1b] dark:text-[#F9FAFB]">Gostou deste conteúdo?</p>
+              <p className="text-xs text-[#4f4535] dark:text-zinc-300">Compartilhe com amigos, sua comunidade de fé ou grupo de oração.</p>
             </div>
 
             <button
@@ -273,19 +273,19 @@ export const EssayDetailView: React.FC<EssayDetailViewProps> = ({ essay, onBack,
                 adSlot={essay.adConfig?.sidebarSlotId}
               />
 
-              <div className="bg-[#fcf9f8] p-6 rounded-2xl border border-[#d3c4af]/60 space-y-4">
-                <h4 className="font-display font-bold text-base text-[#1c1b1b]">Nossos Destaques</h4>
+              <div className="bg-[#fcf9f8] dark:bg-zinc-900/90 p-6 rounded-2xl border border-[#d3c4af]/60 dark:border-zinc-800 space-y-4">
+                <h4 className="font-display font-bold text-base text-[#1c1b1b] dark:text-[#F9FAFB]">Nossos Destaques</h4>
                 <div className="space-y-3">
                   {relatedEssays.slice(0, 2).map(r => (
                     <div
                       key={r.id}
                       onClick={() => onSelectEssay(r)}
-                      className="cursor-pointer group flex items-start gap-3 border-b border-[#d3c4af]/30 pb-3"
+                      className="cursor-pointer group flex items-start gap-3 border-b border-[#d3c4af]/30 dark:border-zinc-800 pb-3"
                     >
                       <img src={r.imageUrl} alt={r.title} className="w-16 h-12 object-cover rounded-lg shrink-0" loading="lazy" decoding="async" />
                       <div>
-                        <h5 className="text-xs font-bold text-[#1c1b1b] group-hover:text-[#785600] line-clamp-2">{r.title}</h5>
-                        <span className="text-[10px] text-[#817563]">{r.date}</span>
+                        <h5 className="text-xs font-bold text-[#1c1b1b] dark:text-zinc-200 group-hover:text-[#785600] dark:group-hover:text-amber-400 line-clamp-2">{r.title}</h5>
+                        <span className="text-[10px] text-[#817563] dark:text-zinc-400">{r.date}</span>
                       </div>
                     </div>
                   ))}

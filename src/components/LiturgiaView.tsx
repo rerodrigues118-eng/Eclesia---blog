@@ -159,21 +159,21 @@ export const LiturgiaView: React.FC = () => {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12 animate-fade-in">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12 animate-fade-in overflow-x-hidden">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full">
 
         {/* ── Sidebar ──────────────────────────────────────────────────── */}
-        <aside className="lg:col-span-4 bg-white p-6 rounded-2xl border border-[#d3c4af]/60 space-y-6 lg:sticky lg:top-24 shadow-xs">
+        <aside className="lg:col-span-4 bg-white dark:bg-zinc-900/90 p-6 rounded-2xl border border-[#d3c4af]/60 dark:border-zinc-800 space-y-6 lg:sticky lg:top-24 shadow-xs w-full">
           <div>
-            <span className="font-sans text-xs font-bold text-[#785600] uppercase tracking-widest block mb-1">
+            <span className="font-sans text-xs font-bold text-[#785600] dark:text-amber-400 uppercase tracking-widest block mb-1">
               Calendário Litúrgico
             </span>
-            <h2 className="font-display text-2xl font-bold text-[#1c1b1b]">Liturgia da Palavra</h2>
+            <h2 className="font-display text-2xl font-bold text-[#1c1b1b] dark:text-[#F9FAFB]">Liturgia da Palavra</h2>
           </div>
 
           {/* Seletor de Data */}
           <div className="space-y-3">
-            <label className="font-sans text-xs font-semibold text-[#817563] uppercase tracking-wider block">
+            <label className="font-sans text-xs font-semibold text-[#817563] dark:text-zinc-400 uppercase tracking-wider block">
               Selecione a Data
             </label>
             <div className="flex gap-2">
@@ -182,8 +182,8 @@ export const LiturgiaView: React.FC = () => {
                 onClick={() => setSelectedDate(getTodayISO())}
                 className={`flex-1 py-2 px-3 rounded-xl font-sans text-xs font-bold transition-all text-center border cursor-pointer ${
                   isToday
-                    ? 'bg-[#785600] text-white border-[#785600] shadow-xs'
-                    : 'bg-[#fcf9f8] text-[#1c1b1b] border-[#d3c4af]/60 hover:border-[#785600]'
+                    ? 'bg-[#785600] dark:bg-amber-600 text-white border-[#785600] dark:border-amber-600 shadow-xs'
+                    : 'bg-[#fcf9f8] dark:bg-zinc-800 text-[#1c1b1b] dark:text-zinc-200 border-[#d3c4af]/60 dark:border-zinc-700 hover:border-[#785600]'
                 }`}
               >
                 Hoje
@@ -194,52 +194,54 @@ export const LiturgiaView: React.FC = () => {
                 onChange={(e) => {
                   if (e.target.value) setSelectedDate(e.target.value);
                 }}
-                className="flex-1 py-1.5 px-3 rounded-xl font-sans text-xs font-bold border border-[#d3c4af]/60 bg-[#fcf9f8] text-[#1c1b1b] focus:border-[#785600] focus:outline-none"
+                className="flex-1 py-1.5 px-3 rounded-xl font-sans text-xs font-bold border border-[#d3c4af]/60 dark:border-zinc-700 bg-[#fcf9f8] dark:bg-zinc-800 text-[#1c1b1b] dark:text-zinc-100 focus:border-[#785600] focus:outline-none"
               />
             </div>
           </div>
 
           {/* Tempo Litúrgico — só mostra se encontrou dados */}
-          <div className="p-4 rounded-xl border border-[#d3c4af]/40 bg-[#fcf9f8] space-y-2">
+          <div className="p-4 rounded-xl border border-[#d3c4af]/40 dark:border-zinc-750 bg-[#fcf9f8] dark:bg-zinc-800/80 space-y-2">
             <div className="flex items-center gap-2">
               <span
                 className="w-3.5 h-3.5 rounded-full inline-block shadow-xs transition-colors"
                 style={{ backgroundColor: liturgy?.colorHex ?? '#1c5d3a' }}
               />
-              <span className="font-sans text-xs font-bold text-[#1c1b1b] uppercase tracking-widest">
+              <span className="font-sans text-xs font-bold text-[#1c1b1b] dark:text-zinc-100 uppercase tracking-widest">
                 {liturgy?.season ?? (status === 'loading' ? '...' : 'Tempo Comum')}
               </span>
             </div>
-            <p className="font-sans text-xs text-[#817563] font-medium">
+            <p className="font-sans text-xs text-[#817563] dark:text-zinc-400 font-medium">
               Cor Litúrgica: {liturgy?.colorName ?? (status === 'loading' ? '...' : '—')}
             </p>
           </div>
 
           {/* Áudio Litúrgico */}
-          <div className="p-4 bg-[#fbf8f5] border border-[#d3c4af]/70 rounded-2xl space-y-2">
+          <div className="p-4 bg-[#fbf8f5] dark:bg-zinc-800/60 border border-[#d3c4af]/70 dark:border-zinc-700 rounded-2xl space-y-2">
             <div className="flex justify-between items-center">
-              <span className="font-sans text-xs font-bold uppercase tracking-wider text-[#785600] flex items-center gap-1.5">
-                <Volume2 className="w-4 h-4 text-[#785600]" /> Áudio Litúrgico
+              <span className="font-sans text-xs font-bold uppercase tracking-wider text-[#785600] dark:text-amber-400 flex items-center gap-1.5">
+                <Volume2 className="w-4 h-4 text-[#785600] dark:text-amber-400" /> Áudio Litúrgico
               </span>
-              <span className="bg-amber-100 text-amber-800 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border border-amber-300">
+              <span className="bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border border-amber-300 dark:border-amber-800">
                 Em Produção
               </span>
             </div>
-            <p className="font-sans text-xs text-[#4f4535] leading-relaxed">
+            <p className="font-sans text-xs text-[#4f4535] dark:text-zinc-300 leading-relaxed">
               A gravação em voz humana das leituras com fundo de canto gregoriano está sendo preparada pela nossa equipe.
             </p>
           </div>
 
           {/* Controles de Tipografia */}
-          <div className="flex justify-between items-center pt-2 border-t border-[#d3c4af]/40">
-            <span className="font-sans text-xs font-semibold text-[#817563]">Tamanho do Texto:</span>
+          <div className="flex justify-between items-center pt-2 border-t border-[#d3c4af]/40 dark:border-zinc-800">
+            <span className="font-sans text-xs font-semibold text-[#817563] dark:text-zinc-400">Tamanho do Texto:</span>
             <div className="flex gap-1">
               {(['text-base', 'text-lg', 'text-xl'] as const).map((size, i) => (
                 <button
                   key={size}
                   onClick={() => setFontSizeClass(size)}
                   className={`w-8 h-8 flex items-center justify-center rounded-lg font-sans font-bold cursor-pointer transition-colors ${
-                    fontSizeClass === size ? 'bg-[#785600] text-white' : 'bg-[#f0eded] text-[#1c1b1b] hover:bg-[#e4deda]'
+                    fontSizeClass === size
+                      ? 'bg-[#785600] dark:bg-amber-600 text-white'
+                      : 'bg-[#f0eded] dark:bg-zinc-800 text-[#1c1b1b] dark:text-zinc-200 hover:bg-[#e4deda] dark:hover:bg-zinc-700'
                   }`}
                   style={{ fontSize: ['11px', '13px', '15px'][i] }}
                 >
@@ -251,7 +253,7 @@ export const LiturgiaView: React.FC = () => {
         </aside>
 
         {/* ── Coluna Principal ──────────────────────────────────────────── */}
-        <main className="lg:col-span-8 bg-white rounded-3xl border border-[#d3c4af]/60 shadow-xs overflow-hidden">
+        <main className="lg:col-span-8 bg-white dark:bg-zinc-900/90 rounded-3xl border border-[#d3c4af]/60 dark:border-zinc-800 shadow-xs overflow-hidden w-full overflow-x-hidden">
 
           {/* ── Estado: Carregando ───────────────────────────────────── */}
           {status === 'loading' && (
@@ -350,17 +352,17 @@ export const LiturgiaView: React.FC = () => {
                         navigator.clipboard.writeText(url);
                         alert('Link da liturgia copiado!');
                       }}
-                      className="p-2 rounded-xl border border-[#d3c4af] text-[#817563] hover:text-[#1c1b1b] transition-colors cursor-pointer"
+                      className="p-2 rounded-xl border border-[#d3c4af] dark:border-zinc-700 text-[#817563] dark:text-zinc-400 hover:text-[#1c1b1b] dark:hover:text-zinc-100 transition-colors cursor-pointer"
                       title="Compartilhar"
                     >
                       <Share2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
-                <h1 className="font-display text-3xl md:text-4xl font-bold text-[#1c1b1b]">
+                <h1 className="font-display text-3xl md:text-4xl font-bold text-[#1c1b1b] dark:text-[#F9FAFB]">
                   Liturgia Diária
                 </h1>
-                <p className="font-sans text-sm md:text-base text-[#785600] font-semibold">
+                <p className="font-sans text-sm md:text-base text-[#785600] dark:text-amber-400 font-semibold">
                   {liturgy.fullDateStr}
                 </p>
               </header>
@@ -391,25 +393,25 @@ export const LiturgiaView: React.FC = () => {
 
               {/* Salmo Responsorial */}
               {liturgy.psalm?.reference && (
-                <section className="space-y-4 bg-[#fcf9f8] p-6 rounded-2xl border border-[#d3c4af]/50">
-                  <div className="flex justify-between items-baseline border-b border-[#d3c4af]/30 pb-2">
-                    <h2 className="font-display text-2xl font-bold text-[#1c1b1b]">Salmo Responsorial</h2>
-                    <span className="font-sans text-xs font-bold text-[#785600] uppercase tracking-widest">
+                <section className="space-y-4 bg-[#fcf9f8] dark:bg-zinc-800/80 p-6 rounded-2xl border border-[#d3c4af]/50 dark:border-zinc-700">
+                  <div className="flex justify-between items-baseline border-b border-[#d3c4af]/30 dark:border-zinc-700 pb-2">
+                    <h2 className="font-display text-2xl font-bold text-[#1c1b1b] dark:text-[#F9FAFB]">Salmo Responsorial</h2>
+                    <span className="font-sans text-xs font-bold text-[#785600] dark:text-amber-400 uppercase tracking-widest">
                       {liturgy.psalm.reference}
                     </span>
                   </div>
                   {liturgy.psalm.antiphon && (
-                    <div className="p-4 bg-[#ffdea6]/30 border-l-4 border-[#785600] text-[#785600] font-sans font-bold text-base rounded-r-xl">
-                      <span className="text-xs uppercase tracking-widest block font-sans text-[#817563] mb-1">R. Refrão:</span>
+                    <div className="p-4 bg-[#ffdea6]/30 dark:bg-amber-950/40 border-l-4 border-[#785600] dark:border-amber-500 text-[#785600] dark:text-amber-300 font-sans font-bold text-base rounded-r-xl">
+                      <span className="text-xs uppercase tracking-widest block font-sans text-[#817563] dark:text-zinc-400 mb-1">R. Refrão:</span>
                       — {liturgy.psalm.antiphon}
                     </div>
                   )}
-                  <div className={`font-sans text-[#1c1b1b] space-y-4 leading-relaxed ${fontSizeClass}`}>
+                  <div className={`font-sans text-[#1c1b1b] dark:text-zinc-200 space-y-4 leading-relaxed ${fontSizeClass}`}>
                     {Array.isArray(liturgy.psalm.stanzas)
                       ? liturgy.psalm.stanzas.map((stanza, idx) => (
-                          <div key={idx} className="pl-4 border-l border-[#d3c4af]/40 italic">{stanza}</div>
+                          <div key={idx} className="pl-4 border-l border-[#d3c4af]/40 dark:border-zinc-700 italic">{stanza}</div>
                         ))
-                      : <div className="pl-4 border-l border-[#d3c4af]/40 italic">{liturgy.psalm.stanzas}</div>
+                      : <div className="pl-4 border-l border-[#d3c4af]/40 dark:border-zinc-700 italic">{liturgy.psalm.stanzas}</div>
                     }
                   </div>
                 </section>
@@ -418,21 +420,21 @@ export const LiturgiaView: React.FC = () => {
               {/* Evangelho */}
               {liturgy.gospel?.reference && (
                 <section className="space-y-4">
-                  <div className="flex justify-between items-baseline border-b border-[#d3c4af]/30 pb-2">
-                    <h2 className="font-display text-2xl font-bold text-[#1c1b1b]">Evangelho</h2>
-                    <span className="font-sans text-xs font-bold text-[#785600] uppercase tracking-widest">
+                  <div className="flex justify-between items-baseline border-b border-[#d3c4af]/30 dark:border-zinc-800 pb-2">
+                    <h2 className="font-display text-2xl font-bold text-[#1c1b1b] dark:text-[#F9FAFB]">Evangelho</h2>
+                    <span className="font-sans text-xs font-bold text-[#785600] dark:text-amber-400 uppercase tracking-widest">
                       {liturgy.gospel.reference}
                     </span>
                   </div>
                   {liturgy.gospel.dialogue && (
-                    <div className="space-y-1 font-sans text-sm font-semibold text-[#785600] bg-[#fcf9f8] p-4 rounded-xl border border-[#d3c4af]/30">
+                    <div className="space-y-1 font-sans text-sm font-semibold text-[#785600] dark:text-amber-300 bg-[#fcf9f8] dark:bg-zinc-800/80 p-4 rounded-xl border border-[#d3c4af]/30 dark:border-zinc-700">
                       <p>{liturgy.gospel.dialogue.lordBeWithYou || '— O Senhor esteja convosco.'}</p>
-                      <p className="pl-4 text-[#1c1b1b]">{liturgy.gospel.dialogue.andWithYourSpirit || '— Ele está no meio de nós.'}</p>
+                      <p className="pl-4 text-[#1c1b1b] dark:text-zinc-200">{liturgy.gospel.dialogue.andWithYourSpirit || '— Ele está no meio de nós.'}</p>
                       <p className="pt-2">{liturgy.gospel.dialogue.gospelProclamation}</p>
-                      <p className="pl-4 text-[#1c1b1b]">{liturgy.gospel.dialogue.gloryToYou || '— Glória a vós, Senhor.'}</p>
+                      <p className="pl-4 text-[#1c1b1b] dark:text-zinc-200">{liturgy.gospel.dialogue.gloryToYou || '— Glória a vós, Senhor.'}</p>
                     </div>
                   )}
-                  <div className={`font-sans text-[#1c1b1b] leading-relaxed space-y-4 ${fontSizeClass}`}>
+                  <div className={`font-sans text-[#1c1b1b] dark:text-zinc-200 leading-relaxed space-y-4 ${fontSizeClass}`}>
                     {Array.isArray(liturgy.gospel.text)
                       ? liturgy.gospel.text.map((p, idx) => (
                           <p key={idx} className={idx === 0 ? 'drop-cap' : ''}>{p}</p>
@@ -440,9 +442,9 @@ export const LiturgiaView: React.FC = () => {
                       : <p className="drop-cap">{liturgy.gospel.text}</p>
                     }
                   </div>
-                  <div className="pt-4 border-t border-[#d3c4af]/40 font-sans text-sm font-bold text-[#785600] space-y-1">
+                  <div className="pt-4 border-t border-[#d3c4af]/40 dark:border-zinc-800 font-sans text-sm font-bold text-[#785600] dark:text-amber-400 space-y-1">
                     <p>{liturgy.gospel.acclamation || 'Aleluia, aleluia, aleluia.'}</p>
-                    <p className="text-[#1c1b1b]">{liturgy.gospel.praise || '— Palavra da Salvação. / Glória a vós, Senhor.'}</p>
+                    <p className="text-[#1c1b1b] dark:text-zinc-200">{liturgy.gospel.praise || '— Palavra da Salvação. / Glória a vós, Senhor.'}</p>
                   </div>
                 </section>
               )}
@@ -470,19 +472,19 @@ const ReadingSection: React.FC<ReadingSectionProps> = ({
   title, reference, rubric, text, response, fontSizeClass
 }) => (
   <section className="space-y-4">
-    <div className="flex justify-between items-baseline border-b border-[#d3c4af]/30 pb-2">
-      <h2 className="font-display text-2xl font-bold text-[#1c1b1b]">{title}</h2>
-      <span className="font-sans text-xs font-bold text-[#785600] uppercase tracking-widest">{reference}</span>
+    <div className="flex justify-between items-baseline border-b border-[#d3c4af]/30 dark:border-zinc-800 pb-2">
+      <h2 className="font-display text-2xl font-bold text-[#1c1b1b] dark:text-[#F9FAFB]">{title}</h2>
+      <span className="font-sans text-xs font-bold text-[#785600] dark:text-amber-400 uppercase tracking-widest">{reference}</span>
     </div>
-    {rubric && <p className="font-sans text-sm italic text-[#817563]">{rubric}</p>}
-    <div className={`font-sans text-[#1c1b1b] leading-relaxed space-y-4 ${fontSizeClass}`}>
+    {rubric && <p className="font-sans text-sm italic text-[#817563] dark:text-zinc-400">{rubric}</p>}
+    <div className={`font-sans text-[#1c1b1b] dark:text-zinc-200 leading-relaxed space-y-4 ${fontSizeClass}`}>
       {Array.isArray(text)
         ? text.map((p, idx) => <p key={idx} className={idx === 0 ? 'drop-cap' : ''}>{p}</p>)
         : <p className="drop-cap">{text}</p>
       }
     </div>
     {response && (
-      <p className="font-sans text-sm font-semibold text-[#785600] pt-2 border-t border-[#d3c4af]/30">
+      <p className="font-sans text-sm font-semibold text-[#785600] dark:text-amber-300 pt-2 border-t border-[#d3c4af]/30 dark:border-zinc-800">
         {response}
       </p>
     )}

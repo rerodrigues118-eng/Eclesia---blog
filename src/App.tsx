@@ -427,7 +427,7 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#fcf9f8] dark:bg-[#141210] text-[#1c1b1b] dark:text-[#f3ede2] transition-colors overflow-x-clip w-full">
+    <div className="min-h-screen flex flex-col bg-[#fcf9f8] dark:bg-[#121212] text-[#1c1b1b] dark:text-[#F9FAFB] transition-colors duration-200 overflow-x-hidden w-full">
       {/* Dynamic SEO Meta Tags, Open Graph & Structured Data (Schema.org JSON-LD) */}
       <SEOHead
         activeView={activeView}

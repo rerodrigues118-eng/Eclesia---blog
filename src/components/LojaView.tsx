@@ -49,19 +49,19 @@ const ProductDetail: React.FC<{
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20 space-y-10">
       <button
         onClick={onBack}
-        className="flex items-center gap-2 text-[#785600] hover:text-[#9a7000] font-sans text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors"
+        className="flex items-center gap-2 text-[#785600] dark:text-amber-400 hover:text-[#9a7000] dark:hover:text-amber-300 font-sans text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors"
       >
         <ArrowLeft className="w-4 h-4" /> Voltar à Loja
       </button>
 
       {/* Main Product Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 bg-white rounded-3xl border border-[#d3c4af]/60 p-6 md:p-10 shadow-sm">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 bg-white dark:bg-zinc-900/90 rounded-3xl border border-[#d3c4af]/60 dark:border-zinc-800 p-6 md:p-10 shadow-sm">
         {/* Image */}
-        <div className="aspect-square bg-[#fcf9f8] rounded-2xl overflow-hidden border border-[#d3c4af]/40 flex items-center justify-center p-4">
+        <div className="aspect-square bg-[#fcf9f8] dark:bg-zinc-950 rounded-2xl overflow-hidden border border-[#d3c4af]/40 dark:border-zinc-800 flex items-center justify-center p-4">
           <img
             src={product.imageUrl}
             alt={product.title}
-            className="w-full h-full object-cover rounded-xl"
+            className="w-full h-full max-w-full object-cover rounded-xl"
             loading="lazy"
             decoding="async"
           />
@@ -70,46 +70,46 @@ const ProductDetail: React.FC<{
         {/* Info */}
         <div className="flex flex-col justify-between space-y-6">
           <div className="space-y-4">
-            <span className={`inline-block px-3 py-1 ${CATEGORY_COLORS[product.category] ?? 'bg-[#785600]'} text-white text-[10px] font-bold uppercase tracking-widest rounded-full`}>
+            <span className={`inline-block px-3 py-1 ${CATEGORY_COLORS[product.category] ?? 'bg-[#785600] dark:bg-amber-600'} text-white text-[10px] font-bold uppercase tracking-widest rounded-full`}>
               {product.category}
             </span>
 
-            <h1 className="font-display text-3xl md:text-4xl font-bold text-[#1c1b1b] leading-tight">
+            <h1 className="font-display text-3xl md:text-4xl font-bold text-[#1c1b1b] dark:text-[#F9FAFB] leading-tight">
               {product.title}
             </h1>
-            <p className="font-sans text-sm text-[#817563] font-medium">{product.subtitle}</p>
+            <p className="font-sans text-sm text-[#817563] dark:text-zinc-400 font-medium">{product.subtitle}</p>
 
             <div className="flex items-center gap-1">
               {[...Array(5)].map((_, i) => (
                 <Star key={i} className="w-4 h-4 fill-[#f7bd48] text-[#f7bd48]" />
               ))}
-              <span className="font-sans text-xs text-[#817563] ml-1">(Produto de curadoria)</span>
+              <span className="font-sans text-xs text-[#817563] dark:text-zinc-400 ml-1">(Produto de curadoria)</span>
             </div>
 
-            <p className="font-sans text-sm text-[#4f4535] leading-relaxed">{product.description}</p>
+            <p className="font-sans text-sm text-[#4f4535] dark:text-zinc-300 leading-relaxed">{product.description}</p>
 
-            <div className="flex items-center gap-2 text-xs text-[#4f4535]">
-              <Package className="w-4 h-4 text-[#785600]" />
+            <div className="flex items-center gap-2 text-xs text-[#4f4535] dark:text-zinc-300">
+              <Package className="w-4 h-4 text-[#785600] dark:text-amber-400" />
               <span className="font-semibold">{product.inStock ? 'Em estoque — envio em até 3 dias úteis' : 'Sob encomenda'}</span>
             </div>
           </div>
 
-          <div className="space-y-4 border-t border-[#d3c4af]/40 pt-6">
+          <div className="space-y-4 border-t border-[#d3c4af]/40 dark:border-zinc-800 pt-6">
             <div className="flex items-end gap-3">
-              <span className="font-display text-4xl font-bold text-[#785600]">
+              <span className="font-display text-4xl font-bold text-[#785600] dark:text-amber-300">
                 R$ {product.price.toFixed(2).replace('.', ',')}
               </span>
-              <span className="font-sans text-xs text-[#817563] mb-1">à vista</span>
+              <span className="font-sans text-xs text-[#817563] dark:text-zinc-400 mb-1">à vista</span>
             </div>
 
             {cartItem && (
-              <div className="flex items-center gap-2 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl px-4 py-2">
                 <Check className="w-4 h-4" /> {cartItem.quantity}x já no seu carrinho
               </div>
             )}
 
             {!user && (
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-[#785600] flex items-center gap-2">
+              <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 rounded-2xl text-xs text-[#785600] dark:text-amber-300 flex items-center gap-2">
                 <Lock className="w-4 h-4 shrink-0" />
                 <span>Crie uma conta gratuita ou entre para adicionar itens ao carrinho.</span>
               </div>
@@ -248,15 +248,15 @@ export const LojaView: React.FC<LojaViewProps> = ({
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20 space-y-10 animate-fade-in">
       {/* Header */}
-      <div className="border-b border-[#d3c4af]/50 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="border-b border-[#d3c4af]/50 dark:border-zinc-800 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <span className="font-sans text-xs font-bold text-[#785600] uppercase tracking-widest block mb-1">
+          <span className="font-sans text-xs font-bold text-[#785600] dark:text-amber-400 uppercase tracking-widest block mb-1">
             Curadoria Eclesia
           </span>
-          <h1 className="font-display text-4xl md:text-5xl font-bold text-[#1c1b1b] tracking-tight">
+          <h1 className="font-display text-4xl md:text-5xl font-bold text-[#1c1b1b] dark:text-[#F9FAFB] tracking-tight">
             Loja & Sacramentais
           </h1>
-          <p className="font-sans text-sm md:text-base text-[#4f4535] mt-2 max-w-2xl leading-relaxed">
+          <p className="font-sans text-sm md:text-base text-[#4f4535] dark:text-zinc-300 mt-2 max-w-2xl leading-relaxed">
             Livros de formação espiritual, crucifixos, terços e arte sacra nobre para seu lar e devoção diária.
           </p>
         </div>
@@ -269,8 +269,8 @@ export const LojaView: React.FC<LojaViewProps> = ({
               onClick={() => setSelectedCategory(cat.id)}
               className={`px-4 py-2 rounded-full font-sans text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
                 selectedCategory === cat.id
-                  ? 'bg-[#785600] text-white shadow-sm'
-                  : 'bg-white border border-[#d3c4af]/60 text-[#4f4535] hover:border-[#785600]'
+                  ? 'bg-[#785600] dark:bg-amber-600 text-white shadow-sm'
+                  : 'bg-white dark:bg-zinc-900 border border-[#d3c4af]/60 dark:border-zinc-700 text-[#4f4535] dark:text-zinc-200 hover:border-[#785600] dark:hover:border-amber-400'
               }`}
             >
               {cat.label}
@@ -281,12 +281,12 @@ export const LojaView: React.FC<LojaViewProps> = ({
 
       {/* Product Grid */}
       {filtered.length === 0 ? (
-        <div className="text-center py-16 bg-white border border-[#d3c4af]/50 rounded-3xl p-8 space-y-4">
-          <div className="w-16 h-16 mx-auto rounded-full bg-[#f6f3f2] flex items-center justify-center text-[#785600]">
+        <div className="text-center py-16 bg-white dark:bg-zinc-900/90 border border-[#d3c4af]/50 dark:border-zinc-800 rounded-3xl p-8 space-y-4">
+          <div className="w-16 h-16 mx-auto rounded-full bg-[#f6f3f2] dark:bg-zinc-800 flex items-center justify-center text-[#785600] dark:text-amber-400">
             <ShoppingBag className="w-8 h-8 opacity-60" />
           </div>
-          <h3 className="font-display text-2xl font-bold text-[#1c1b1b]">Nenhum produto encontrado</h3>
-          <p className="font-sans text-sm text-[#4f4535] max-w-md mx-auto">
+          <h3 className="font-display text-2xl font-bold text-[#1c1b1b] dark:text-[#F9FAFB]">Nenhum produto encontrado</h3>
+          <p className="font-sans text-sm text-[#4f4535] dark:text-zinc-300 max-w-md mx-auto">
             Os produtos da loja são carregados diretamente do banco de dados. Cadastre itens sacros e livros pelo painel de administração.
           </p>
         </div>
@@ -299,17 +299,17 @@ export const LojaView: React.FC<LojaViewProps> = ({
             return (
               <article
                 key={product.id}
-                className="bg-white rounded-3xl border border-[#d3c4af]/60 overflow-hidden shadow-xs hover:shadow-xl hover:border-[#785600] transition-all duration-300 flex flex-col justify-between group"
+                className="bg-white dark:bg-zinc-900/90 rounded-3xl border border-[#d3c4af]/60 dark:border-zinc-800 overflow-hidden shadow-xs hover:shadow-xl hover:border-[#785600] dark:hover:border-amber-500/70 transition-all duration-300 flex flex-col justify-between group"
               >
                 {/* Image Container */}
                 <div
                   onClick={() => setSelectedProduct(product)}
-                  className="aspect-[4/3] p-2.5 bg-[#fcf9f8] relative cursor-pointer overflow-hidden"
+                  className="aspect-[4/3] p-2.5 bg-[#fcf9f8] dark:bg-zinc-950 relative cursor-pointer overflow-hidden"
                 >
                   <img
                     src={product.imageUrl}
                     alt={product.title}
-                    className="w-full h-full object-cover rounded-2xl transition-transform duration-700 group-hover:scale-105"
+                    className="w-full h-full max-w-full object-cover rounded-2xl transition-transform duration-700 group-hover:scale-105"
                     loading="lazy"
                     decoding="async"
                   />
@@ -327,26 +327,26 @@ export const LojaView: React.FC<LojaViewProps> = ({
 
                 {/* Content */}
                 <div className="p-6 space-y-1.5">
-                  <span className="font-sans text-[10px] font-bold text-[#785600] uppercase tracking-widest block">
+                  <span className="font-sans text-[10px] font-bold text-[#785600] dark:text-amber-400 uppercase tracking-widest block">
                     {product.category}
                   </span>
                   <h3
                     onClick={() => setSelectedProduct(product)}
-                    className="font-display text-xl font-bold text-[#1c1b1b] cursor-pointer hover:text-[#785600] transition-colors"
+                    className="font-display text-xl font-bold text-[#1c1b1b] dark:text-zinc-100 cursor-pointer hover:text-[#785600] dark:hover:text-amber-300 transition-colors"
                   >
                     {product.title}
                   </h3>
-                  <p className="font-sans text-xs text-[#817563] font-medium">{product.subtitle}</p>
-                  <p className="font-sans text-xs text-[#4f4535] line-clamp-2 leading-relaxed pt-1">
+                  <p className="font-sans text-xs text-[#817563] dark:text-zinc-400 font-medium">{product.subtitle}</p>
+                  <p className="font-sans text-xs text-[#4f4535] dark:text-zinc-300 line-clamp-2 leading-relaxed pt-1">
                     {product.description}
                   </p>
                 </div>
 
                 {/* Price + Buy Button + Cart Icon Button */}
-                <div className="px-6 pb-6 pt-3 flex items-center justify-between border-t border-[#d3c4af]/30 mt-2 gap-3">
+                <div className="px-6 pb-6 pt-3 flex items-center justify-between border-t border-[#d3c4af]/30 dark:border-zinc-800 mt-2 gap-3">
                   <div>
-                    <span className="font-sans text-[10px] text-[#817563] block">Preço</span>
-                    <span className="font-display text-2xl font-bold text-[#785600]">
+                    <span className="font-sans text-[10px] text-[#817563] dark:text-zinc-400 block">Preço</span>
+                    <span className="font-display text-2xl font-bold text-[#785600] dark:text-amber-300">
                       R$ {product.price.toFixed(2).replace('.', ',')}
                     </span>
                   </div>
@@ -355,7 +355,7 @@ export const LojaView: React.FC<LojaViewProps> = ({
                     {/* Comprar Button */}
                     <button
                       onClick={() => handleBuyProduct(product)}
-                      className="px-4 py-2.5 bg-[#785600] hover:bg-[#9a7000] text-white font-sans text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm cursor-pointer hover:scale-105 flex items-center gap-1"
+                      className="px-4 py-2.5 bg-[#785600] hover:bg-[#9a7000] dark:bg-amber-600 dark:hover:bg-amber-500 text-white font-sans text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm cursor-pointer hover:scale-105 flex items-center gap-1"
                       title={product.buyUrl ? 'Comprar no Mercado Livre / Shopee' : 'Comprar'}
                     >
                       Comprar
@@ -367,7 +367,7 @@ export const LojaView: React.FC<LojaViewProps> = ({
                       className={`p-2.5 rounded-xl border transition-all cursor-pointer shadow-xs flex items-center justify-center ${
                         isAdded
                           ? 'bg-emerald-600 border-emerald-600 text-white scale-95'
-                          : 'bg-amber-50 hover:bg-amber-100 border-[#d3c4af] text-[#785600]'
+                          : 'bg-amber-50 dark:bg-zinc-800 hover:bg-amber-100 dark:hover:bg-zinc-700 border-[#d3c4af] dark:border-zinc-700 text-[#785600] dark:text-amber-400'
                       }`}
                       title="Adicionar ao Carrinho"
                     >
