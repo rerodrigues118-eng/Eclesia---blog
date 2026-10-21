@@ -1,6 +1,20 @@
 name = "eclesia-blog"
 compatibility_date = "2024-01-01"
+main = "worker.ts"
 
 [assets]
 directory = "./dist"
 not_found_handling = "single-page-application"
+
+# ────────────────────────────────────────────────────────────
+# Cron Triggers (horários em UTC — Brasil = UTC-3)
+# ────────────────────────────────────────────────────────────
+[triggers]
+crons = [
+  "0 6 * * *",    # Liturgia Diária      — 03:00 BRT
+  "5 6 * * *",    # Santo do Dia          — 03:05 BRT
+  "0 9 * * *",    # Artigo Slot 1 (Manhã) — 06:00 BRT
+  "30 13 * * *",  # Artigo Slot 2 (Tarde) — 10:30 BRT
+  "0 18 * * *",   # Artigo Slot 3 (Fim)   — 15:00 BRT
+  "30 22 * * *"   # Artigo Slot 4 (Noite) — 19:30 BRT
+]

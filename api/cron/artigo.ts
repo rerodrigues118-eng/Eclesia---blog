@@ -1,49 +1,54 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+/**
+ * Handler HTTP de Geração de Artigos
+ * Compatível com Cloudflare Workers (Web API padrão: Request / Response)
+ */
 import { gerarArtigoEmAlta } from '../../src/services/contentAutomation';
 import { submitToIndexNow, pingSearchEnginesSitemap, SITE_URL } from '../../src/services/seoIndexing';
 
+/**
+ * Inferência de slot com base na hora UTC atual.
+ * Slot 1 → 06h BRT (09h UTC)
+ * Slot 2 → 10h30 BRT (13h30 UTC)
+ * Slot 3 → 15h BRT (18h UTC)
+ * Slot 4 → 19h30 BRT (22h30 UTC)
+ */
 function inferSlotFromHour(): number {
-  const now = new Date();
-  const utcHours = now.getUTCHours();
-  // Slot 1: ~06:00 BRT (09:00 UTC)
-  // Slot 2: ~10:30 BRT (13:30 UTC)
-  // Slot 3: ~15:00 BRT (18:00 UTC)
-  // Slot 4: ~19:30 BRT (22:30 UTC)
-  if (utcHours >= 6 && utcHours < 12) return 1;
+  const utcHours = new Date().getUTCHours();
+  if (utcHours >= 6  && utcHours < 12) return 1;
   if (utcHours >= 12 && utcHours < 16) return 2;
   if (utcHours >= 16 && utcHours < 21) return 3;
   return 4;
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Verificação opcional do CRON_SECRET para segurança em produção
-  const authHeader = req.headers.authorization;
-  const cronSecret = process.env.CRON_SECRET;
+export async function handleArtigo(req: Request, env?: Record<string, string>): Promise<Response> {
+  const cronSecret = (env?.CRON_SECRET) ?? (typeof process !== 'undefined' ? process.env.CRON_SECRET : undefined);
+  const authHeader = req.headers.get('authorization');
 
   if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return res.status(401).json({ error: 'Não autorizado. CRON_SECRET inválido ou ausente.' });
+    return Response.json({ error: 'Não autorizado. CRON_SECRET inválido ou ausente.' }, { status: 401 });
   }
 
   try {
-    const slotQuery = req.query.slot ? parseInt(req.query.slot as string, 10) : undefined;
-    const slot = slotQuery && !isNaN(slotQuery) && slotQuery >= 1 && slotQuery <= 4
-      ? slotQuery
+    const url = new URL(req.url);
+    const slotParam = url.searchParams.get('slot');
+    const slotParsed = slotParam ? parseInt(slotParam, 10) : NaN;
+    const slot = !isNaN(slotParsed) && slotParsed >= 1 && slotParsed <= 4
+      ? slotParsed
       : inferSlotFromHour();
 
-    console.log(`[Vercel Cron] Iniciando geração de Artigo Católico em Alta (Slot ${slot})...`);
+    console.log(`[CF Cron] Iniciando geração de Artigo Católico em Alta (Slot ${slot})...`);
     const result = await gerarArtigoEmAlta(slot);
 
-    // Notificação imediata ao Google, Bing e Yandex após publicação
     if (result?.article?.slug) {
       const articleUrl = `${SITE_URL}/blog/${result.article.slug}`;
-      console.log(`[Vercel Cron] Notificando mecanismos de busca sobre novo artigo: ${articleUrl}`);
+      console.log(`[CF Cron] Notificando mecanismos de busca: ${articleUrl}`);
       await Promise.allSettled([
         submitToIndexNow([articleUrl, `${SITE_URL}/blog`, `${SITE_URL}/sitemap.xml`]),
         pingSearchEnginesSitemap()
       ]);
     }
 
-    return res.status(200).json({
+    return Response.json({
       success: true,
       timestamp: new Date().toISOString(),
       slot,
@@ -52,10 +57,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       article: result.article
     });
   } catch (error: any) {
-    console.error('[Vercel Cron Error - Artigo]:', error);
-    return res.status(500).json({
+    console.error('[CF Cron Error - Artigo]:', error);
+    return Response.json({
       success: false,
       error: error.message || 'Erro ao gerar artigo católico com IA'
-    });
+    }, { status: 500 });
   }
 }
+
+/** Exportação padrão para uso direto como Cloudflare Pages Function */
+export default {
+  async fetch(req: Request, env: any): Promise<Response> {
+    return handleArtigo(req, env);
+  }
+};

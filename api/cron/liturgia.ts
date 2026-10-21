@@ -1,40 +1,50 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+/**
+ * Handler HTTP da Liturgia Diária
+ * Compatível com Cloudflare Workers (Web API padrão: Request / Response)
+ */
 import { gerarLiturgiaDiaria } from '../../src/services/contentAutomation';
 import { submitToIndexNow, pingSearchEnginesSitemap, SITE_URL } from '../../src/services/seoIndexing';
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const authHeader = req.headers.authorization;
-  const cronSecret = process.env.CRON_SECRET;
+export async function handleLiturgia(req: Request, env?: Record<string, string>): Promise<Response> {
+  const cronSecret = (env?.CRON_SECRET) ?? (typeof process !== 'undefined' ? process.env.CRON_SECRET : undefined);
+  const authHeader = req.headers.get('authorization');
 
   if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return res.status(401).json({ error: 'Não autorizado. CRON_SECRET inválido ou ausente.' });
+    return Response.json({ error: 'Não autorizado. CRON_SECRET inválido ou ausente.' }, { status: 401 });
   }
 
   try {
-    const targetDate = typeof req.query.date === 'string' ? req.query.date : undefined;
-    const force = req.query.force === 'true' || req.query.force === '1';
+    const url = new URL(req.url);
+    const targetDate = url.searchParams.get('date') ?? undefined;
+    const force = url.searchParams.get('force') === 'true' || url.searchParams.get('force') === '1';
 
-    console.log(`[Vercel Cron] Iniciando publicação da Liturgia Diária da Palavra (Data: ${targetDate || 'Hoje BRT'})...`);
+    console.log(`[CF Cron] Iniciando publicação da Liturgia Diária (Data: ${targetDate || 'Hoje BRT'})...`);
     const result = await gerarLiturgiaDiaria(targetDate, force);
 
-    // Notificação imediata ao Google, Bing e Yandex sobre nova liturgia
-    console.log('[Vercel Cron] Notificando mecanismos de busca sobre nova Liturgia Diária...');
+    console.log('[CF Cron] Notificando mecanismos de busca sobre nova Liturgia Diária...');
     await Promise.allSettled([
       submitToIndexNow([`${SITE_URL}/liturgia`, `${SITE_URL}/`, `${SITE_URL}/sitemap.xml`]),
       pingSearchEnginesSitemap()
     ]);
 
-    return res.status(200).json({
+    return Response.json({
       success: true,
       timestamp: new Date().toISOString(),
       liturgy: result.liturgy,
       article: result.article
     });
   } catch (error: any) {
-    console.error('[Vercel Cron Error - Liturgia]:', error);
-    return res.status(500).json({
+    console.error('[CF Cron Error - Liturgia]:', error);
+    return Response.json({
       success: false,
       error: error.message || 'Erro ao gerar liturgia diária com IA'
-    });
+    }, { status: 500 });
   }
 }
+
+/** Exportação padrão para uso direto como Cloudflare Pages Function */
+export default {
+  async fetch(req: Request, env: any): Promise<Response> {
+    return handleLiturgia(req, env);
+  }
+};
