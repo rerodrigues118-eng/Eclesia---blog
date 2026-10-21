@@ -209,13 +209,13 @@ export const MYSTERY_GROUPS: MysteryGroup[] = [
 ];
 
 export const TercoInterativo: React.FC = () => {
-  // Modo de visualização: Tradicional (adulto) ou Kids (infantil)
+  // Modo de visualização: Padrão Santo Terço Kids com alternador para Adulto Tradicional
   const [tercoMode, setTercoMode] = useState<'adult' | 'kids'>(() => {
     if (typeof window !== 'undefined') {
       const urlParam = new URLSearchParams(window.location.search).get('modo');
-      if (urlParam === 'kids' || window.location.hash.includes('kids')) return 'kids';
+      if (urlParam === 'adult' || window.location.hash.includes('adult')) return 'adult';
     }
-    return 'adult';
+    return 'kids'; // Padrão: Santo Terço Kids imediato na tela!
   });
 
   // 1. Lógica Automática do Dia da Semana
