@@ -1,0 +1,20 @@
+{
+  "name": "eclesia-crons",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cloudflare Worker autônomo para crons do blog Eclesia",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "secrets": "echo 'Use: npx wrangler secret put <NOME_DA_VARIAVEL>'"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.112.3",
+    "@google/genai": "^2.4.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241106.0",
+    "typescript": "~5.8.2",
+    "wrangler": "^3.114.9"
+  }
+}

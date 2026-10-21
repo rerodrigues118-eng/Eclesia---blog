@@ -1,0 +1,24 @@
+name = "eclesia-crons"
+compatibility_date = "2024-09-23"
+main = "index.ts"
+
+# ────────────────────────────────────────────────────────────
+# Cron Triggers — Horários em UTC (Brasil = UTC-3)
+# ────────────────────────────────────────────────────────────
+[triggers]
+crons = [
+  "0 6 * * *",    # Liturgia + Santo do Dia  — 03:00 BRT (combinados)
+  "0 9 * * *",    # Artigo Slot 1 Manhã      — 06:00 BRT
+  "30 13 * * *",  # Artigo Slot 2 Tarde      — 10:30 BRT
+  "0 18 * * *",   # Artigo Slot 3 Fim Tarde  — 15:00 BRT
+  "30 22 * * *"   # Artigo Slot 4 Noite      — 19:30 BRT
+]  # Total: 5 triggers (limite do plano Free)
+
+# Variáveis de ambiente — defina os valores reais via:
+# npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+# npx wrangler secret put GEMINI_API_KEY
+# npx wrangler secret put GROK_API_KEY
+# npx wrangler secret put CRON_SECRET
+[vars]
+VITE_SUPABASE_URL = "https://sdyytxnmdquriqsxuvhd.supabase.co"
+SITE_URL = "https://eclesia.blog"
