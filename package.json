@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
-    "deploy": "wrangler pages deploy ./dist --project-name eclesia-blog",
+    "deploy": "echo 'Deploy gerenciado automaticamente pelo Cloudflare Pages via Git'",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"
