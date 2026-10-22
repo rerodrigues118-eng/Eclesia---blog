@@ -2,9 +2,6 @@ name = "eclesia-blog"
 compatibility_date = "2024-01-01"
 workers_dev = true
 
-# Site estático servido via Cloudflare Workers + Assets
-# Os Cron Triggers estão no Worker separado: cron-worker/
-
 [assets]
 directory = "./dist"
 not_found_handling = "single-page-application"
