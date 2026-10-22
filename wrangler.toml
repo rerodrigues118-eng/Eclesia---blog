@@ -1,8 +1,8 @@
 name = "eclesia-blog"
 compatibility_date = "2024-01-01"
+workers_dev = true
 
-# Este projeto é um Cloudflare Pages (site estático).
-# O deploy é feito automaticamente via integração GitHub.
+# Site estático servido via Cloudflare Workers + Assets
 # Os Cron Triggers estão no Worker separado: cron-worker/
 
 [assets]
