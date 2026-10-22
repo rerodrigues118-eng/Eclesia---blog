@@ -22,6 +22,7 @@ import { AuthView } from './components/AuthView';
 import { CookieBanner } from './components/CookieBanner';
 import { SEOHead } from './components/SEOHead';
 import { TercoInterativo } from './components/TercoInterativo';
+import { SantoTercoKids } from './components/SantoTercoKids';
 import { BenfeitoresView } from './components/BenfeitoresView';
 import { useAuth } from './hooks/useAuth';
 import { AdminDashboard, AdminLoginView } from './admin';
@@ -217,7 +218,7 @@ export const App: React.FC = () => {
 
       const validViews: ActiveView[] = [
         'home', 'blog', 'loja', 'oracoes', 'liturgia',
-        'santoral', 'terco', 'benfeitores', 'assinaturas', 'admin',
+        'santoral', 'terco', 'terco-kids', 'benfeitores', 'assinaturas', 'admin',
         'auth', 'termos', 'privacidade', 'conduta'
       ];
 
@@ -493,6 +494,10 @@ export const App: React.FC = () => {
             )}
 
             {activeView === 'terco' && <TercoInterativo />}
+
+            {activeView === 'terco-kids' && (
+              <SantoTercoKids onSwitchToAdult={() => handleNavChange('terco')} />
+            )}
 
             {activeView === 'liturgia' && <LiturgiaView />}
 

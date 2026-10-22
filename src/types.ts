@@ -9,6 +9,7 @@ export type ActiveView =
   | 'igrejas' 
   | 'oracoes' 
   | 'terco'
+  | 'terco-kids'
   | 'benfeitores'
   | 'termos' 
   | 'privacidade' 
