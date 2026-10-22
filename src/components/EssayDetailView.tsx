@@ -22,14 +22,29 @@ export const EssayDetailView: React.FC<EssayDetailViewProps> = ({ essay, onBack,
 
   // Injeta automaticamente as Meta Tags e o Schema.org JSON-LD para o Googlebot
   useEffect(() => {
-    updateDocumentSeo(essay);
+    if (essay) updateDocumentSeo(essay);
     return () => {
       resetPortalSeo();
     };
   }, [essay]);
 
+  if (!essay) {
+    return (
+      <div className="w-full max-w-4xl mx-auto px-4 py-16 text-center space-y-4">
+        <h2 className="font-display text-2xl font-bold text-[#1c1b1b] dark:text-[#F9FAFB]">Artigo não encontrado</h2>
+        <p className="text-sm text-[#4f4535] dark:text-zinc-400">O artigo solicitado não foi localizado ou ainda está sendo publicado.</p>
+        <button
+          onClick={onBack}
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#785600] text-white text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-sm"
+        >
+          <ArrowLeft className="w-4 h-4" /> Voltar ao Blog
+        </button>
+      </div>
+    );
+  }
+
   // Find related articles (excluding current one)
-  const relatedEssays = allArticles.filter((e) => e.id !== essay.id).slice(0, 3);
+  const relatedEssays = (allArticles || []).filter((e) => e && e.id !== essay.id).slice(0, 3);
 
   const getShareUrl = () => {
     const baseUrl = window.location.origin;

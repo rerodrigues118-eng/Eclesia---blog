@@ -24,6 +24,7 @@ import { SEOHead } from './components/SEOHead';
 import { TercoInterativo } from './components/TercoInterativo';
 import { SantoTercoKids } from './components/SantoTercoKids';
 import { BenfeitoresView } from './components/BenfeitoresView';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { useAuth } from './hooks/useAuth';
 import { AdminDashboard, AdminLoginView } from './admin';
 import { supabase } from './lib/supabase/client';
@@ -46,6 +47,7 @@ export const App: React.FC = () => {
   const [activeView, setActiveView] = useState<ActiveView>('home');
   const [selectedSaint, setSelectedSaint] = useState<Saint | null>(null);
   const [selectedEssay, setSelectedEssay] = useState<Essay | null>(null);
+  const [isLoadingDirectSlug, setIsLoadingDirectSlug] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
@@ -185,10 +187,55 @@ export const App: React.FC = () => {
           setSelectedEssay(match);
           setSelectedSaint(null);
           setActiveView('blog');
-          // Normaliza URL: remove trailing slash se houver
           if (rawPath !== `/blog/${slug}`) {
             window.history.replaceState(null, '', `/blog/${slug}`);
           }
+          return;
+        } else {
+          // Busca sob demanda direta no Supabase para quando o usuário acessa URL direta ou recém-publicada
+          setIsLoadingDirectSlug(true);
+          supabase
+            .from('articles')
+            .select('*')
+            .or(`slug.eq.${slug},id.eq.${slug}`)
+            .maybeSingle()
+            .then(({ data, error }) => {
+              if (data && !error) {
+                const mapped: Essay = {
+                  id: data.id,
+                  title: data.title || '',
+                  category: data.category || 'Teologia',
+                  type: data.type || 'artigo',
+                  imageUrl: data.cover_image || 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1200',
+                  excerpt: data.excerpt || '',
+                  content: data.content || '',
+                  author: data.author_name || 'Redação Eclesia',
+                  readTime: data.read_time || '5 min de leitura',
+                  date: data.published_at
+                    ? new Date(data.published_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
+                    : 'Recente',
+                  featured: Boolean(data.featured),
+                  trending: Boolean(data.trending),
+                  slug: data.slug,
+                  metaTitle: data.meta_title || data.title,
+                  metaDescription: data.meta_description || data.excerpt,
+                  keywords: data.keywords || [],
+                  mediaMap: data.media_map
+                };
+                setSelectedEssay(mapped);
+                setSelectedSaint(null);
+                setActiveView('blog');
+                setArticles(prev => (prev.some(a => a.id === mapped.id) ? prev : [mapped, ...prev]));
+              }
+            })
+            .catch(err => {
+              console.warn('[App] Erro na busca direta do artigo:', err);
+            })
+            .finally(() => {
+              setIsLoadingDirectSlug(false);
+            });
+          setSelectedSaint(null);
+          setActiveView('blog');
           return;
         }
       }
@@ -454,13 +501,20 @@ export const App: React.FC = () => {
 
       {/* View Switcher */}
       <main className="flex-1 w-full">
-        {selectedEssay ? (
-          <EssayDetailView
-            essay={articles.find(a => a.id === selectedEssay.id || (a.slug && a.slug === selectedEssay.slug)) || selectedEssay}
-            onBack={handleBackFromDetail}
-            onSelectEssay={handleSelectEssay}
-            allArticles={articles}
-          />
+        {isLoadingDirectSlug && !selectedEssay ? (
+          <div className="w-full max-w-4xl mx-auto px-4 py-28 text-center space-y-4">
+            <div className="w-10 h-10 border-3 border-[#785600] border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="text-sm font-semibold text-[#4f4535] dark:text-zinc-300">Carregando leitura do artigo...</p>
+          </div>
+        ) : selectedEssay ? (
+          <ErrorBoundary fallbackTitle="Não foi possível exibir o artigo">
+            <EssayDetailView
+              essay={articles.find(a => a.id === selectedEssay.id || (a.slug && a.slug === selectedEssay.slug)) || selectedEssay}
+              onBack={handleBackFromDetail}
+              onSelectEssay={handleSelectEssay}
+              allArticles={articles}
+            />
+          </ErrorBoundary>
         ) : selectedSaint ? (
           <SaintDetailView
             saint={selectedSaint}

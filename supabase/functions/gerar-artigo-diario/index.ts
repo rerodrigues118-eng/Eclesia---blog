@@ -29,8 +29,19 @@ interface RequestPayload {
 }
 
 // ============================================================================
-// SELETOR DE ARTE SACRA CATÓLICA AUTÊNTICA (100% ATIVA E VERIFICADA)
+// ACERVO DE ARTE SACRA CATÓLICA 100% AUTÊNTICA E VERIFICADA
 // ============================================================================
+const IMAGENS_SACRAS_VERIFICADAS = [
+  "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1200", // Altar e Cálice
+  "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&q=80&w=1200", // Bíblia Sagrada e Altar com velas
+  "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&q=80&w=1200", // Santo Terço e Crucifixo
+  "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&q=80&w=1200", // Vitral gótico iluminado
+  "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&q=80&w=1200", // Basílica de São Pedro / Vaticano
+  "https://images.unsplash.com/photo-1577083552431-6e5fd01aa342?auto=format&fit=crop&q=80&w=1200", // Estátua de Nossa Senhora
+  "https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&q=80&w=1200", // Nave de catedral gótica
+  "https://images.unsplash.com/photo-1601142634808-38923eb7c560?auto=format&fit=crop&q=80&w=1200"  // Velas diante do Santíssimo
+];
+
 function selecionarImagensSacras(
   tipo: string,
   titulo: string = "",
@@ -39,17 +50,17 @@ function selecionarImagensSacras(
 ) {
   const texto = `${titulo} ${conteudo} ${categoria}`.toLowerCase();
 
-  // Carlo Acutis / Juventude / Digital
+  // Carlo Acutis / Juventude / Digital -> Catedral, Santíssimo Sacramento ou Adoração
   if (texto.includes("acutis") || texto.includes("jovem") || texto.includes("juventude") || texto.includes("digital")) {
     return {
       capa: {
-        url: "https://images.unsplash.com/photo-1543807535-eceef0bc6599?auto=format&fit=crop&q=80&w=1200",
-        alt: "Nave de catedral iluminada e Santíssimo Sacramento: a Eucaristia de Carlo Acutis"
+        url: "https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&q=80&w=1200",
+        alt: "Nave solene de catedral católica iluminada pela luz divina"
       },
       interna: {
         url: "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&q=80&w=1200",
         alt: "Altar com a Cruz de Cristo, Bíblia aberta e velas acesas",
-        legenda: "A Palavra de Deus e a adoração eucarística que transformam a vida do jovem cristão"
+        legenda: "A Palavra de Deus e a adoração que transformam a vida do cristão"
       }
     };
   }
@@ -59,7 +70,7 @@ function selecionarImagensSacras(
     return {
       capa: {
         url: "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1200",
-        alt: "Cálice de ouro sagrado e Altar da Santa Missa em solene celebração eucarística"
+        alt: "Cálice sagrado e Altar da Santa Missa em solene celebração eucarística"
       },
       interna: {
         url: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&q=80&w=1200",
@@ -84,22 +95,22 @@ function selecionarImagensSacras(
     };
   }
 
-  // Liturgia Diária
-  if (tipo === "liturgia" || texto.includes("liturgia") || texto.includes("evangelho")) {
+  // Liturgia e Sagradas Escrituras
+  if (tipo === "liturgia" || texto.includes("liturgia") || texto.includes("evangelho") || texto.includes("biblia")) {
     return {
       capa: {
-        url: "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1200",
-        alt: "Cálice Sagrado e Altar em solene celebração litúrgica"
+        url: "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&q=80&w=1200",
+        alt: "Bíblia Sagrada aberta no altar com velas acesas"
       },
       interna: {
-        url: "https://images.unsplash.com/photo-1519491050282-cf00c82424b4?auto=format&fit=crop&q=80&w=1200",
-        alt: "Bíblia Sagrada aberta iluminada pela luz da Palavra Viva",
-        legenda: "A Palavra de Deus que ilumina os passos do nosso dia a dia"
+        url: "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1200",
+        alt: "Cálice e Altar em celebração litúrgica",
+        legenda: "A Palavra Viva de Deus que ilumina os passos do nosso dia a dia"
       }
     };
   }
 
-  // Santos
+  // Santos e Santidade
   if (tipo === "santo" || texto.includes("santo") || texto.includes("santidade")) {
     return {
       capa: {
@@ -107,18 +118,18 @@ function selecionarImagensSacras(
         alt: "Pintura sacra clássica renascentista retratando a vida dos santos"
       },
       interna: {
-        url: "https://images.unsplash.com/photo-1543807535-eceef0bc6599?auto=format&fit=crop&q=80&w=1200",
-        alt: "Altar e nave histórica de igreja católica",
+        url: "https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&q=80&w=1200",
+        alt: "Altar e nave histórica de catedral católica",
         legenda: "O testemunho heroico dos santos que iluminam o caminho da Igreja"
       }
     };
   }
 
-  // Geral / Teologia
+  // Geral / Teologia / Vaticano
   return {
     capa: {
-      url: "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&q=80&w=1200",
-      alt: "Altar com a Cruz de Cristo, velas acesas e Bíblia Sagrada"
+      url: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&q=80&w=1200",
+      alt: "Cúpula solene da Basílica de São Pedro em Roma"
     },
     interna: {
       url: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&q=80&w=1200",
@@ -140,7 +151,7 @@ async function chamarTextoIA(promptSistema: string, promptUsuario: string): Prom
 
   // Modelos homologados e ativos na infraestrutura da Groq
   const modelos = isGroq
-    ? ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "groq/compound"]
+    ? ["qwen/qwen3.8-27b", "openai/gpt-oss-120b", "openai/gpt-oss-20b"]
     : ["grok-2-latest", "grok-beta"];
 
   let lastError = "";
@@ -309,9 +320,9 @@ serve(async (req: Request) => {
     const anoNum = hoje.getFullYear();
 
     let tipoPost = payload.tipo;
-    if (!tipoPost) {
+    if (!tipoPost || tipoPost === "liturgia") {
       const horaAtual = hoje.getHours();
-      tipoPost = horaAtual < 9 ? "liturgia" : "tema_em_alta";
+      tipoPost = horaAtual < 12 ? "espiritualidade" : "tema_em_alta";
     }
 
     const isTrending = tipoPost === "tema_em_alta";

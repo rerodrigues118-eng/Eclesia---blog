@@ -44,8 +44,9 @@ export const RichArticleRenderer: React.FC<RichArticleRendererProps> = ({
   // Helper to resolve media URL (handles short IDs like "img-1", "1" or direct URLs / base64)
   const resolveImgUrl = (ref: string): string => {
     const cleanRef = ref.trim();
-    if (mediaMap[cleanRef]) return mediaMap[cleanRef];
-    if (mediaMap[`img-${cleanRef}`]) return mediaMap[`img-${cleanRef}`];
+    const safeMediaMap = (mediaMap && typeof mediaMap === 'object') ? mediaMap : {};
+    if (safeMediaMap[cleanRef]) return safeMediaMap[cleanRef];
+    if (safeMediaMap[`img-${cleanRef}`]) return safeMediaMap[`img-${cleanRef}`];
     return cleanRef;
   };
 

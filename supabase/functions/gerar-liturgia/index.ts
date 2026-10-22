@@ -1,6 +1,6 @@
 // ============================================================================
 // ECLESIA BLOG CATÓLICO - SUPABASE EDGE FUNCTION: GERAR LITURGIA DIÁRIA
-// Integração: Gemini AI + PostgreSQL (tabela daily_liturgy)
+// Integração: Groq / Qwen + Supabase (Tabela daily_liturgy)
 // ============================================================================
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -14,7 +14,7 @@ const corsHeaders = {
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
+const GROK_API_KEY = Deno.env.get("GROK_API_KEY") ?? "";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -24,19 +24,38 @@ function todayBRT(): string {
   return brt.toISOString().split("T")[0];
 }
 
-async function geminiGenerate(prompt: string): Promise<string> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
-  const res = await fetch(url, {
+async function chamarGroq(promptSistema: string, promptUsuario: string): Promise<string> {
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Authorization": `Bearer ${GROK_API_KEY}`,
+      "Content-Type": "application/json"
+    },
     body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.7, maxOutputTokens: 8192 }
+      model: "qwen/qwen3.8-27b",
+      messages: [
+        { role: "system", content: promptSistema + "\nATENÇÃO: Retorne APENAS um objeto JSON válido, sem texto conversacional antes ou depois." },
+        { role: "user", content: promptUsuario }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.3,
+      max_tokens: 4000
     })
   });
-  if (!res.ok) throw new Error(`Gemini falhou: ${res.status} ${await res.text()}`);
-  const json = await res.json();
-  return json.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`Groq API falhou (${response.status}): ${err}`);
+  }
+
+  const json = await response.json();
+  let text: string = json.choices?.[0]?.message?.content ?? "";
+  if (text.startsWith("```json")) {
+    text = text.replace(/^```json\s*/i, "").replace(/\s*```$/i, "").trim();
+  } else if (text.startsWith("```")) {
+    text = text.replace(/^```\s*/, "").replace(/\s*```$/, "").trim();
+  }
+  return text;
 }
 
 serve(async (req: Request) => {
@@ -45,75 +64,135 @@ serve(async (req: Request) => {
   }
 
   try {
-    const url = new URL(req.url);
-    const targetDate = url.searchParams.get("date") ?? todayBRT();
-    const force = url.searchParams.get("force") === "true";
+    let targetDate = todayBRT();
+    let force = false;
 
-    // Verifica se já existe liturgia para esta data
+    if (req.method === "POST") {
+      try {
+        const body = await req.json();
+        if (body.date) targetDate = body.date;
+        if (body.force) force = Boolean(body.force);
+      } catch {
+        // ignora se corpo vazio
+      }
+    } else {
+      const url = new URL(req.url);
+      targetDate = url.searchParams.get("date") ?? todayBRT();
+      force = url.searchParams.get("force") === "true";
+    }
+
+    // Se já existe e não for force, retorna registro existente
     if (!force) {
       const { data: existing } = await supabase
         .from("daily_liturgy")
-        .select("id, date")
+        .select("*")
         .eq("date", targetDate)
-        .single();
+        .maybeSingle();
 
       if (existing) {
         return new Response(
-          JSON.stringify({ success: true, message: `Liturgia de ${targetDate} já existe.`, id: existing.id }),
+          JSON.stringify({ success: true, message: `Liturgia de ${targetDate} já cadastrada.`, liturgy: existing }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
     }
 
-    const prompt = `Você é um teólogo católico especialista em liturgia romana.
-Gere a Liturgia da Palavra para o dia ${targetDate} do calendário litúrgico romano.
-Responda SOMENTE com JSON válido no formato:
+    const promptSistema = `Você é um teólogo e liturgista católico oficial da Igreja Romana.
+Sua missão é fornecer os textos exatos da Liturgia da Palavra para o dia no rito romano (calendário litúrgico da CNBB).`;
+
+    const promptUsuario = `Gere a Liturgia da Palavra completa para o dia ${targetDate}.
+Retorne estritamente um JSON no seguinte formato:
 {
-  "date": "${targetDate}",
   "liturgical_season": "Tempo Comum",
-  "title": "Título descritivo do dia litúrgico",
-  "first_reading": { "book": "Nome do livro", "reference": "Cap:Ver", "text": "Texto completo da leitura..." },
-  "psalm": { "reference": "Sl XX", "response": "Versículo de resposta", "text": "Estrofes do salmo..." },
+  "liturgical_color": "Verde",
+  "color_hex": "#1c5d3a",
+  "full_date_str": "Quinta-feira da 29ª Semana do Tempo Comum",
+  "first_reading": {
+    "title": "Primeira Leitura",
+    "reference": "Ef 3, 14-21",
+    "rubric": "Leitura da Carta de São Paulo aos Efésios.",
+    "text": [
+      "Irmãos: Eu dobro os joelhos diante do Pai...",
+      "Que ele vos conceda, segundo a riqueza de sua glória, serdes robustecidos pelo seu Espírito...",
+      "A Ele a glória na Igreja e em Cristo Jesus, por todas as gerações dos séculos dos séculos. Amém."
+    ],
+    "response": "— Palavra do Senhor. / Graças a Deus."
+  },
+  "psalm": {
+    "reference": "Sl 32(33), 1-2.4-5.11-12.18-19 (R. 5b)",
+    "antiphon": "Transborda em toda a terra a bondade do Senhor.",
+    "stanzas": [
+      "Ó justos, alegrai-vos no Senhor! Aos retos fica bem louvá-lo.",
+      "Pois reta é a palavra do Senhor, e tudo o que ele faz é digno de fé.",
+      "Mas o desígnio do Senhor permanece para sempre, os pensamentos do seu coração de geração em geração."
+    ]
+  },
   "second_reading": null,
-  "gospel_acclamation": "Versículo da aclamação",
-  "gospel": { "book": "Jo|Mt|Mc|Lc", "reference": "Cap:Ver", "text": "Texto completo do Evangelho..." },
-  "reflection": "Reflexão meditativa em 3 parágrafos sobre a mensagem central do dia..."
+  "gospel": {
+    "reference": "Lc 12, 49-53",
+    "dialogue": {
+      "lordBeWithYou": "— O Senhor esteja convosco.",
+      "andWithYourSpirit": "— Ele está no meio de nós.",
+      "gospelProclamation": "— Proclamação do Evangelho de Jesus Cristo segundo Lucas.",
+      "gloryToYou": "— Glória a vós, Senhor."
+    },
+    "acclamation": "Aleluia, aleluia, aleluia.",
+    "text": [
+      "Naquele tempo, disse Jesus aos seus discípulos: 'Eu vim para lançar fogo sobre a terra, e como gostaria que já estivesse aceso!'",
+      "'Devo receber um batismo, e como estou ansioso até que ele se cumpra!'",
+      "'Pensais que eu vim para trazer a paz sobre a terra? Não, eu vos digo, mas antes a divisão.'"
+    ],
+    "praise": "— Palavra da Salvação. / Glória a vós, Senhor."
+  }
 }`;
 
-    const raw = await geminiGenerate(prompt);
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("Gemini não retornou JSON válido para Liturgia");
-    const liturgy = JSON.parse(jsonMatch[0]);
+    const jsonString = await chamarGroq(promptSistema, promptUsuario);
+    let parsed: any = {};
+    try {
+      parsed = JSON.parse(jsonString);
+    } catch (e) {
+      console.error("[gerar-liturgia] Falha ao fazer parse do JSON:", jsonString);
+      throw new Error("Resposta da IA não continha JSON válido.");
+    }
 
-    const { data, error } = await supabase
+    const payloadDb = {
+      date: targetDate,
+      liturgical_season: parsed.liturgical_season || "Tempo Comum",
+      liturgical_color: parsed.liturgical_color || "Verde",
+      color_hex: parsed.color_hex || "#1c5d3a",
+      full_date_str: parsed.full_date_str || `Liturgia de ${targetDate}`,
+      first_reading: parsed.first_reading || {},
+      psalm: parsed.psalm || {},
+      second_reading: parsed.second_reading || null,
+      gospel: parsed.gospel || {},
+      source: "CNBB / Liturgia Diária Oficial",
+      inserted_manually: false
+    };
+
+    const { data: saved, error } = await supabase
       .from("daily_liturgy")
-      .upsert({
-        date: targetDate,
-        title: liturgy.title ?? `Liturgia da Palavra — ${targetDate}`,
-        liturgical_season: liturgy.liturgical_season ?? "Tempo Comum",
-        first_reading: liturgy.first_reading ?? null,
-        psalm: liturgy.psalm ?? null,
-        second_reading: liturgy.second_reading ?? null,
-        gospel_acclamation: liturgy.gospel_acclamation ?? null,
-        gospel: liturgy.gospel ?? null,
-        reflection: liturgy.reflection ?? null,
-        updated_at: new Date().toISOString()
-      }, { onConflict: "date" })
+      .upsert(payloadDb, { onConflict: "date" })
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error("[gerar-liturgia] Erro ao gravar em daily_liturgy:", error);
+      throw new Error(`Erro ao salvar no banco: ${error.message}`);
+    }
 
     return new Response(
-      JSON.stringify({ success: true, date: targetDate, liturgy: data }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({
+        success: true,
+        message: `Liturgia Diária gravada com sucesso na tabela daily_liturgy (${targetDate})`,
+        liturgy: saved
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro desconhecido";
-    console.error("[gerar-liturgia]", message);
+  } catch (err: any) {
+    console.error("[gerar-liturgia] Erro:", err);
     return new Response(
-      JSON.stringify({ success: false, error: message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ success: false, error: err.message || "Erro desconhecido" }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
     );
   }
 });
