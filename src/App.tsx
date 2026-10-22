@@ -213,12 +213,16 @@ export const App: React.FC = () => {
         window.history.replaceState(null, '', '/');
       }
 
-      // Alias para benfeitores (/apoiar -> benfeitores)
-      const mappedRoot = rootPath === 'apoiar' ? 'benfeitores' : rootPath;
+      // Alias para benfeitores (/apoiar -> benfeitores) e /terco-kids -> /terco
+      let mappedRoot = rootPath === 'apoiar' ? 'benfeitores' : rootPath;
+      if (mappedRoot === 'terco-kids') {
+        window.history.replaceState(null, '', '/terco?modo=kids');
+        mappedRoot = 'terco';
+      }
 
       const validViews: ActiveView[] = [
         'home', 'blog', 'loja', 'oracoes', 'liturgia',
-        'santoral', 'terco', 'terco-kids', 'benfeitores', 'assinaturas', 'admin',
+        'santoral', 'terco', 'benfeitores', 'assinaturas', 'admin',
         'auth', 'termos', 'privacidade', 'conduta'
       ];
 
@@ -494,10 +498,6 @@ export const App: React.FC = () => {
             )}
 
             {activeView === 'terco' && <TercoInterativo />}
-
-            {activeView === 'terco-kids' && (
-              <SantoTercoKids onSwitchToAdult={() => handleNavChange('terco')} />
-            )}
 
             {activeView === 'liturgia' && <LiturgiaView />}
 

@@ -113,19 +113,6 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           <button
-            onClick={() => setActiveView('terco-kids')}
-            className={`font-sans text-xs uppercase tracking-wider font-bold py-1 px-2.5 border-b-2 transition-all duration-150 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
-              activeView === 'terco-kids'
-                ? 'border-[#0284c7] text-[#0284c7] dark:text-[#38bdf8] dark:border-[#38bdf8]'
-                : 'border-transparent text-[#0369a1] dark:text-[#7dd3fc] hover:text-[#0284c7] dark:hover:text-[#bae6fd]'
-            }`}
-          >
-            <span>🎈</span>
-            <span>Terço Kids</span>
-            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-200 font-extrabold border border-sky-300 dark:border-sky-700">NOVO</span>
-          </button>
-
-          <button
             onClick={() => setActiveView('oracoes')}
             className={`font-sans text-xs uppercase tracking-wider font-bold py-1 px-2.5 border-b-2 transition-all duration-150 whitespace-nowrap cursor-pointer ${
               activeView === 'oracoes'
@@ -354,7 +341,6 @@ export const Header: React.FC<HeaderProps> = ({
               { label: 'Início', view: 'home' as ActiveView },
               { label: 'Artigos & Blog', view: 'blog' as ActiveView },
               { label: 'Santo Terço Interativo', view: 'terco' as ActiveView },
-              { label: '🎈 Santo Terço Kids (Infantil)', view: 'terco-kids' as ActiveView },
               { label: 'Orações Católicas', view: 'oracoes' as ActiveView },
               { label: 'Liturgia Diária', view: 'liturgia' as ActiveView },
               { label: 'Santoral', view: 'santoral' as ActiveView },

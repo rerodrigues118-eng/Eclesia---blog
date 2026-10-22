@@ -209,13 +209,13 @@ export const MYSTERY_GROUPS: MysteryGroup[] = [
 ];
 
 export const TercoInterativo: React.FC = () => {
-  // Modo de visualização: Padrão Santo Terço Kids com alternador para Adulto Tradicional
+  // Modo de visualização dentro da página do Santo Terço: Tradicional ou Kids
   const [tercoMode, setTercoMode] = useState<'adult' | 'kids'>(() => {
     if (typeof window !== 'undefined') {
       const urlParam = new URLSearchParams(window.location.search).get('modo');
-      if (urlParam === 'adult' || window.location.hash.includes('adult')) return 'adult';
+      if (urlParam === 'kids' || window.location.hash.includes('kids')) return 'kids';
     }
-    return 'kids'; // Padrão: Santo Terço Kids imediato na tela!
+    return 'adult';
   });
 
   // 1. Lógica Automática do Dia da Semana
@@ -287,37 +287,54 @@ export const TercoInterativo: React.FC = () => {
     }
   };
 
-  // Se o Modo Kids estiver ativo, renderiza o componente infantil dedicado
-  if (tercoMode === 'kids') {
-    return <SantoTercoKids onSwitchToAdult={() => setTercoMode('adult')} />;
-  }
-
   // Identifica se estamos em uma das 5 dezenas (steps 2 a 6)
   const isDecadeStep = currentStep >= 2 && currentStep <= 6;
   const currentMysteryIndex = isDecadeStep ? currentStep - 2 : null;
   const currentMystery = currentMysteryIndex !== null ? activeGroup.mysteries[currentMysteryIndex] : null;
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 py-8 md:py-12 animate-fade-in text-[#1c1b1b] dark:text-[#f3ede2]">
-      {/* Seletor de Modo no Topo: Adulto Tradicional / Kids */}
-      <div className="flex justify-center mb-6">
-        <div className="inline-flex p-1.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 shadow-xs">
+    <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 py-6 md:py-10 animate-fade-in text-[#1c1b1b] dark:text-[#f3ede2]">
+      {/* ──────────────────────────────────────────────────────────────────
+          ABAS DO SANTO TERÇO: TRADICIONAL & KIDS
+          ────────────────────────────────────────────────────────────────── */}
+      <div className="flex justify-center mb-8">
+        <div className="inline-flex p-1.5 rounded-2xl bg-amber-50/90 dark:bg-[#25201a] border-2 border-amber-200/90 dark:border-amber-900/60 shadow-sm">
           <button
             onClick={() => setTercoMode('adult')}
-            className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 bg-[#785600] text-white shadow-xs"
+            className={`px-5 sm:px-7 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
+              tercoMode === 'adult'
+                ? 'bg-[#785600] text-white shadow-md'
+                : 'text-[#4f4535] dark:text-[#c4b9a7] hover:text-[#785600] hover:bg-white/70 dark:hover:bg-[#2e2720]'
+            }`}
           >
             <span>✝️</span>
-            <span>Modo Tradicional</span>
+            <span>Santo Terço Tradicional</span>
           </button>
           <button
             onClick={() => setTercoMode('kids')}
-            className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 text-[#817563] dark:text-[#c4b9a7] hover:text-[#2B6CB0] hover:bg-white/80 dark:hover:bg-[#2c2620]"
+            className={`px-5 sm:px-7 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
+              tercoMode === 'kids'
+                ? 'bg-[#2B6CB0] text-white shadow-md'
+                : 'text-[#4f4535] dark:text-[#c4b9a7] hover:text-[#2B6CB0] hover:bg-white/70 dark:hover:bg-[#2e2720]'
+            }`}
           >
             <span>🎈</span>
-            <span>Santo Terço Kids ✨</span>
+            <span>Santo Terço Kids</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-extrabold ${
+              tercoMode === 'kids'
+                ? 'bg-white/25 text-white'
+                : 'bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-200'
+            }`}>
+              NOVO
+            </span>
           </button>
         </div>
       </div>
+
+      {tercoMode === 'kids' ? (
+        <SantoTercoKids onSwitchToAdult={() => setTercoMode('adult')} />
+      ) : (
+        <>
 
       {/* Top Banner & Day Badge */}
       <div className="text-center space-y-4 mb-8">
@@ -709,6 +726,8 @@ export const TercoInterativo: React.FC = () => {
           </div>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 };
