@@ -21,9 +21,8 @@ const getEnv = (key: string): string => {
 };
 
 const SUPABASE_URL = getEnv('VITE_SUPABASE_URL') || getEnv('NEXT_PUBLIC_SUPABASE_URL') || 'https://sdyytxnmdquriqsxuvhd.supabase.co';
-// IMPORTANTE: SUPABASE_SERVICE_ROLE_KEY deve ser configurada nas variáveis de ambiente da Vercel
-// NUNCA coloque chaves de serviço ou API no código-fonte!
-const SUPABASE_KEY = getEnv('SUPABASE_SERVICE_ROLE_KEY') || getEnv('VITE_SUPABASE_ANON_KEY') || getEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY') || '';
+const DEFAULT_ANON_KEY = 'sb_publishable_iBExFVNbs14S0ty_M0pLLw_LubqbWxo';
+const SUPABASE_KEY = getEnv('SUPABASE_SERVICE_ROLE_KEY') || getEnv('VITE_SUPABASE_ANON_KEY') || getEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY') || DEFAULT_ANON_KEY;
 
 // As chaves de IA devem estar nas variáveis de ambiente (.env local ou Vercel Dashboard)
 const GROK_KEY = getEnv('GROK_API_KEY') || getEnv('VITE_GROK_API_KEY') || '';
