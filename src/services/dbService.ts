@@ -44,7 +44,7 @@ export async function fetchArticlesFromDb(): Promise<Essay[]> {
           metaTitle: item.meta_title || item.title,
           metaDescription: item.meta_description || item.excerpt,
           keywords: item.keywords || [],
-          mediaMap: item.media_map
+          mediaMap: item.media_map || {}
         }));
 
         try {

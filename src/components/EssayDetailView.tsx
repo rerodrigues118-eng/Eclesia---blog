@@ -237,7 +237,7 @@ export const EssayDetailView: React.FC<EssayDetailViewProps> = ({ essay, onBack,
           <div className="max-w-3xl mx-auto w-full">
             <RichArticleRenderer
               content={essay.content}
-              mediaMap={essay.mediaMap}
+              mediaMap={essay.mediaMap || {}}
               adConfig={essay.adConfig}
             />
           </div>

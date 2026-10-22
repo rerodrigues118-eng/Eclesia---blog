@@ -236,15 +236,26 @@ function parseJsonSeguro(raw: string): any {
     };
   }
 
+  const tituloFinal = obj.titulo || obj.title || obj.headline || "Artigo Católico Eclesia";
+  // Gera slug amigável a partir do título do artigo
+  const slugGeradoDoTitulo = tituloFinal
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+
   // Normalização de chaves inglês <-> português
   return {
-    titulo: obj.titulo || obj.title || obj.headline || "Artigo Católico Eclesia",
-    slug: (obj.slug || "artigo-catolico").toLowerCase().replace(/[^a-z0-9-]/g, ""),
+    titulo: tituloFinal,
+    slug: slugGeradoDoTitulo || (obj.slug || "artigo-catolico").toLowerCase().replace(/[^a-z0-9-]/g, ""),
     resumo: obj.resumo || obj.summary || obj.excerpt || obj.description || "Reflexão no Portal Eclesia.",
     conteudo: obj.conteudo || obj.article || obj.content || obj.body || obj.texto || "",
     categoria: obj.categoria || obj.category || "Teologia",
     tempoLeitura: obj.tempoLeitura || obj.read_time || "5 min de leitura",
-    metaTitle: obj.metaTitle || obj.meta_title || obj.titulo || obj.title,
+    metaTitle: obj.metaTitle || obj.meta_title || `${tituloFinal} | Eclesia`,
     metaDescription: obj.metaDescription || obj.meta_description || obj.resumo || obj.summary,
     keywords: obj.keywords || ["Fé Católica", "Portal Eclesia"]
   };
@@ -387,28 +398,28 @@ Senhor Jesus Cristo...
         ESPERITUALIDADE & ORAÇÃO MATINAL (${dataFormatadaPtBr}):
         Escreva um artigo inspirador sobre a vida de oração pessoal, a beleza da Santa Missa, o silêncio interior, a adoração e como começar o dia com o Coração de Jesus.
         ${regrasSeo}
-        Retorne APENAS um JSON válido com categoria "Espiritualidade", tempoLeitura "5 min de leitura", slug "oracao-matinal-${diaNum}-${mesNum}", etc.
+        Retorne APENAS um JSON válido com categoria "Espiritualidade", tempoLeitura "5 min de leitura". O campo "slug" DEVE ser gerado em minúsculas com hifens a partir do próprio "titulo" do artigo.
       `;
     } else if (tipoPost === "artigo_slot_2" || tipoPost === "teologia") {
       promptUsuario = `
         TEOLOGIA CATÓLICA, DOUTRINA & CATECISMO (${dataFormatadaPtBr}):
         Escreva um artigo teológico profundo e acessível sobre a Eucaristia, a Santíssima Trindade, os Sacramentos ou a sabedoria de Santo Tomás de Aquino e Santo Agostinho.
         ${regrasSeo}
-        Retorne APENAS um JSON válido com categoria "Teologia", tempoLeitura "6 min de leitura", slug "teologia-${diaNum}-${mesNum}", etc.
+        Retorne APENAS um JSON válido com categoria "Teologia", tempoLeitura "6 min de leitura". O campo "slug" DEVE ser gerado em minúsculas com hifens a partir do próprio "titulo" do artigo.
       `;
     } else if (tipoPost === "artigo_slot_3" || tipoPost === "apologetica") {
       promptUsuario = `
         APOLOGÉTICA, DEFESA DA FÉ & JUVENTUDE CATÓLICA (${dataFormatadaPtBr}):
         Escreva um artigo contundente e caridoso explicando os fundamentos bíblicos da Igreja Católica, a importância da confissão frequente, Carlo Acutis e a santidade para os jovens.
         ${regrasSeo}
-        Retorne APENAS um JSON válido com categoria "Juventude & Fé", tempoLeitura "5 min de leitura", slug "juventude-fe-${diaNum}-${mesNum}", etc.
+        Retorne APENAS um JSON válido com categoria "Juventude & Fé", tempoLeitura "5 min de leitura". O campo "slug" DEVE ser gerado em minúsculas com hifens a partir do próprio "titulo" do artigo.
       `;
     } else if (tipoPost === "artigo_slot_4" || tipoPost === "vaticano") {
       promptUsuario = `
         TEMAS EM ALTA, VATICANO & ATUALIDADES DA IGREJA (${dataFormatadaPtBr}):
         Escreva um artigo editorial sobre as principais atualidades da Santa Sé, discursos papais relevantes, a missão da Igreja no mundo e a defesa da dignidade humana.
         ${regrasSeo}
-        Retorne APENAS um JSON válido com categoria "Vaticano", tempoLeitura "5 min de leitura", slug "vaticano-atualidades-${diaNum}-${mesNum}", etc.
+        Retorne APENAS um JSON válido com categoria "Vaticano", tempoLeitura "5 min de leitura". O campo "slug" DEVE ser gerado em minúsculas com hifens a partir do próprio "titulo" do artigo.
       `;
     } else {
       promptUsuario = `

@@ -42,6 +42,13 @@ import {
   saveSaintToDb,
   deleteSaintFromDb
 } from './services/dbService';
+import { generateSeoSlug } from './utils/seo';
+
+const SLUG_ALIASES: Record<string, string> = {
+  'teologia-22-10': 'eucaristia-o-coracao-batente-da-igreja-e-a-vida-eterna',
+  'juventude-fe-22-10': 'fe-real-a-igreja-a-confissao-e-o-legado-de-carlo-acutis',
+  'oracao-matinal-22-10': 'comece-o-dia-no-silencio-a-beleza-da-missa-e-o-coracao-de-jesus'
+};
 
 export const App: React.FC = () => {
   const [activeView, setActiveView] = useState<ActiveView>('home');
@@ -181,24 +188,29 @@ export const App: React.FC = () => {
 
       // Artigo individual: /blog/:slug
       if (rootPath === 'blog' && parts[1]) {
-        const slug = parts[1];
-        const match = articles.find(a => a.slug === slug || a.id === slug);
+        const rawSlug = parts[1];
+        const slug = SLUG_ALIASES[rawSlug] || rawSlug;
+        const match = articles.find(a => a.slug === slug || a.slug === rawSlug || a.id === slug || generateSeoSlug(a.title) === slug);
         if (match) {
           setSelectedEssay(match);
           setSelectedSaint(null);
           setActiveView('blog');
-          if (rawPath !== `/blog/${slug}`) {
-            window.history.replaceState(null, '', `/blog/${slug}`);
+          const canonicalSlug = match.slug || generateSeoSlug(match.title);
+          document.title = `${match.metaTitle || match.title} | Eclesia BLOG`;
+          if (rawPath !== `/blog/${canonicalSlug}`) {
+            window.history.replaceState(null, '', `/blog/${canonicalSlug}`);
           }
           return;
         } else {
           // Busca sob demanda direta no Supabase para quando o usuário acessa URL direta ou recém-publicada
           setIsLoadingDirectSlug(true);
-          supabase
-            .from('articles')
-            .select('*')
-            .or(`slug.eq.${slug},id.eq.${slug}`)
-            .maybeSingle()
+          Promise.resolve(
+            supabase
+              .from('articles')
+              .select('*')
+              .or(`slug.eq.${slug},slug.eq.${rawSlug},id.eq.${slug}`)
+              .maybeSingle()
+          )
             .then(({ data, error }) => {
               if (data && !error) {
                 const mapped: Essay = {
@@ -220,11 +232,16 @@ export const App: React.FC = () => {
                   metaTitle: data.meta_title || data.title,
                   metaDescription: data.meta_description || data.excerpt,
                   keywords: data.keywords || [],
-                  mediaMap: data.media_map
+                  mediaMap: data.media_map || {}
                 };
                 setSelectedEssay(mapped);
                 setSelectedSaint(null);
                 setActiveView('blog');
+                const canonicalSlug = mapped.slug || generateSeoSlug(mapped.title);
+                document.title = `${mapped.metaTitle || mapped.title} | Eclesia BLOG`;
+                if (window.location.pathname !== `/blog/${canonicalSlug}`) {
+                  window.history.replaceState(null, '', `/blog/${canonicalSlug}`);
+                }
                 setArticles(prev => (prev.some(a => a.id === mapped.id) ? prev : [mapped, ...prev]));
               }
             })
@@ -305,8 +322,9 @@ export const App: React.FC = () => {
   const handleSelectEssay = (essay: Essay) => {
     setSelectedSaint(null);
     setSelectedEssay(essay);
-    const slug = essay.slug || essay.id;
+    const slug = essay.slug || generateSeoSlug(essay.title) || essay.id;
     const targetUrl = `/blog/${slug}`;
+    document.title = `${essay.metaTitle || essay.title} | Eclesia BLOG`;
     window.history.pushState(null, '', targetUrl);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };

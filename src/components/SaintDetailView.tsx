@@ -108,7 +108,7 @@ export const SaintDetailView: React.FC<SaintDetailViewProps> = ({ saint, onBack,
             </div>
 
             <p className="font-sans text-base text-[#4f4535] leading-relaxed italic border-l-4 border-[#785600] pl-4 py-1">
-              "{saint.shortBio}"
+              "{saint.summary || (saint as any).shortBio}"
             </p>
           </div>
         </div>

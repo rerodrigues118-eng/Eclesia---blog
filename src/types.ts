@@ -14,6 +14,7 @@ export type ActiveView =
   | 'termos' 
   | 'privacidade' 
   | 'conduta'
+  | 'comunidade'
   | 'auth'
   | 'admin';
 
@@ -208,6 +209,7 @@ export interface Saint {
   prayer: string;
   quotes?: string[];
   featured?: boolean;
+  slug?: string;
 }
 
 export interface Essay {
