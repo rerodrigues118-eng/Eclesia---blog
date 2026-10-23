@@ -32,7 +32,7 @@ export const AdminLoginView: React.FC<AdminLoginViewProps> = ({
   onSignOut,
   onBackToSite
 }) => {
-  const [email, setEmail] = useState('suporte.delski@gmail.com');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,7 +40,7 @@ export const AdminLoginView: React.FC<AdminLoginViewProps> = ({
 
   // Modo de redefinição de senha
   const [isResetMode, setIsResetMode] = useState(false);
-  const [resetEmail, setResetEmail] = useState('suporte.delski@gmail.com');
+  const [resetEmail, setResetEmail] = useState('');
   const [isResetting, setIsResetting] = useState(false);
 
   // Caso 1: Usuário já está logado, mas NÃO tem o papel 'admin' ou 'editor' no banco profiles

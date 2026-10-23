@@ -44,6 +44,9 @@ create trigger tr_protect_profile_role
   before update on public.profiles
   for each row execute procedure protect_profile_role_update();
 
+-- Revoga execução direta da função de gatilho via API REST (Supabase RPC)
+revoke execute on function public.protect_profile_role_update() from public, anon, authenticated;
+
 
 -- 3. POLÍTICAS DE RLS DA TABELA PROFILES (SEM RECURSÃO + LEITURA PÚBLICA DE AUTORES)
 alter table public.profiles enable row level security;
@@ -159,6 +162,13 @@ drop trigger if exists tr_protect_order_status on public.orders;
 create trigger tr_protect_order_status
   before insert or update on public.orders
   for each row execute procedure protect_order_status_insert();
+
+-- Revoga execução direta da função de gatilho via API REST (Supabase RPC)
+revoke execute on function public.protect_order_status_insert() from public, anon, authenticated;
+
+-- Blindagem do gatilho de cadastro de novos usuários
+alter function public.handle_new_user() set search_path = public;
+revoke execute on function public.handle_new_user() from public, anon, authenticated;
 
 
 -- 7. VALIDAÇÃO RIGOROSA DE FORMATO DE E-MAIL (TABELA SUBSCRIBERS)

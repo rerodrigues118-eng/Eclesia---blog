@@ -2,6 +2,14 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { submitToIndexNow, pingSearchEnginesSitemap, SITE_URL } from '../../src/services/seoIndexing';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const authHeader = req.headers['authorization'];
+  const cronSecret = process.env.CRON_SECRET;
+  const isDev = process.env.NODE_ENV === 'development';
+
+  if (!isDev && cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    return res.status(401).json({ error: 'Não autorizado. CRON_SECRET ausente ou inválido.' });
+  }
+
   try {
     const urlsParam = req.body?.urls || req.query.urls;
     let urlList: string[] = [];

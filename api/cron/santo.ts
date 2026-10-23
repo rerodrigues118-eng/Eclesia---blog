@@ -8,9 +8,12 @@ import { submitToIndexNow, pingSearchEnginesSitemap, SITE_URL } from '../../src/
 export async function handleSanto(req: Request, env?: Record<string, string>): Promise<Response> {
   const cronSecret = (env?.CRON_SECRET) ?? (typeof process !== 'undefined' ? process.env.CRON_SECRET : undefined);
   const authHeader = req.headers.get('authorization');
+  const isDev = typeof process !== 'undefined' && process.env.NODE_ENV === 'development';
 
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return Response.json({ error: 'Não autorizado. CRON_SECRET inválido ou ausente.' }, { status: 401 });
+  if (!isDev && (!cronSecret || authHeader !== `Bearer ${cronSecret}`)) {
+    return Response.json({ error: 'Não autorizado. CRON_SECRET inválido ou ausente no cabeçalho Authorization.' }, { status: 401 });
+  } else if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    return Response.json({ error: 'Não autorizado. Token Bearer inválido.' }, { status: 401 });
   }
 
   try {

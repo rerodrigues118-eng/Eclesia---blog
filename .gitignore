@@ -8,3 +8,4 @@ coverage/
 !.env.example
 .wrangler/
 FALAS DO TERÇO*/
+supabase/.temp/
