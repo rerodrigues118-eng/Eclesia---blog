@@ -89,7 +89,13 @@ export const App: React.FC = () => {
   const [articles, setArticles] = useState<Essay[]>(() => {
     try {
       const cached = localStorage.getItem('eclesia_db_articles');
-      return cached ? JSON.parse(cached) : [];
+      if (!cached) return [];
+      const parsed = JSON.parse(cached);
+      if (!Array.isArray(parsed)) return [];
+      return parsed.map((item: any) => ({
+        ...item,
+        mediaMap: (item && typeof item.mediaMap === 'object' && item.mediaMap !== null) ? item.mediaMap : {}
+      }));
     } catch {
       return [];
     }
@@ -192,7 +198,10 @@ export const App: React.FC = () => {
         const slug = SLUG_ALIASES[rawSlug] || rawSlug;
         const match = articles.find(a => a.slug === slug || a.slug === rawSlug || a.id === slug || generateSeoSlug(a.title) === slug);
         if (match) {
-          setSelectedEssay(match);
+          setSelectedEssay({
+            ...match,
+            mediaMap: (match && typeof match.mediaMap === 'object' && match.mediaMap !== null) ? match.mediaMap : {}
+          });
           setSelectedSaint(null);
           setActiveView('blog');
           const canonicalSlug = match.slug || generateSeoSlug(match.title);
@@ -321,7 +330,10 @@ export const App: React.FC = () => {
 
   const handleSelectEssay = (essay: Essay) => {
     setSelectedSaint(null);
-    setSelectedEssay(essay);
+    setSelectedEssay({
+      ...essay,
+      mediaMap: (essay && typeof essay.mediaMap === 'object' && essay.mediaMap !== null) ? essay.mediaMap : {}
+    });
     const slug = essay.slug || generateSeoSlug(essay.title) || essay.id;
     const targetUrl = `/blog/${slug}`;
     document.title = `${essay.metaTitle || essay.title} | Eclesia BLOG`;

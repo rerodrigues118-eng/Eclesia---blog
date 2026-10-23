@@ -274,31 +274,10 @@ function formatarTextoMarkdown(texto: string): string {
     .trim();
 }
 
-function posicionarSegundaImagemNoArtigo(conteudo: string, urlImagem: string, legenda: string): string {
-  if (!conteudo || !urlImagem) return conteudo;
-  if (conteudo.includes("[img-") || conteudo.includes("![")) return conteudo;
-
-  const tagImagem = `\n\n[img-centro: ${urlImagem} | 480px | ${legenda}]\n\n`;
-  const indicesHeadings: number[] = [];
-  const regex = /\n## /g;
-  let match;
-  while ((match = regex.exec(conteudo)) !== null) {
-    indicesHeadings.push(match.index);
-  }
-
-  if (indicesHeadings.length >= 2) {
-    const ponto = indicesHeadings.length >= 3 ? indicesHeadings[1] : indicesHeadings[0];
-    return conteudo.slice(0, ponto) + tagImagem + conteudo.slice(ponto);
-  }
-
-  const blocos = conteudo.split("\n\n");
-  if (blocos.length >= 4) {
-    const meio = Math.floor(blocos.length / 2);
-    blocos.splice(meio, 0, tagImagem.trim());
-    return blocos.join("\n\n");
-  }
-
-  return conteudo + tagImagem;
+function posicionarSegundaImagemNoArtigo(conteudo: string, _urlImagem: string, _legenda: string): string {
+  // A imagem de destaque já é exibida com total destaque no banner do artigo.
+  // Mantemos o corpo do artigo limpo em Markdown padrão.
+  return conteudo;
 }
 
 // ============================================================================
