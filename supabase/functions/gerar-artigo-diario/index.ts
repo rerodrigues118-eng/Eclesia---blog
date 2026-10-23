@@ -112,6 +112,66 @@ function gerarPromptVisualSagrado(tema: string): string {
 }
 
 // ============================================================================
+// GERADOR DE IMAGEM ÚNICA VIA POLLINATIONS.AI (100% católica + seed aleatório)
+// ============================================================================
+function gerarImagemPollinationsIA(tema: string): string {
+  const seed = Math.floor(Math.random() * 1_000_000);
+  const temaLimpo = tema
+    .replace(/[^\w\s\u00C0-\u00FF]/gi, " ")
+    .trim()
+    .slice(0, 80);
+  const sacredStyles = [
+    "golden stained glass cathedral interior",
+    "roman catholic church altar golden light",
+    "holy bible rosary wooden table sacred",
+    "catholic priest blessing faithful congregation",
+    "saint peter basilica rome golden sunrise",
+    "monstrance eucharist altar soft candlelight",
+    "madonna virgin mary gold leaf painting",
+    "crucifix jesus cross stone chapel"
+  ];
+  const style = sacredStyles[Math.floor(Math.random() * sacredStyles.length)];
+  const promptEn = encodeURIComponent(
+    `A unique professional photography depicting ${temaLimpo}, ${style}, warm golden atmosphere, high resolution, 8k, photorealistic, no mosques, no pagan temples, no non-catholic symbols`
+  );
+  return `https://image.pollinations.ai/prompt/${promptEn}?seed=${seed}&width=1200&height=675&nologo=true`;
+}
+
+// ============================================================================
+// SELETOR RANDOMIZADO DE QUERY UNSPLASH (evita Top-1 repetido)
+// ============================================================================
+function buildUnsplashUrlAleatorio(tema: string, categoria: string): string {
+  const sacredTerms = [
+    "vatican square sunrise",
+    "catholic priest blessing",
+    "stained glass cathedral light",
+    "rosary bible wooden desk",
+    "golden chalice altar mass",
+    "holy cross stone chapel",
+    "saint peter rome basilica",
+    "church candles prayer",
+    "christian cross sunset sky",
+    "papal ceremony rome"
+  ];
+  const baseTerms = tema.split(" ").slice(0, 3).join("+");
+  const randomStyle = sacredTerms[Math.floor(Math.random() * sacredTerms.length)].replace(/ /g, "+");
+  const page = Math.floor(Math.random() * 4) + 1;
+  const orientation = ["landscape", "squarish"][Math.floor(Math.random() * 2)];
+  return `https://source.unsplash.com/featured/1200x675/?${baseTerms},${randomStyle},catholic&page=${page}&orientation=${orientation}&t=${Date.now()}`;
+}
+
+// Verifica unicidade de cover_image no banco de dados
+async function imagemJaUsadaNoBanco(url: string): Promise<boolean> {
+  if (!url) return false;
+  const { data } = await supabase
+    .from("articles")
+    .select("id")
+    .eq("cover_image", url)
+    .maybeSingle();
+  return !!data;
+}
+
+// ============================================================================
 // 3. AGREGADOR DE NOTÍCIAS CATÓLICAS (RSS FEEDS EM TEMPO REAL)
 // Fontes Oficiais: Vatican News PT, ACI Digital, CNBB, Canção Nova
 // ============================================================================
@@ -196,6 +256,7 @@ async function buscarNoticiasCatolicasRecentes(): Promise<NoticiaCatolica[]> {
 
 // ============================================================================
 // 4. SELEÇÃO INTELIGENTE DE IMAGENS SACRAS POR CATEGORIA E CONTEXTO
+// Inclui randomização para evitar imagem de capa repetida entre artigos
 // ============================================================================
 function selecionarImagensArtigo(
   categoria: string,
@@ -221,11 +282,11 @@ function selecionarImagensArtigo(
 
   const texto = `${titulo} ${conteudo} ${categoria}`.toLowerCase();
 
-  // Vaticano / Papa / Notícias
+  // Para artigos de notícias/vaticano, usa Unsplash com query aleatória
   if (texto.includes("vaticano") || texto.includes("papa") || texto.includes("santa sé") || texto.includes("notícia") || texto.includes("noticia") || categoria.toLowerCase().includes("vaticano")) {
     const f = IMAGENS_SEGURAS_CATEGORIA.vaticano;
     return {
-      capa: { url: f.capa, alt: f.alt },
+      capa: { url: buildUnsplashUrlAleatorio(titulo, "vaticano"), alt: f.alt },
       interna: { url: f.secundaria, alt: f.alt, legenda: f.legenda }
     };
   }
@@ -234,7 +295,7 @@ function selecionarImagensArtigo(
   if (texto.includes("juventude") || texto.includes("jovem") || texto.includes("acutis") || texto.includes("missão") || texto.includes("vocação") || categoria.toLowerCase().includes("juventude")) {
     const f = IMAGENS_SEGURAS_CATEGORIA.juventude;
     return {
-      capa: { url: f.capa, alt: f.alt },
+      capa: { url: buildUnsplashUrlAleatorio(titulo, "juventude"), alt: f.alt },
       interna: { url: f.secundaria, alt: f.alt, legenda: f.legenda }
     };
   }
@@ -243,7 +304,7 @@ function selecionarImagensArtigo(
   if (texto.includes("teologia") || texto.includes("eucaristia") || texto.includes("missa") || texto.includes("sacramento") || texto.includes("doutrina") || categoria.toLowerCase().includes("teologia")) {
     const f = IMAGENS_SEGURAS_CATEGORIA.teologia;
     return {
-      capa: { url: f.capa, alt: f.alt },
+      capa: { url: buildUnsplashUrlAleatorio(titulo, "teologia"), alt: f.alt },
       interna: { url: f.secundaria, alt: f.alt, legenda: f.legenda }
     };
   }
@@ -252,7 +313,7 @@ function selecionarImagensArtigo(
   if (texto.includes("liturgia") || texto.includes("santo") || texto.includes("santoral") || texto.includes("maria") || texto.includes("terço")) {
     const f = IMAGENS_SEGURAS_CATEGORIA.liturgia;
     return {
-      capa: { url: f.capa, alt: f.alt },
+      capa: { url: buildUnsplashUrlAleatorio(titulo, "liturgia"), alt: f.alt },
       interna: { url: f.secundaria, alt: f.alt, legenda: f.legenda }
     };
   }
@@ -260,7 +321,7 @@ function selecionarImagensArtigo(
   // Fallback Padrão: Espiritualidade & Palavra de Deus
   const f = IMAGENS_SEGURAS_CATEGORIA.espiritualidade;
   return {
-    capa: { url: f.capa, alt: f.alt },
+    capa: { url: buildUnsplashUrlAleatorio(titulo, "espiritualidade"), alt: f.alt },
     interna: { url: f.secundaria, alt: f.alt, legenda: f.legenda }
   };
 }
@@ -610,7 +671,17 @@ Senhor Deus todo-poderoso...
       payload.imagemReferencia || imagemNoticiaEncontrada
     );
 
-    const urlCapaFinal = parSacro.capa.url;
+    // =========================================================================
+    // GARANTIA DE UNICIDADE DA IMAGEM DE CAPA
+    // Verifica se a URL já foi usada no banco. Se sim, gera imagem nova via
+    // Pollinations.ai com seed aleatório para 100% de exclusividade.
+    // =========================================================================
+    let urlCapaFinal = parSacro.capa.url;
+    const jaUsada = await imagemJaUsadaNoBanco(urlCapaFinal);
+    if (jaUsada) {
+      console.log(`[Unicidade] Imagem de capa já usada no banco: ${urlCapaFinal}. Gerando nova via Pollinations.ai...`);
+      urlCapaFinal = gerarImagemPollinationsIA(artigo.titulo);
+    }
     const urlInternaFinal = parSacro.interna.url;
 
     let conteudoTratado = formatarTextoMarkdown(artigo.conteudo);
