@@ -295,39 +295,74 @@ export const TercoInterativo: React.FC = () => {
   return (
     <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 py-6 md:py-10 animate-fade-in text-[#1c1b1b] dark:text-[#f3ede2]">
       {/* ──────────────────────────────────────────────────────────────────
-          ABAS DO SANTO TERÇO: TRADICIONAL & KIDS
+          SELETOR DE MODALIDADE: TERÇO TRADICIONAL OU KIDS
           ────────────────────────────────────────────────────────────────── */}
       <div className="flex justify-center mb-8">
-        <div className="inline-flex p-1.5 rounded-2xl bg-amber-50/90 dark:bg-[#25201a] border-2 border-amber-200/90 dark:border-amber-900/60 shadow-sm">
-          <button
-            onClick={() => setTercoMode('adult')}
-            className={`px-5 sm:px-7 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
-              tercoMode === 'adult'
-                ? 'bg-[#785600] text-white shadow-md'
-                : 'text-[#4f4535] dark:text-[#c4b9a7] hover:text-[#785600] hover:bg-white/70 dark:hover:bg-[#2e2720]'
-            }`}
-          >
-            <span>✝️</span>
-            <span>Santo Terço Tradicional</span>
-          </button>
-          <button
-            onClick={() => setTercoMode('kids')}
-            className={`px-5 sm:px-7 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
-              tercoMode === 'kids'
-                ? 'bg-[#2B6CB0] text-white shadow-md'
-                : 'text-[#4f4535] dark:text-[#c4b9a7] hover:text-[#2B6CB0] hover:bg-white/70 dark:hover:bg-[#2e2720]'
-            }`}
-          >
-            <span>🎈</span>
-            <span>Santo Terço Kids</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-extrabold ${
-              tercoMode === 'kids'
-                ? 'bg-white/25 text-white'
-                : 'bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-200'
-            }`}>
-              NOVO
-            </span>
-          </button>
+        <div className="w-full max-w-xl">
+          {/* Label indicativo */}
+          <p className="text-center text-xs font-semibold uppercase tracking-widest text-[#817563] dark:text-[#a89d8d] mb-3">
+            Escolha o modo de oração
+          </p>
+
+          {/* Container das abas */}
+          <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-amber-50/90 dark:bg-[#25201a] border-2 border-amber-200/90 dark:border-amber-900/60 shadow-sm">
+            {/* Aba Tradicional */}
+            <button
+              id="tab-terco-tradicional"
+              onClick={() => setTercoMode('adult')}
+              className={`relative flex flex-col items-center gap-1 px-4 py-3.5 rounded-xl text-center transition-all duration-200 cursor-pointer group ${
+                tercoMode === 'adult'
+                  ? 'bg-[#785600] text-white shadow-lg scale-[1.02]'
+                  : 'text-[#4f4535] dark:text-[#c4b9a7] hover:bg-white/70 dark:hover:bg-[#2e2720] hover:shadow-sm'
+              }`}
+            >
+              <span className="text-xl leading-none">✝️</span>
+              <span className="font-bold text-xs sm:text-sm leading-tight">Santo Terço</span>
+              <span className={`text-[11px] font-medium leading-tight ${
+                tercoMode === 'adult' ? 'text-amber-200' : 'text-[#817563] dark:text-[#a89d8d]'
+              }`}>
+                Tradicional
+              </span>
+            </button>
+
+            {/* Aba Kids */}
+            <button
+              id="tab-terco-kids"
+              onClick={() => setTercoMode('kids')}
+              className={`relative flex flex-col items-center gap-1 px-4 py-3.5 rounded-xl text-center transition-all duration-200 cursor-pointer group ${
+                tercoMode === 'kids'
+                  ? 'bg-gradient-to-br from-[#2B6CB0] to-[#4A90E2] text-white shadow-lg scale-[1.02]'
+                  : 'text-[#4f4535] dark:text-[#c4b9a7] hover:bg-white/70 dark:hover:bg-[#2e2720] hover:shadow-sm'
+              }`}
+            >
+              {/* Badge NOVO */}
+              <span className={`absolute -top-2 -right-1 text-[9px] px-1.5 py-0.5 rounded-full font-extrabold shadow-sm ${
+                tercoMode === 'kids'
+                  ? 'bg-[#ECC94B] text-[#744210]'
+                  : 'bg-blue-500 text-white dark:bg-blue-600'
+              }`}>
+                NOVO
+              </span>
+              <span className="text-xl leading-none">🎈</span>
+              <span className="font-bold text-xs sm:text-sm leading-tight">Santo Terço</span>
+              <span className={`text-[11px] font-medium leading-tight ${
+                tercoMode === 'kids' ? 'text-blue-100' : 'text-[#817563] dark:text-[#a89d8d]'
+              }`}>
+                Para Crianças
+              </span>
+            </button>
+          </div>
+
+          {/* Descrição contextual da aba ativa */}
+          <p className={`text-center text-xs mt-2 transition-all duration-200 ${
+            tercoMode === 'kids'
+              ? 'text-[#2B6CB0] dark:text-[#63B3ED] font-semibold'
+              : 'text-[#817563] dark:text-[#a89d8d]'
+          }`}>
+            {tercoMode === 'kids'
+              ? '🎈 Modo infantil com mascote, bolinhas fofinhas e narração de áudio!'
+              : '✝️ Mistérios completos com meditações bíblicas e contagem de Ave-Marias.'}
+          </p>
         </div>
       </div>
 
