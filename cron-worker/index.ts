@@ -2,15 +2,16 @@
  * ============================================================
  * ECLESIA CRONS — Cloudflare Worker Autônomo
  * Executa todas as automações diárias do blog eclesia.blog
+ * Linha Editorial: 2 Formações Teológicas + 2 Notícias em Alta (RSS/Web)
+ * Curadoria de Imagens Sacras 100% Autênticas e Católicas
  * ============================================================
  *
  * Cron Triggers (wrangler.toml):
- *   0 6 * * *    → Liturgia Diária    (03:00 BRT)
- *   5 6 * * *    → Santo do Dia       (03:05 BRT)
- *   0 9 * * *    → Artigo Slot 1      (06:00 BRT)
- *   30 13 * * *  → Artigo Slot 2      (10:30 BRT)
- *   0 18 * * *   → Artigo Slot 3      (15:00 BRT)
- *   30 22 * * *  → Artigo Slot 4      (19:30 BRT)
+ *   0 6 * * *    → Liturgia Diária + Santo do Dia (03:00 BRT)
+ *   0 9 * * *    → Artigo Slot 1: Espiritualidade & Oração (06:00 BRT)
+ *   30 13 * * *  → Artigo Slot 2: Teologia & Doutrina (10:30 BRT)
+ *   0 18 * * *   → Artigo Slot 3: Notícia Vaticano / Santa Sé (15:00 BRT)
+ *   30 22 * * *  → Artigo Slot 4: Notícia Igreja no Brasil / Juventude (19:30 BRT)
  */
 
 export interface Env {
@@ -23,6 +24,42 @@ export interface Env {
 }
 
 const SITE_URL = 'https://eclesia.blog';
+
+// ────────────────────────────────────────────────────────────
+// Dicionário de Imagens Sacras Seguras (100% Católicas)
+// ────────────────────────────────────────────────────────────
+const IMAGENS_SEGURAS: Record<string, string> = {
+  vaticano: 'https://images.unsplash.com/photo-1543429776-2782fc8e1acd?auto=format&fit=crop&q=80&w=1200',
+  teologia: 'https://images.unsplash.com/photo-1548625361-195979bc7583?auto=format&fit=crop&q=80&w=1200',
+  espiritualidade: 'https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&q=80&w=1200',
+  juventude: 'https://images.unsplash.com/photo-1601142634808-38923eb7c560?auto=format&fit=crop&q=80&w=1200',
+  liturgia: 'https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&q=80&w=1200',
+  santos: 'https://images.unsplash.com/photo-1577083552431-6e5fd01aa342?auto=format&fit=crop&q=80&w=1200'
+};
+
+const TERMOS_PROIBIDOS = [
+  'mosque', 'mesquita', 'pagoda', 'pagode', 'hindu', 'buddhist', 'buda', 'buddha',
+  'temple', 'shrine', 'crowd', 'skyline', 'skyscraper', 'prédios', 'islam', 'mecca', 'medina'
+];
+
+const BLACKLIST_UNSPLASH_IDS = [
+  'photo-1519817650390', // Mesquita
+  'photo-1544644181',    // Pagode/Templo oriental
+  'photo-1519491050282'  // Genérica não-católica
+];
+
+function validarImagemSegura(url?: string | null): boolean {
+  if (!url || typeof url !== 'string') return false;
+  const u = url.toLowerCase();
+  if (!u.startsWith('http://') && !u.startsWith('https://')) return false;
+  for (const bid of BLACKLIST_UNSPLASH_IDS) {
+    if (u.includes(bid)) return false;
+  }
+  for (const term of TERMOS_PROIBIDOS) {
+    if (u.includes(term)) return false;
+  }
+  return true;
+}
 
 // ────────────────────────────────────────────────────────────
 // Helpers: Supabase REST via fetch (sem SDK, funciona no CF)
@@ -47,13 +84,6 @@ async function supabaseUpsert(env: Env, table: string, data: Record<string, unkn
   return res.json();
 }
 
-async function supabaseSelect(env: Env, table: string, query: string) {
-  const url = `${env.VITE_SUPABASE_URL}/rest/v1/${table}?${query}`;
-  const res = await fetch(url, { headers: supabaseHeaders(env) });
-  if (!res.ok) throw new Error(`Supabase select [${table}] falhou: ${res.status}`);
-  return res.json();
-}
-
 // ────────────────────────────────────────────────────────────
 // Helper: Gemini API via fetch
 // ────────────────────────────────────────────────────────────
@@ -64,12 +94,70 @@ async function geminiGenerate(env: Env, prompt: string): Promise<string> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.8, maxOutputTokens: 8192 }
+      generationConfig: { temperature: 0.7, maxOutputTokens: 8192 }
     })
   });
   if (!res.ok) throw new Error(`Gemini API falhou: ${res.status} ${await res.text()}`);
   const json: any = await res.json();
   return json.candidates?.[0]?.content?.parts?.[0]?.text || '';
+}
+
+// ────────────────────────────────────────────────────────────
+// Helper: RSS Feeds Católicos (Vatican News, ACI, CNBB, Canção Nova)
+// ────────────────────────────────────────────────────────────
+interface NoticiaRSS {
+  titulo: string;
+  resumo: string;
+  link: string;
+  imagemUrl?: string;
+  fonte: string;
+}
+
+async function buscarNoticiasCatolicasRSS(): Promise<NoticiaRSS[]> {
+  const feeds = [
+    { nome: 'Vatican News PT', url: 'https://www.vaticannews.va/pt.rss.xml' },
+    { nome: 'ACI Digital', url: 'https://feeds.feedburner.com/acidigital' },
+    { nome: 'CNBB', url: 'https://www.cnbb.org.br/feed/' },
+    { nome: 'Canção Nova', url: 'https://noticias.cancaonova.com/feed/' }
+  ];
+
+  const noticias: NoticiaRSS[] = [];
+  for (const f of feeds) {
+    try {
+      const res = await fetch(f.url, {
+        headers: { 'User-Agent': 'EclesiaCron/2.0' }
+      });
+      if (!res.ok) continue;
+      const xml = await res.text();
+      const items = xml.match(/<item[\s\S]*?<\/item>/gi) || [];
+      for (let i = 0; i < Math.min(items.length, 3); i++) {
+        const item = items[i];
+        const rawTitle = (item.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/i) || [])[1] || '';
+        const rawLink = (item.match(/<link>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/link>/i) || [])[1] || '';
+        const rawDesc = (item.match(/<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/i) || [])[1] || '';
+        
+        const encMatch = item.match(/<enclosure[^>]+url=["']([^"']+)["']/i);
+        const medMatch = item.match(/<media:content[^>]+url=["']([^"']+)["']/i);
+        const candImg = encMatch?.[1] || medMatch?.[1];
+
+        const titulo = rawTitle.replace(/<!\[CDATA\[/g, '').replace(/\]\]>/g, '').replace(/<[^>]+>/g, '').trim();
+        const resumo = rawDesc.replace(/<!\[CDATA\[/g, '').replace(/\]\]>/g, '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+
+        if (titulo && titulo.length > 15) {
+          noticias.push({
+            titulo,
+            resumo: resumo.slice(0, 250),
+            link: rawLink.replace(/<!\[CDATA\[/g, '').replace(/\]\]>/g, '').trim(),
+            imagemUrl: validarImagemSegura(candImg) ? candImg : undefined,
+            fonte: f.nome
+          });
+        }
+      }
+    } catch (e) {
+      console.warn(`[Cron RSS] Erro ao ler ${f.nome}:`, e);
+    }
+  }
+  return noticias;
 }
 
 // ────────────────────────────────────────────────────────────
@@ -92,10 +180,10 @@ function slugify(text: string): string {
 }
 
 function inferSlotFromHour(): number {
-  const utcHours = new Date().getUTCHours();
-  if (utcHours >= 6  && utcHours < 12) return 1;
-  if (utcHours >= 12 && utcHours < 16) return 2;
-  if (utcHours >= 16 && utcHours < 21) return 3;
+  const brtHours = new Date(Date.now() - 3 * 60 * 60 * 1000).getUTCHours();
+  if (brtHours >= 5 && brtHours < 10) return 1;
+  if (brtHours >= 10 && brtHours < 14) return 2;
+  if (brtHours >= 14 && brtHours < 18) return 3;
   return 4;
 }
 
@@ -141,7 +229,6 @@ Responda SOMENTE com JSON válido no formato:
     updated_at: new Date().toISOString()
   }, 'date');
 
-  // Notifica IndexNow
   await notifyIndexNow([`${SITE_URL}/liturgia`]);
   console.log(`[Eclesia Cron] Liturgia ${date} publicada com sucesso.`);
 }
@@ -167,7 +254,7 @@ Responda SOMENTE com JSON válido:
   "biography": "Biografia completa em 4-6 parágrafos detalhados",
   "patronage": "Padroeiro de...",
   "prayer": "Oração própria ao santo",
-  "image_url": "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&q=80&w=1200"
+  "image_url": "${IMAGENS_SEGURAS.santos}"
 }`;
 
   const raw = await geminiGenerate(env, prompt);
@@ -188,7 +275,7 @@ Responda SOMENTE com JSON válido:
     biography: saint.biography || '',
     patronage: saint.patronage || null,
     prayer: saint.prayer || null,
-    image_url: saint.image_url || 'https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&q=80&w=1200',
+    image_url: IMAGENS_SEGURAS.santos,
     status: 'published',
     is_today: true,
     updated_at: new Date().toISOString()
@@ -206,34 +293,76 @@ Responda SOMENTE com JSON válido:
 }
 
 // ────────────────────────────────────────────────────────────
-// AUTOMAÇÃO 3: Artigo Diário (4 slots)
+// AUTOMAÇÃO 3: Artigo Diário (Linha 2 Formações + 2 Notícias)
 // ────────────────────────────────────────────────────────────
-const SLOT_THEMES: Record<number, string> = {
-  1: 'Espiritualidade e vida de oração, Eucaristia, Liturgia das Horas',
-  2: 'Doutrina Católica, Magistério, Santos e sua vida exemplar',
-  3: 'Família cristã, educação dos filhos, virtudes cotidianas',
-  4: 'Evangelização, missão, cultura católica e atualidade eclesial'
-};
-
 async function runArtigo(env: Env, slot: number): Promise<void> {
   const date = todayBRT();
-  const theme = SLOT_THEMES[slot] || SLOT_THEMES[1];
-  console.log(`[Eclesia Cron] Artigo Slot ${slot} — Tema: ${theme}`);
+  let category = 'Espiritualidade';
+  let defaultCover = IMAGENS_SEGURAS.espiritualidade;
+  let isTrending = false;
+  let promptTema = '';
 
-  const prompt = `Você é um jornalista e teólogo católico de alto nível. 
-Escreva um artigo completo, rico e edificante sobre o tema: "${theme}".
-Data de hoje: ${date}. Este é o artigo do slot ${slot} do dia.
+  // Slot 1: Formação Espiritual & Oração (50% Formação)
+  if (slot === 1) {
+    category = 'Espiritualidade';
+    defaultCover = IMAGENS_SEGURAS.espiritualidade;
+    promptTema = `Tema de Formação Espiritual: Vida de oração matinal, Santa Missa diária, adoração e silêncio interior com Cristo.`;
+  }
+  // Slot 2: Formação Teológica & Doutrina (50% Formação)
+  else if (slot === 2) {
+    category = 'Teologia';
+    defaultCover = IMAGENS_SEGURAS.teologia;
+    promptTema = `Tema de Formação Teológica: A centralidade da Eucaristia, Catecismo da Igreja Católica, sacramentos e a sabedoria dos Doutores da Igreja.`;
+  }
+  // Slot 3: Notícia em Alta 1 - Vaticano & Santa Sé (50% Notícias)
+  else if (slot === 3) {
+    category = 'Vaticano';
+    defaultCover = IMAGENS_SEGURAS.vaticano;
+    isTrending = true;
+    const noticias = await buscarNoticiasCatolicasRSS();
+    const noticia = noticias.find(n => n.fonte.includes('Vatican') || n.titulo.toLowerCase().includes('papa')) || noticias[0];
+    if (noticia) {
+      if (noticia.imagemUrl) defaultCover = noticia.imagemUrl;
+      promptTema = `Notícia em alta da Santa Sé: "${noticia.titulo}". Fato: ${noticia.resumo}. Analise o impacto pastoral e teológico para os fiéis.`;
+    } else {
+      promptTema = `Notícia em alta da Santa Sé: As recentes declarações papais e as diretrizes do Vaticano para a paz e a dignidade humana.`;
+    }
+  }
+  // Slot 4: Notícia em Alta 2 - Igreja no Brasil & Juventude (50% Notícias)
+  else {
+    category = 'Juventude & Fé';
+    defaultCover = IMAGENS_SEGURAS.juventude;
+    isTrending = true;
+    const noticias = await buscarNoticiasCatolicasRSS();
+    const noticia = noticias.find(n => n.fonte.includes('CNBB') || n.fonte.includes('Canção Nova')) || noticias[1] || noticias[0];
+    if (noticia) {
+      if (noticia.imagemUrl) defaultCover = noticia.imagemUrl;
+      promptTema = `Notícia em alta da Igreja e Missão: "${noticia.titulo}". Fato: ${noticia.resumo}. Inspire os jovens cristãos a viverem o Evangelho com coragem.`;
+    } else {
+      promptTema = `Notícia e atualidade da Igreja: A juventude católica diante dos desafios culturais, a herança de Carlo Acutis e a missão evangelizadora.`;
+    }
+  }
+
+  console.log(`[Eclesia Cron] Artigo Slot ${slot} (${category}) — Data: ${date}`);
+
+  const prompt = `Você é um renomado jornalista e teólogo católico. 
+Escreva um artigo primoroso e inspirador para o portal Eclesia (eclesia.blog).
+${promptTema}
+Data de hoje: ${date}.
+Critérios:
+1. "title": Entre 38 e 63 caracteres, atraente e fiel à fé.
+2. "excerpt": Entre 120 e 160 caracteres.
+3. "content": Artigo completo em Markdown rico (mínimo 700 palavras) com subtítulos "##", citações ">" e bloco de oração católico ao fim: [ORACAO: Título] ... [/ORACAO].
 
 Responda SOMENTE com JSON válido:
 {
-  "title": "Título impactante do artigo (máximo 80 caracteres)",
-  "subtitle": "Subtítulo explicativo (máximo 120 caracteres)",
-  "category": "Espiritualidade | Doutrina | Família | Evangelização",
-  "tags": ["tag1", "tag2", "tag3"],
-  "excerpt": "Resumo em 2 frases que desperte curiosidade",
-  "content": "Artigo completo em HTML com tags <h2>, <h3>, <p>, <blockquote>. Mínimo 1200 palavras, citações bíblicas, reflexão teológica profunda e aplicação prática à vida cristã.",
-  "image_url": "https://images.unsplash.com/photo-1519491050282-cf00c82424b4?auto=format&fit=crop&q=80&w=1200",
-  "read_time_minutes": 7,
+  "title": "Título impactante (38-63 caracteres)",
+  "subtitle": "Subtítulo explicativo",
+  "category": "${category}",
+  "tags": ["Fé Católica", "Igreja Católica"],
+  "excerpt": "Resumo entre 120 e 160 caracteres",
+  "content": "Artigo completo em Markdown rico...",
+  "read_time_minutes": 6,
   "seo_title": "Título SEO otimizado",
   "seo_description": "Meta description com 155 caracteres"
 }`;
@@ -242,21 +371,24 @@ Responda SOMENTE com JSON válido:
   const jsonMatch = raw.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error(`Gemini não retornou JSON válido para Artigo Slot ${slot}`);
   const article = JSON.parse(jsonMatch[0]);
-  const slug = `${slugify(article.title)}-${date}-slot${slot}`;
+
+  // Garante que o slug é gerado estritamente a partir do título do artigo
+  const slug = slugify(article.title);
 
   await supabaseUpsert(env, 'articles', {
     slug,
     title: article.title,
     subtitle: article.subtitle || null,
-    category: article.category || 'Espiritualidade',
-    tags: article.tags || [],
+    category: article.category || category,
+    tags: article.tags || ['Fé Católica'],
     excerpt: article.excerpt || '',
     content: article.content || '',
-    cover_image: article.image_url || 'https://images.unsplash.com/photo-1519491050282-cf00c82424b4?auto=format&fit=crop&q=80&w=1200',
-    read_time: article.read_time_minutes || 7,
+    cover_image: defaultCover,
+    read_time: article.read_time_minutes || 6,
     seo_title: article.seo_title || article.title,
     seo_description: article.seo_description || article.excerpt,
     status: 'published',
+    trending: isTrending,
     published_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     auto_generated: true,
@@ -268,7 +400,7 @@ Responda SOMENTE com JSON válido:
 }
 
 // ────────────────────────────────────────────────────────────
-// Helper: IndexNow (notificação a Google/Bing/Yandex)
+// Helper: IndexNow
 // ────────────────────────────────────────────────────────────
 async function notifyIndexNow(urls: string[]): Promise<void> {
   try {
@@ -282,7 +414,7 @@ async function notifyIndexNow(urls: string[]): Promise<void> {
       })
     });
   } catch (e) {
-    console.warn('[IndexNow] Falha na notificação (não crítico):', e);
+    console.warn('[IndexNow] Falha na notificação:', e);
   }
 }
 
@@ -290,7 +422,6 @@ async function notifyIndexNow(urls: string[]): Promise<void> {
 // CLOUDFLARE WORKER EXPORT
 // ────────────────────────────────────────────────────────────
 export default {
-  // HTTP: permite disparo manual via URL protegida
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url);
     const secret = req.headers.get('x-cron-secret') || url.searchParams.get('secret');
@@ -301,27 +432,25 @@ export default {
 
     const path = url.pathname;
     try {
-      if (path === '/liturgia')        { await runLiturgia(env); return Response.json({ ok: true, task: 'liturgia' }); }
-      if (path === '/santo')           { await runSanto(env);    return Response.json({ ok: true, task: 'santo' }); }
-      if (path.startsWith('/artigo'))  {
+      if (path === '/liturgia') { await runLiturgia(env); return Response.json({ ok: true, task: 'liturgia' }); }
+      if (path === '/santo')    { await runSanto(env);    return Response.json({ ok: true, task: 'santo' }); }
+      if (path.startsWith('/artigo')) {
         const slot = parseInt(url.searchParams.get('slot') || String(inferSlotFromHour()));
         await runArtigo(env, slot);
         return Response.json({ ok: true, task: 'artigo', slot });
       }
-      return Response.json({ ok: true, message: 'Eclesia Cron Worker ativo. Rotas: /liturgia /santo /artigo?slot=1-4' });
+      return Response.json({ ok: true, message: 'Eclesia Cron Worker ativo: /liturgia, /santo, /artigo?slot=1-4' });
     } catch (err: any) {
       console.error('[Eclesia Cron Error]', err);
       return Response.json({ ok: false, error: err.message }, { status: 500 });
     }
   },
 
-  // SCHEDULED: Cron Triggers automáticos do Cloudflare
   async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
     const cron = event.cron;
     console.log(`[Eclesia Scheduled] Cron: ${cron} | ${new Date().toISOString()}`);
 
     switch (cron) {
-      // Liturgia + Santo em paralelo às 03:00 BRT — economiza 1 trigger (limite Free = 5)
       case '0 6 * * *':
         ctx.waitUntil(Promise.allSettled([runLiturgia(env), runSanto(env)]));
         break;
@@ -330,7 +459,7 @@ export default {
       case '0 18 * * *':  ctx.waitUntil(runArtigo(env, 3)); break;
       case '30 22 * * *': ctx.waitUntil(runArtigo(env, 4)); break;
       default:
-        console.warn(`[Eclesia Scheduled] Cron nao mapeado: ${cron}`);
+        console.warn(`[Eclesia Scheduled] Cron não mapeado: ${cron}`);
     }
   }
 };
