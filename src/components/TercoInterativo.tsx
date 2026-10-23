@@ -14,6 +14,7 @@ import {
   Baby
 } from 'lucide-react';
 import { SantoTercoKids } from './SantoTercoKids';
+import { KidsRosary } from './rosary/KidsRosary';
 
 export type MysteryType = 'gozosos' | 'dolorosos' | 'gloriosos' | 'luminosos';
 
@@ -209,14 +210,18 @@ export const MYSTERY_GROUPS: MysteryGroup[] = [
 ];
 
 export const TercoInterativo: React.FC = () => {
-  // Modo de visualização dentro da página do Santo Terço: Tradicional ou Kids
-  const [tercoMode, setTercoMode] = useState<'adult' | 'kids'>(() => {
+  // Modo de visualização dentro da página do Santo Terço: 'traditional' ou 'kids'
+  const [mode, setMode] = useState<'traditional' | 'kids'>(() => {
     if (typeof window !== 'undefined') {
       const urlParam = new URLSearchParams(window.location.search).get('modo');
       if (urlParam === 'kids' || window.location.hash.includes('kids')) return 'kids';
     }
-    return 'adult';
+    return 'traditional';
   });
+
+  // Alias retrocompatível
+  const tercoMode = mode;
+  const setTercoMode = (m: 'adult' | 'kids') => setMode(m === 'adult' ? 'traditional' : m);
 
   // 1. Lógica Automática do Dia da Semana
   const getTodayMysteryId = (): MysteryType => {
@@ -295,83 +300,8 @@ export const TercoInterativo: React.FC = () => {
   return (
     <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 py-6 md:py-10 animate-fade-in text-[#1c1b1b] dark:text-[#f3ede2]">
       {/* ──────────────────────────────────────────────────────────────────
-          SELETOR DE MODALIDADE: TERÇO TRADICIONAL OU KIDS
+          CABEÇALHO OFICIAL DO SANTO TERÇO (VISÍVEL EM AMBOS OS MODOS)
           ────────────────────────────────────────────────────────────────── */}
-      <div className="flex justify-center mb-8">
-        <div className="w-full max-w-xl">
-          {/* Label indicativo */}
-          <p className="text-center text-xs font-semibold uppercase tracking-widest text-[#817563] dark:text-[#a89d8d] mb-3">
-            Escolha o modo de oração
-          </p>
-
-          {/* Container das abas */}
-          <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-amber-50/90 dark:bg-[#25201a] border-2 border-amber-200/90 dark:border-amber-900/60 shadow-sm">
-            {/* Aba Tradicional */}
-            <button
-              id="tab-terco-tradicional"
-              onClick={() => setTercoMode('adult')}
-              className={`relative flex flex-col items-center gap-1 px-4 py-3.5 rounded-xl text-center transition-all duration-200 cursor-pointer group ${
-                tercoMode === 'adult'
-                  ? 'bg-[#785600] text-white shadow-lg scale-[1.02]'
-                  : 'text-[#4f4535] dark:text-[#c4b9a7] hover:bg-white/70 dark:hover:bg-[#2e2720] hover:shadow-sm'
-              }`}
-            >
-              <span className="text-xl leading-none">✝️</span>
-              <span className="font-bold text-xs sm:text-sm leading-tight">Santo Terço</span>
-              <span className={`text-[11px] font-medium leading-tight ${
-                tercoMode === 'adult' ? 'text-amber-200' : 'text-[#817563] dark:text-[#a89d8d]'
-              }`}>
-                Tradicional
-              </span>
-            </button>
-
-            {/* Aba Kids */}
-            <button
-              id="tab-terco-kids"
-              onClick={() => setTercoMode('kids')}
-              className={`relative flex flex-col items-center gap-1 px-4 py-3.5 rounded-xl text-center transition-all duration-200 cursor-pointer group ${
-                tercoMode === 'kids'
-                  ? 'bg-gradient-to-br from-[#2B6CB0] to-[#4A90E2] text-white shadow-lg scale-[1.02]'
-                  : 'text-[#4f4535] dark:text-[#c4b9a7] hover:bg-white/70 dark:hover:bg-[#2e2720] hover:shadow-sm'
-              }`}
-            >
-              {/* Badge NOVO */}
-              <span className={`absolute -top-2 -right-1 text-[9px] px-1.5 py-0.5 rounded-full font-extrabold shadow-sm ${
-                tercoMode === 'kids'
-                  ? 'bg-[#ECC94B] text-[#744210]'
-                  : 'bg-blue-500 text-white dark:bg-blue-600'
-              }`}>
-                NOVO
-              </span>
-              <span className="text-xl leading-none">🎈</span>
-              <span className="font-bold text-xs sm:text-sm leading-tight">Santo Terço</span>
-              <span className={`text-[11px] font-medium leading-tight ${
-                tercoMode === 'kids' ? 'text-blue-100' : 'text-[#817563] dark:text-[#a89d8d]'
-              }`}>
-                Para Crianças
-              </span>
-            </button>
-          </div>
-
-          {/* Descrição contextual da aba ativa */}
-          <p className={`text-center text-xs mt-2 transition-all duration-200 ${
-            tercoMode === 'kids'
-              ? 'text-[#2B6CB0] dark:text-[#63B3ED] font-semibold'
-              : 'text-[#817563] dark:text-[#a89d8d]'
-          }`}>
-            {tercoMode === 'kids'
-              ? '🎈 Modo infantil com mascote, bolinhas fofinhas e narração de áudio!'
-              : '✝️ Mistérios completos com meditações bíblicas e contagem de Ave-Marias.'}
-          </p>
-        </div>
-      </div>
-
-      {tercoMode === 'kids' ? (
-        <SantoTercoKids onSwitchToAdult={() => setTercoMode('adult')} />
-      ) : (
-        <>
-
-      {/* Top Banner & Day Badge */}
       <div className="text-center space-y-4 mb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 text-[#785600] dark:text-[#ffdea6] text-xs font-semibold tracking-wide uppercase">
           <Calendar className="w-3.5 h-3.5" />
@@ -385,36 +315,105 @@ export const TercoInterativo: React.FC = () => {
           Reze e contemple os mistérios da Redenção passo a passo com contagem guiada de Ave-Marias e meditações bíblicas.
         </p>
 
-        {/* Selector de Mistérios */}
-        <div className="flex flex-wrap justify-center gap-2 pt-2">
-          {MYSTERY_GROUPS.map((group) => {
-            const isSelected = selectedGroup === group.id;
-            const isToday = group.id === getTodayMysteryId();
-            return (
+        {/* ──────────────────────────────────────────────────────────────────
+            SELETOR DE MODALIDADES NO TOPO (LOGO ABAIXO DO CABEÇALHO)
+            Aba 1: Santo Terço Tradicional
+            Aba 2: Santo Terço Kids
+            ────────────────────────────────────────────────────────────────── */}
+        <div className="flex justify-center pt-2 pb-1">
+          <div className="w-full max-w-xl">
+            <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-amber-50/90 dark:bg-[#25201a] border-2 border-amber-200/90 dark:border-amber-900/60 shadow-sm">
+              {/* Aba 1: Santo Terço Tradicional */}
               <button
-                key={group.id}
-                onClick={() => {
-                  setSelectedGroup(group.id);
-                  setCurrentStep(0);
-                  setAveMariaCount(0);
-                }}
-                className={`relative px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer border ${
-                  isSelected
-                    ? 'bg-[#785600] text-white border-[#785600] shadow-md scale-102'
-                    : 'bg-white dark:bg-[#1f1b17] text-[#4f4535] dark:text-[#d3c4af] border-[#d3c4af]/60 dark:border-[#38322a] hover:border-[#785600]/60'
+                id="tab-terco-tradicional"
+                type="button"
+                onClick={() => setMode('traditional')}
+                className={`relative flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 cursor-pointer ${
+                  mode === 'traditional'
+                    ? 'bg-[#785600] text-white shadow-lg scale-[1.02]'
+                    : 'text-[#4f4535] dark:text-[#c4b9a7] hover:bg-white/70 dark:hover:bg-[#2e2720]'
                 }`}
               >
-                <span>{group.name}</span>
-                {isToday && (
-                  <span className="block text-[9px] opacity-90 font-normal">
-                    (Hoje: {group.daysDescription.split(' e ')[0]})
-                  </span>
-                )}
+                <span className="text-base leading-none">✝️</span>
+                <span>Santo Terço Tradicional</span>
               </button>
-            );
-          })}
+
+              {/* Aba 2: Santo Terço Kids */}
+              <button
+                id="tab-terco-kids"
+                type="button"
+                onClick={() => setMode('kids')}
+                className={`relative flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 cursor-pointer ${
+                  mode === 'kids'
+                    ? 'bg-gradient-to-r from-[#2B6CB0] to-[#4299E1] text-white shadow-lg scale-[1.02]'
+                    : 'text-[#4f4535] dark:text-[#c4b9a7] hover:bg-white/70 dark:hover:bg-[#2e2720]'
+                }`}
+              >
+                <span className="text-base leading-none">🎈</span>
+                <span>Santo Terço Kids</span>
+                <span className={`absolute -top-2 -right-1 text-[9px] px-1.5 py-0.5 rounded-full font-extrabold shadow-sm ${
+                  mode === 'kids'
+                    ? 'bg-[#ECC94B] text-[#744210]'
+                    : 'bg-blue-500 text-white dark:bg-blue-600'
+                }`}>
+                  NOVO
+                </span>
+              </button>
+            </div>
+
+            {/* Descrição contextual da aba ativa */}
+            <p className={`text-center text-xs mt-2 transition-all duration-200 ${
+              mode === 'kids'
+                ? 'text-[#2B6CB0] dark:text-[#63B3ED] font-semibold'
+                : 'text-[#817563] dark:text-[#a89d8d]'
+            }`}>
+              {mode === 'kids'
+                ? '🎈 Modo infantil com mascote de Nossa Senhora, contas interativas fofas e narração de áudio!'
+                : '✝️ Experiência tradicional com mistérios bíblicos, meditações e contagem de Ave-Marias.'}
+            </p>
+          </div>
         </div>
+
+        {/* Selector de Mistérios (Exibido apenas no modo Tradicional) */}
+        {mode === 'traditional' && (
+          <div className="flex flex-wrap justify-center gap-2 pt-2 animate-fade-in">
+            {MYSTERY_GROUPS.map((group) => {
+              const isSelected = selectedGroup === group.id;
+              const isToday = group.id === getTodayMysteryId();
+              return (
+                <button
+                  key={group.id}
+                  onClick={() => {
+                    setSelectedGroup(group.id);
+                    setCurrentStep(0);
+                    setAveMariaCount(0);
+                  }}
+                  className={`relative px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer border ${
+                    isSelected
+                      ? 'bg-[#785600] text-white border-[#785600] shadow-md scale-102'
+                      : 'bg-white dark:bg-[#1f1b17] text-[#4f4535] dark:text-[#d3c4af] border-[#d3c4af]/60 dark:border-[#38322a] hover:border-[#785600]/60'
+                  }`}
+                >
+                  <span>{group.name}</span>
+                  {isToday && (
+                    <span className="block text-[9px] opacity-90 font-normal">
+                      (Hoje: {group.daysDescription.split(' e ')[0]})
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
+
+      {/* ──────────────────────────────────────────────────────────────────
+          CORPO DO TERÇO: KIDS OU TRADICIONAL
+          ────────────────────────────────────────────────────────────────── */}
+      {mode === 'kids' ? (
+        <KidsRosary onSwitchToTraditional={() => setMode('traditional')} />
+      ) : (
+        <>
 
       {/* Progress Tracker Steps (0 a 7) */}
       <div className="bg-white dark:bg-[#1a1714] border border-[#d3c4af]/50 dark:border-[#332c25] rounded-2xl p-4 sm:p-5 shadow-xs mb-8">

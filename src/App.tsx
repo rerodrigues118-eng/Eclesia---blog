@@ -21,8 +21,7 @@ import { AuthModal } from './components/AuthModal';
 import { AuthView } from './components/AuthView';
 import { CookieBanner } from './components/CookieBanner';
 import { SEOHead } from './components/SEOHead';
-import { TercoInterativo } from './components/TercoInterativo';
-import { SantoTercoKids } from './components/SantoTercoKids';
+import { RosaryPage, TercoInterativo } from './components/RosaryPage';
 import { BenfeitoresView } from './components/BenfeitoresView';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useAuth } from './hooks/useAuth';
@@ -581,7 +580,7 @@ export const App: React.FC = () => {
               <SantoralView onSelectSaint={handleSelectSaint} saints={saints} />
             )}
 
-            {activeView === 'terco' && <TercoInterativo />}
+            {activeView === 'terco' && <RosaryPage />}
 
             {activeView === 'liturgia' && <LiturgiaView />}
 
