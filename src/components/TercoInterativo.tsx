@@ -209,7 +209,11 @@ export const MYSTERY_GROUPS: MysteryGroup[] = [
   }
 ];
 
-export const TercoInterativo: React.FC = () => {
+export interface TercoInterativoProps {
+  hideHeaderTitle?: boolean;
+}
+
+export const TercoInterativo: React.FC<TercoInterativoProps> = ({ hideHeaderTitle = false }) => {
   // Modo de visualização dentro da página do Santo Terço: 'traditional' ou 'kids'
   const [mode, setMode] = useState<'traditional' | 'kids'>(() => {
     if (typeof window !== 'undefined') {
@@ -303,75 +307,48 @@ export const TercoInterativo: React.FC = () => {
           CABEÇALHO OFICIAL DO SANTO TERÇO (VISÍVEL EM AMBOS OS MODOS)
           ────────────────────────────────────────────────────────────────── */}
       <div className="text-center space-y-4 mb-8">
+        {!hideHeaderTitle && (
+          <>
+            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-[#785600] dark:text-[#f3c877] tracking-tight">
+              Santo Terço Interativo
+            </h1>
+            <p className="font-sans text-sm sm:text-base text-[#4f4535] dark:text-[#c4b9a7] max-w-xl mx-auto leading-relaxed">
+              Reze e contemple os mistérios da Redenção passo a passo com contagem guiada de Ave-Marias e meditações bíblicas.
+            </p>
+
+            {/* ABAS DE SELEÇÃO OBRIGATÓRIAS */}
+            <div className="flex justify-center gap-4 my-6">
+              <button
+                type="button"
+                onClick={() => setMode('traditional')}
+                className={`px-6 py-3 rounded-full font-semibold transition-all cursor-pointer flex items-center gap-2 ${
+                  mode === 'traditional'
+                    ? 'bg-amber-900 text-white shadow-lg scale-105'
+                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                }`}
+              >
+                <span>🙏</span>
+                <span>Santo Terço Tradicional</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('kids')}
+                className={`px-6 py-3 rounded-full font-semibold transition-all cursor-pointer flex items-center gap-2 ${
+                  mode === 'kids'
+                    ? 'bg-amber-900 text-white shadow-lg scale-105'
+                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                }`}
+              >
+                <span>🎨</span>
+                <span>Santo Terço Kids</span>
+              </button>
+            </div>
+          </>
+        )}
+
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 text-[#785600] dark:text-[#ffdea6] text-xs font-semibold tracking-wide uppercase">
           <Calendar className="w-3.5 h-3.5" />
           <span>Mistérios de Hoje: {MYSTERY_GROUPS.find(g => g.id === getTodayMysteryId())?.name}</span>
-        </div>
-
-        <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-[#785600] dark:text-[#f3c877] tracking-tight">
-          Santo Terço Interativo
-        </h1>
-        <p className="font-sans text-sm sm:text-base text-[#4f4535] dark:text-[#c4b9a7] max-w-xl mx-auto leading-relaxed">
-          Reze e contemple os mistérios da Redenção passo a passo com contagem guiada de Ave-Marias e meditações bíblicas.
-        </p>
-
-        {/* ──────────────────────────────────────────────────────────────────
-            SELETOR DE MODALIDADES NO TOPO (LOGO ABAIXO DO CABEÇALHO)
-            Aba 1: Santo Terço Tradicional
-            Aba 2: Santo Terço Kids
-            ────────────────────────────────────────────────────────────────── */}
-        <div className="flex justify-center pt-2 pb-1">
-          <div className="w-full max-w-xl">
-            <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-amber-50/90 dark:bg-[#25201a] border-2 border-amber-200/90 dark:border-amber-900/60 shadow-sm">
-              {/* Aba 1: Santo Terço Tradicional */}
-              <button
-                id="tab-terco-tradicional"
-                type="button"
-                onClick={() => setMode('traditional')}
-                className={`relative flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 cursor-pointer ${
-                  mode === 'traditional'
-                    ? 'bg-[#785600] text-white shadow-lg scale-[1.02]'
-                    : 'text-[#4f4535] dark:text-[#c4b9a7] hover:bg-white/70 dark:hover:bg-[#2e2720]'
-                }`}
-              >
-                <span className="text-base leading-none">✝️</span>
-                <span>Santo Terço Tradicional</span>
-              </button>
-
-              {/* Aba 2: Santo Terço Kids */}
-              <button
-                id="tab-terco-kids"
-                type="button"
-                onClick={() => setMode('kids')}
-                className={`relative flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 cursor-pointer ${
-                  mode === 'kids'
-                    ? 'bg-gradient-to-r from-[#2B6CB0] to-[#4299E1] text-white shadow-lg scale-[1.02]'
-                    : 'text-[#4f4535] dark:text-[#c4b9a7] hover:bg-white/70 dark:hover:bg-[#2e2720]'
-                }`}
-              >
-                <span className="text-base leading-none">🎈</span>
-                <span>Santo Terço Kids</span>
-                <span className={`absolute -top-2 -right-1 text-[9px] px-1.5 py-0.5 rounded-full font-extrabold shadow-sm ${
-                  mode === 'kids'
-                    ? 'bg-[#ECC94B] text-[#744210]'
-                    : 'bg-blue-500 text-white dark:bg-blue-600'
-                }`}>
-                  NOVO
-                </span>
-              </button>
-            </div>
-
-            {/* Descrição contextual da aba ativa */}
-            <p className={`text-center text-xs mt-2 transition-all duration-200 ${
-              mode === 'kids'
-                ? 'text-[#2B6CB0] dark:text-[#63B3ED] font-semibold'
-                : 'text-[#817563] dark:text-[#a89d8d]'
-            }`}>
-              {mode === 'kids'
-                ? '🎈 Modo infantil com mascote de Nossa Senhora, contas interativas fofas e narração de áudio!'
-                : '✝️ Experiência tradicional com mistérios bíblicos, meditações e contagem de Ave-Marias.'}
-            </p>
-          </div>
         </div>
 
         {/* Selector de Mistérios (Exibido apenas no modo Tradicional) */}
