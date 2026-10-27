@@ -6,6 +6,7 @@ import { RichArticleRenderer } from './RichArticleRenderer';
 import { GoogleAdSlot } from './GoogleAdSlot';
 import { AffiliateProductSection } from './AffiliateProductSection';
 import { SocialCardModal, SocialCardData } from './SocialCardModal';
+import { isValidImageUrl, getSacredFallbackImage, handleSacredImageError } from '../utils/sacredImages';
 
 interface EssayDetailViewProps {
   essay: Essay;
@@ -214,10 +215,11 @@ export const EssayDetailView: React.FC<EssayDetailViewProps> = ({ essay, onBack,
           </header>
 
           {/* Featured Image */}
-          <div className="aspect-[16/9] md:aspect-[21/9] rounded-xl overflow-hidden border border-[#d3c4af]/50 dark:border-zinc-800 shadow-xs relative">
+          <div className="aspect-[16/9] md:aspect-[21/9] rounded-xl overflow-hidden border border-[#d3c4af]/50 dark:border-zinc-800 shadow-xs relative bg-amber-950/20 dark:bg-zinc-800">
             <img
-              src={essay.imageUrl}
+              src={isValidImageUrl(essay.imageUrl) ? essay.imageUrl : getSacredFallbackImage(essay.category || essay.title)}
               alt={essay.title}
+              onError={(e) => handleSacredImageError(e, essay.category || essay.title)}
               className="w-full h-full max-w-full object-cover"
               loading="lazy"
               decoding="async"

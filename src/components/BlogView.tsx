@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Search, Newspaper, BookOpen, TrendingUp, Calendar, Clock, ArrowRight, Filter, Check } from 'lucide-react';
 import { Essay } from '../types';
 import { useNewsletter } from '../hooks/useNewsletter';
+import { isValidImageUrl, getSacredFallbackImage, handleSacredImageError } from '../utils/sacredImages';
 
 interface BlogViewProps {
   onSelectEssay: (essay: Essay) => void;
@@ -106,10 +107,11 @@ export const BlogView: React.FC<BlogViewProps> = ({ onSelectEssay, articles = []
           className="group cursor-pointer bg-white dark:bg-zinc-900/90 border border-[#d3c4af]/70 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-xs hover:shadow-md hover:border-[#785600]/60 dark:hover:border-amber-500/60 transition-all grid grid-cols-1 lg:grid-cols-12 items-stretch"
         >
           {/* Imagem Retangular em Proporção Paisagem Compacta */}
-          <div className="lg:col-span-5 relative w-full h-52 sm:h-64 lg:h-full min-h-[220px] lg:min-h-[250px] max-h-[300px] overflow-hidden bg-[#1c1b1b]">
+          <div className="lg:col-span-5 relative w-full h-52 sm:h-64 lg:h-full min-h-[220px] lg:min-h-[250px] max-h-[300px] overflow-hidden bg-amber-950/20 dark:bg-zinc-800">
             <img
-              src={featuredPost.imageUrl}
+              src={isValidImageUrl(featuredPost.imageUrl) ? featuredPost.imageUrl : getSacredFallbackImage(featuredPost.category || featuredPost.title)}
               alt={featuredPost.title}
+              onError={(e) => handleSacredImageError(e, featuredPost.category || featuredPost.title)}
               className="w-full h-full max-w-full object-cover object-center aspect-[16/9] lg:aspect-auto group-hover:scale-105 transition-transform duration-700"
               loading="lazy"
               decoding="async"
@@ -225,10 +227,11 @@ export const BlogView: React.FC<BlogViewProps> = ({ onSelectEssay, articles = []
                   className="group cursor-pointer bg-white dark:bg-zinc-900/90 rounded-xl border border-[#d3c4af]/50 dark:border-zinc-800 overflow-hidden shadow-2xs hover:border-[#785600] dark:hover:border-amber-500/60 hover:shadow-sm transition-all flex flex-col justify-between"
                 >
                   <div>
-                    <div className="aspect-[16/10] overflow-hidden relative bg-[#1c1b1b]">
+                    <div className="aspect-[16/10] overflow-hidden relative bg-amber-950/20 dark:bg-zinc-800">
                       <img
-                        src={essay.imageUrl}
+                        src={isValidImageUrl(essay.imageUrl) ? essay.imageUrl : getSacredFallbackImage(essay.category || essay.title)}
                         alt={essay.title}
+                        onError={(e) => handleSacredImageError(e, essay.category || essay.title)}
                         className="w-full h-full max-w-full object-cover group-hover:scale-105 transition-transform duration-500"
                         loading="lazy"
                         decoding="async"

@@ -74,9 +74,33 @@ const IMAGENS_SEGURAS_CATEGORIA: Record<string, { capa: string; alt: string; sec
 // 2. FILTRO DE EXCLUSÃO SEVERO DE IMAGENS (SEM IMAGENS INADEQUADAS)
 // ============================================================================
 const TERMOS_PROIBIDOS = [
+  // Outras religiões
   "mosque", "mesquita", "pagoda", "pagode", "hindu", "buddhist", "buda", "buddha",
-  "temple", "shrine", "crowd", "street", "skyline", "skyscraper", "prédios",
-  "islam", "mecca", "medina", "torii", "balinese", "bali"
+  "temple", "shrine", "islam", "mecca", "medina", "torii", "balinese", "bali",
+  "synagogue", "sinagoga", "shinto", "wicca", "umbanda", "candomble", "candomblé",
+  "macumba", "espiritismo", "terreiro", "kardecismo", "new age", "yoga", "chakra",
+  // Conteúdo secular / policial / político
+  "police", "policia", "polícia", "murder", "assassinato", "homicídio", "homicidio",
+  "shooting", "tiroteio", "arma de fogo", "gunshot", "robbery", "assalto", "roubo",
+  "drug", "droga", "trafficking", "tráfico", "trafico", "cartel", "gang", "gangue",
+  "politician", "político", "politico", "elections", "eleições", "eleicoes",
+  "partido", "senado", "congresso", "deputado", "vereador", "prefeito",
+  "trump", "biden", "lula", "bolsonaro", "esquerda", "direita",
+  // Conteúdo visual inadequado
+  "crowd", "street", "skyline", "skyscraper", "prédios",
+  "protest", "protesto", "riot", "war zone", "battlefield",
+  "gambling", "casino", "nightclub", "bar", "beer",
+  "bikini", "lingerie", "nude", "naked", "sensual"
+];
+
+// Termos proibidos em títulos RSS — filtra notícias não-católicas
+const BLOCKLIST_TITULOS_RSS = [
+  "polícia", "policia", "police", "preso", "assassinato", "homicídio",
+  "tiroteio", "assalto", "roubo", "tráfico", "trafico", "droga",
+  "eleição", "eleições", "deputado", "senador", "congresso",
+  "trump", "biden", "lula", "bolsonaro", "futebol", "seleção",
+  "acidente", "colisão", "incêndio", "desastre", "enchente",
+  "protestos", "manifestação", "greve", "sindicato"
 ];
 
 // IDs conhecidos do Unsplash de mesquitas e templos orientais que foram banidos
@@ -103,6 +127,45 @@ function validarImagemSegura(url?: string | null): boolean {
   }
 
   return true;
+}
+
+// Valida se a imagem realmente carrega via HTTP HEAD (com timeout)
+async function validarImagemHTTP(url: string): Promise<boolean> {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(url, {
+      method: "HEAD",
+      signal: controller.signal,
+      headers: { "User-Agent": "EclesiaBot/2.0" }
+    });
+    clearTimeout(timeoutId);
+    if (!res.ok) return false;
+    const contentType = res.headers.get("content-type") || "";
+    return contentType.startsWith("image/");
+  } catch {
+    return false;
+  }
+}
+
+// Obtém URL de imagem garantida: testa via HTTP e aplica fallback sacro se quebrada/vazia
+async function obterImagemCapaSegura(
+  url: string | undefined,
+  categoria: string
+): Promise<string> {
+  const catKey = categoria.toLowerCase();
+  const fallback = IMAGENS_SEGURAS_CATEGORIA[catKey]?.capa
+    || IMAGENS_SEGURAS_CATEGORIA.espiritualidade.capa;
+
+  if (!url || !validarImagemSegura(url)) return fallback;
+  const ok = await validarImagemHTTP(url);
+  return ok ? url : fallback;
+}
+
+// Filtra título de RSS contra blocklist de termos não-católicos
+function tituloRSSPermitido(titulo: string): boolean {
+  const t = titulo.toLowerCase();
+  return !BLOCKLIST_TITULOS_RSS.some(termo => t.includes(termo));
 }
 
 // Gera prompt de IA com visual sagrado estrito caso geração de arte seja acionada
@@ -236,7 +299,7 @@ async function buscarNoticiasCatolicasRecentes(): Promise<NoticiaCatolica[]> {
           imagemUrl = candidata;
         }
 
-        if (titulo && titulo.length > 15) {
+        if (titulo && titulo.length > 15 && tituloRSSPermitido(titulo)) {
           noticias.push({
             titulo,
             resumo: resumo.slice(0, 300),
@@ -479,7 +542,7 @@ function parseJsonSeguro(raw: string): any {
 
 function formatarTextoMarkdown(texto: string): string {
   if (!texto) return "";
-  return texto
+  let result = texto
     .replace(/\\n/g, "\n")
     .replace(/\\r/g, "")
     .replace(/([^\n])\n(#{2,4}\s)/g, "$1\n\n$2")
@@ -488,6 +551,17 @@ function formatarTextoMarkdown(texto: string): string {
     .replace(/\s*\[\/ORACAO\]\s*/gi, "\n[/ORACAO]\n\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
+
+  // Remoção de negrito excessivo: se uma linha inteira (>40 chars) está em negrito, remove o negrito
+  result = result.replace(/\*\*([^*]{40,}?)\*\*/g, '$1');
+  // Remove negrito de frases longas que começam com ** e têm >30 chars antes do próximo **
+  result = result.replace(/\*\*([^*]{30,}?)\*\*/g, (match, content) => {
+    // Mantém se for um termo curto (<30 chars)
+    if (content.trim().split(/\s+/).length <= 5) return match;
+    return content;
+  });
+
+  return result;
 }
 
 // ============================================================================
@@ -544,7 +618,12 @@ serve(async (req: Request) => {
       2. "metaTitle": Título alternativo com 45 a 60 caracteres.
       3. "metaDescription": Resumo instigante com EXATAMENTE entre 125 e 155 caracteres.
       4. "slug": minúsculas, hifens e números (sem acentos), gerado a partir do título.
-      5. "conteudo": No mínimo 700 palavras. Formatação em Markdown rico com subtítulos '## ', citações bíblicas/doutrinárias '>' e bloco final de oração [ORACAO: Título da Oração] ... [/ORACAO].
+      5. "conteudo": No mínimo 800 palavras. Formatação em Markdown rico com:
+         - Subtítulos '## ' para seções e '### ' para sub-seções.
+         - Citações bíblicas/doutrinas em blockquote '> '.
+         - Negrito APENAS em termos-chave isolados (máx 3-4 palavras), NUNCA em frases completas.
+         - Itálico para títulos de documentos e citações de santos.
+         - Bloco final de oração [ORACAO: Título da Oração] ... [/ORACAO].
       6. "resumo": Entre 120 e 160 caracteres.
     `;
 
@@ -553,6 +632,18 @@ PROIBIDO ABSOLUTAMENTE:
 - Clichês genéricos de IA ("No cenário contemporâneo", "Nos dias de hoje", "Em suma", "Vale ressaltar", "Um farol de esperança").
 - Imagens ou conceitos estranhos à Tradição e Doutrina Católica.
 - Inventar declarações falsas do Papa ou encíclicas fictícias.
+- Colocar FRASES INTEIRAS em negrito (**). Use negrito APENAS em termos teológicos centrais isolados (máximo 3-4 palavras por ocorrência). Exemplo correto: "a **Eucaristia** é o centro". Exemplo errado: "**A Eucaristia é o centro da vida cristã**".
+
+ESTRUTURA OBRIGATÓRIA DO ARTIGO:
+1. INTRODUÇÃO contextualizada (1-2 parágrafos).
+2. DESENVOLVIMENTO TEOLÓGICO com 3-4 seções usando subtítulos "## Título":
+   - Cada seção com 2-3 parágrafos de profundidade doutrinária.
+   - Inclua ao menos 2 citações bíblicas em blockquote: > "Texto." (Livro Cap, Vers)
+   - Inclua ao menos 1 referência ao Catecismo ou ao Magistério: > Catecismo § Número
+   - Cite ao menos 1 Santo Padre ou Doutor da Igreja.
+3. CONCLUSÃO PASTORAL (1 parágrafo) com síntese prática.
+4. Bloco final de oração: [ORACAO: Título] ... [/ORACAO]
+
 Finalize SEMPRE com uma oração católica sincera e fervorosa no formato:
 [ORACAO: Oração do Fiel Cristão]
 Senhor Deus todo-poderoso...
@@ -711,6 +802,36 @@ Senhor Deus todo-poderoso...
       keywords: artigo.keywords || ["Fé Católica", "Igreja Católica"],
       published_at: dataPublicacao
     };
+
+    // =========================================================================
+    // TRAVA ANTI-DUPLICIDADE: verifica slug + data antes de inserir
+    // =========================================================================
+    const dataHojeStr = new Date().toISOString().split('T')[0];
+    const { data: artigoExistente } = await supabase
+      .from("articles")
+      .select("id")
+      .eq("slug", slugFinal)
+      .gte("published_at", `${dataHojeStr}T00:00:00`)
+      .lte("published_at", `${dataHojeStr}T23:59:59`)
+      .maybeSingle();
+
+    if (artigoExistente) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `Artigo com slug "${slugFinal}" já publicado hoje (${dataHojeStr}). Duplicidade evitada.`
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 409
+        }
+      );
+    }
+
+    // =========================================================================
+    // VALIDAÇÃO HTTP DA IMAGEM DE CAPA: aplica fallback se quebrada/vazia
+    // =========================================================================
+    urlCapaFinal = await obterImagemCapaSegura(urlCapaFinal, artigo.categoria.toLowerCase().includes("vaticano") ? "vaticano" : artigo.categoria.toLowerCase().includes("teologia") ? "teologia" : artigo.categoria.toLowerCase().includes("juventude") ? "juventude" : "espiritualidade");
 
     const { data: insertedData, error: dbError } = await supabase
       .from("articles")

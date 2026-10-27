@@ -19,6 +19,7 @@ import {
 import { ActiveView, Saint, Essay, Product, PrayerItem } from '../types';
 import { TODAY_LITURGY_MOCK } from '../data/liturgiaData';
 import { obterSantoDoCalendario } from '../data/romanMartyrology';
+import { isValidImageUrl, getSacredFallbackImage, handleSacredImageError } from '../utils/sacredImages';
 
 interface HomeViewProps {
   setActiveView: (view: ActiveView) => void;
@@ -343,10 +344,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 onClick={() => onSelectEssay(articles[0])}
                 className="bg-white dark:bg-zinc-900/90 rounded-2xl border border-[#d3c4af]/60 dark:border-zinc-800 overflow-hidden hover:border-[#785600] dark:hover:border-amber-500/70 hover:shadow-md transition-all cursor-pointer group space-y-4"
               >
-                <div className="h-52 bg-gray-200 dark:bg-zinc-800 overflow-hidden relative">
+                <div className="h-52 bg-amber-950/20 dark:bg-zinc-800 overflow-hidden relative">
                   <img
-                    src={articles[0].imageUrl}
+                    src={isValidImageUrl(articles[0].imageUrl) ? articles[0].imageUrl : getSacredFallbackImage(articles[0].category || articles[0].title)}
                     alt={articles[0].title}
+                    onError={(e) => handleSacredImageError(e, articles[0].category || articles[0].title)}
                     className="w-full h-full max-w-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"
                     decoding="async"

@@ -294,7 +294,7 @@ function buildPrayerSteps(mysteryGroup: MysteryGroupData): PrayerStep[] {
     title: 'Sinal da Cruz e o Santo Credo',
     subtitle: 'Na Cruz do nosso Terço, professamos nossa fé',
     category: 'credo',
-    audioSrc: '/terco-kids/creio.mp3',
+    audioSrc: '/terco-kids/CREIO.mp3',
     state: 'falando',
     text: PRAYERS_TEXT.credo,
     beadId: 'bead-cross'

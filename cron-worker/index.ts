@@ -38,8 +38,32 @@ const IMAGENS_SEGURAS: Record<string, string> = {
 };
 
 const TERMOS_PROIBIDOS = [
+  // Outras religiões
   'mosque', 'mesquita', 'pagoda', 'pagode', 'hindu', 'buddhist', 'buda', 'buddha',
-  'temple', 'shrine', 'crowd', 'skyline', 'skyscraper', 'prédios', 'islam', 'mecca', 'medina'
+  'temple', 'shrine', 'islam', 'mecca', 'medina', 'torii', 'balinese', 'bali',
+  'synagogue', 'sinagoga', 'shinto', 'wicca', 'umbanda', 'candomble', 'candomblé',
+  'macumba', 'espiritismo', 'terreiro', 'kardecismo', 'new age', 'yoga', 'chakra',
+  // Conteúdo secular / policial / político
+  'police', 'policia', 'polícia', 'murder', 'assassinato', 'homicídio', 'homicidio',
+  'shooting', 'tiroteio', 'arma de fogo', 'gunshot', 'robbery', 'assalto', 'roubo',
+  'drug', 'droga', 'trafficking', 'tráfico', 'trafico', 'cartel', 'gang', 'gangue',
+  'politician', 'político', 'politico', 'elections', 'eleições', 'eleicoes',
+  'partido', 'senado', 'congresso', 'deputado', 'vereador', 'prefeito',
+  'trump', 'biden', 'lula', 'bolsonaro', 'esquerda', 'direita',
+  // Conteúdo visual inadequado
+  'crowd', 'skyline', 'skyscraper', 'prédios', 'protest', 'protesto', 'riot',
+  'war zone', 'battlefield', 'gambling', 'casino', 'nightclub', 'bar', 'beer',
+  'bikini', 'lingerie', 'nude', 'naked', 'sensual'
+];
+
+// Termos proibidos em títulos RSS — filtra notícias não-católicas
+const BLOCKLIST_TITULOS_RSS = [
+  'polícia', 'policia', 'police', 'preso', 'assassinato', 'homicídio',
+  'tiroteio', 'assalto', 'roubo', 'tráfico', 'trafico', 'droga',
+  'eleição', 'eleições', 'deputado', 'senador', 'congresso',
+  'trump', 'biden', 'lula', 'bolsonaro', 'futebol', 'seleção',
+  'acidente', 'colisão', 'incêndio', 'desastre', 'enchente',
+  'protestos', 'manifestação', 'greve', 'sindicato'
 ];
 
 const BLACKLIST_UNSPLASH_IDS = [
@@ -59,6 +83,39 @@ function validarImagemSegura(url?: string | null): boolean {
     if (u.includes(term)) return false;
   }
   return true;
+}
+
+// Valida se a imagem realmente carrega (HEAD request com timeout)
+async function validarImagemHTTP(url: string): Promise<boolean> {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(url, {
+      method: 'HEAD',
+      signal: controller.signal,
+      headers: { 'User-Agent': 'EclesiaCron/2.0' }
+    });
+    clearTimeout(timeoutId);
+    if (!res.ok) return false;
+    const contentType = res.headers.get('content-type') || '';
+    return contentType.startsWith('image/');
+  } catch {
+    return false;
+  }
+}
+
+// Obtém URL de imagem garantida: testa HTTP e aplica fallback sacro
+async function obterImagemSegura(url: string | undefined, categoria: string): Promise<string> {
+  const fallback = IMAGENS_SEGURAS[categoria] || IMAGENS_SEGURAS.espiritualidade;
+  if (!url || !validarImagemSegura(url)) return fallback;
+  const ok = await validarImagemHTTP(url);
+  return ok ? url : fallback;
+}
+
+// Filtra título de RSS contra blocklist de termos não-católicos
+function tituloRSSPermitido(titulo: string): boolean {
+  const t = titulo.toLowerCase();
+  return !BLOCKLIST_TITULOS_RSS.some(termo => t.includes(termo));
 }
 
 // ────────────────────────────────────────────────────────────
@@ -143,7 +200,8 @@ async function buscarNoticiasCatolicasRSS(): Promise<NoticiaRSS[]> {
         const titulo = rawTitle.replace(/<!\[CDATA\[/g, '').replace(/\]\]>/g, '').replace(/<[^>]+>/g, '').trim();
         const resumo = rawDesc.replace(/<!\[CDATA\[/g, '').replace(/\]\]>/g, '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
 
-        if (titulo && titulo.length > 15) {
+        // Filtra títulos com conteúdo não-católico (policial, político, secular)
+        if (titulo && titulo.length > 15 && tituloRSSPermitido(titulo)) {
           noticias.push({
             titulo,
             resumo: resumo.slice(0, 250),
@@ -293,10 +351,45 @@ Responda SOMENTE com JSON válido:
 }
 
 // ────────────────────────────────────────────────────────────
+// VERIFICAÇÃO ANTI-DUPLICIDADE: slug + data
+// ────────────────────────────────────────────────────────────
+async function artigoJaExisteHoje(env: Env, slug: string, date: string): Promise<boolean> {
+  try {
+    const url = `${env.VITE_SUPABASE_URL}/rest/v1/articles?slug=eq.${encodeURIComponent(slug)}&published_at=gte.${date}T00:00:00&published_at=lte.${date}T23:59:59&select=id&limit=1`;
+    const res = await fetch(url, { headers: supabaseHeaders(env) });
+    if (!res.ok) return false;
+    const data_res: any[] = await res.json();
+    return data_res.length > 0;
+  } catch {
+    return false;
+  }
+}
+
+async function slotJaPublicadoHoje(env: Env, slot: number, date: string): Promise<boolean> {
+  try {
+    const url = `${env.VITE_SUPABASE_URL}/rest/v1/articles?slot=eq.${slot}&published_at=gte.${date}T00:00:00&published_at=lte.${date}T23:59:59&select=id&limit=1`;
+    const res = await fetch(url, { headers: supabaseHeaders(env) });
+    if (!res.ok) return false;
+    const data_res: any[] = await res.json();
+    return data_res.length > 0;
+  } catch {
+    return false;
+  }
+}
+
+// ────────────────────────────────────────────────────────────
 // AUTOMAÇÃO 3: Artigo Diário (Linha 2 Formações + 2 Notícias)
 // ────────────────────────────────────────────────────────────
 async function runArtigo(env: Env, slot: number): Promise<void> {
   const date = todayBRT();
+
+  // ── TRAVA ANTI-DUPLICIDADE: verifica se o slot já foi publicado hoje ──
+  const jaPublicado = await slotJaPublicadoHoje(env, slot, date);
+  if (jaPublicado) {
+    console.log(`[Eclesia Cron] Slot ${slot} já publicado em ${date}. Pulando para evitar duplicidade.`);
+    return;
+  }
+
   let category = 'Espiritualidade';
   let defaultCover = IMAGENS_SEGURAS.espiritualidade;
   let isTrending = false;
@@ -345,14 +438,33 @@ async function runArtigo(env: Env, slot: number): Promise<void> {
 
   console.log(`[Eclesia Cron] Artigo Slot ${slot} (${category}) — Data: ${date}`);
 
-  const prompt = `Você é um renomado jornalista e teólogo católico. 
-Escreva um artigo primoroso e inspirador para o portal Eclesia (eclesia.blog).
+  const prompt = `Você é um renomado jornalista e teólogo católico fiel ao Magistério.
+Escreva um artigo primoroso, profundo e inspirador para o portal Eclesia (eclesia.blog).
 ${promptTema}
 Data de hoje: ${date}.
-Critérios:
+
+Critérios OBRIGATÓRIOS de qualidade:
 1. "title": Entre 38 e 63 caracteres, atraente e fiel à fé.
 2. "excerpt": Entre 120 e 160 caracteres.
-3. "content": Artigo completo em Markdown rico (mínimo 700 palavras) com subtítulos "##", citações ">" e bloco de oração católico ao fim: [ORACAO: Título] ... [/ORACAO].
+3. "content": Artigo completo em Markdown rico (mínimo 800 palavras) seguindo esta ESTRUTURA:
+
+   a) INTRODUÇÃO CONTEXTUALIZADA (1-2 parágrafos): Situe o leitor no tema com fidelidade à doutrina.
+
+   b) DESENVOLVIMENTO TEOLÓGICO (3-4 seções com subtítulos "## Título da Seção"):
+      - Cada seção deve ter 2-3 parágrafos de profundidade teológica.
+      - Inclua ao menos 2 CITAÇÕES DIRETAS da Sagrada Escritura em blockquote (formato: "> \"Texto da citação.\" (Livro Capítulo, Versículo)").
+      - Inclua ao menos 1 referência ao Catecismo da Igreja Católica ou a documentos do Magistério (formato: "> Catecismo da Igreja Católica, § número").
+      - Cite ao menos 1 Santo Padre ou Doutor da Igreja (São Tomás de Aquino, Santo Agostinho, Santa Teresa, etc.).
+
+   c) CONCLUSÃO PASTORAL (1 parágrafo): Síntese prática para a vida de fé.
+
+   d) BLOCO DE ORAÇÃO ao final: [ORACAO: Título] ... [/ORACAO]
+
+4. REGRAS DE FORMATAÇÃO:
+   - Use **negrito** APENAS em termos teológicos centrais (máximo 3-4 palavras por ocorrência). NUNCA coloque frases inteiras em negrito.
+   - NÃO use negrito em parágrafos inteiros, apenas termos-chave isolados.
+   - Use *itálico* para citações de santos e títulos de documentos.
+   - Use "## " para subtítulos principais e "### " para sub-subtítulos.
 
 Responda SOMENTE com JSON válido:
 {
@@ -374,6 +486,16 @@ Responda SOMENTE com JSON válido:
 
   // Garante que o slug é gerado estritamente a partir do título do artigo
   const slug = slugify(article.title);
+
+  // ── TRAVA ANTI-DUPLICIDADE POR SLUG: verifica se o slug já existe hoje ──
+  const slugDuplicado = await artigoJaExisteHoje(env, slug, date);
+  if (slugDuplicado) {
+    console.log(`[Eclesia Cron] Slug "${slug}" já existe em ${date}. Artigo ignorado.`);
+    return;
+  }
+
+  // Valida imagem de capa via HTTP — aplica fallback sacro se quebrada
+  defaultCover = await obterImagemSegura(defaultCover, category.toLowerCase().includes('vaticano') ? 'vaticano' : category.toLowerCase().includes('teologia') ? 'teologia' : category.toLowerCase().includes('juventude') ? 'juventude' : 'espiritualidade');
 
   await supabaseUpsert(env, 'articles', {
     slug,
