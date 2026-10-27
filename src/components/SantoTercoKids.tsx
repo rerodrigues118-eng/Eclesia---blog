@@ -9,21 +9,11 @@ import {
   VolumeX, 
   Sparkles, 
   Heart, 
-  Star, 
-  Sun,
-  Smile,
-  CheckCircle2,
-  Calendar,
-  Volume1,
-  Baby,
-  Check,
-  Music,
-  HelpCircle,
-  Info
+  Star
 } from 'lucide-react';
 
 /* ============================================================================
-   TIPAGEM E ESTRUTURA DE DADOS DO TERÇO KIDS
+   TIPAGEM E ESTRUTURA DE DADOS
    ============================================================================ */
 
 export type AvatarState = 'sorrindo' | 'falando' | 'ensinando';
@@ -34,9 +24,9 @@ export interface PrayerStep {
   title: string;
   subtitle: string;
   category: 'intro' | 'credo' | 'pai-nosso' | 'ave-maria' | 'gloria' | 'misterio' | 'final';
-  mysteryNumber?: number; // 1 a 5
-  decadeIndex?: number;   // 0 a 4
-  beadIndex?: number;     // 1 a 10 para Ave-Marias
+  mysteryNumber?: number;
+  decadeIndex?: number;
+  beadIndex?: number;
   audioSrc: string;
   state: AvatarState;
   text: string;
@@ -55,11 +45,8 @@ export interface MysteryInfo {
 export interface MysteryGroupData {
   id: MysteryGroupKids;
   name: string;
-  themeColor: string;
   badgeEmoji: string;
-  daysDescription: string;
-  days: number[]; // 0=Dom, 1=Seg, 2=Ter, 3=Qua, 4=Qui, 5=Sex, 6=Sab
-  introAudio: string;
+  days: number[];
   mysteries: MysteryInfo[];
 }
 
@@ -79,68 +66,65 @@ export interface RosaryTrailBead {
 }
 
 /* ============================================================================
-   PALETA DE 10 CORES PASTEL LÚDICAS E ALEGRES PARA AS AVE-MARIAS
+   10 CORES PASTEL VIVAS PARA AS AVE-MARIAS
    ============================================================================ */
 export const PASTEL_BEAD_THEMES = [
-  { name: 'Rosa Flor', hex: '#f43f5e', fillLight: '#ffe4e6', stroke: '#f43f5e', gradientId: 'grad-ave-0', emoji: '🌸' },
-  { name: 'Azul Céu', hex: '#0284c7', fillLight: '#e0f2fe', stroke: '#0284c7', gradientId: 'grad-ave-1', emoji: '🌤️' },
-  { name: 'Amarelo Sol', hex: '#d97706', fillLight: '#fef3c7', stroke: '#d97706', gradientId: 'grad-ave-2', emoji: '☀️' },
-  { name: 'Verde Menta', hex: '#059669', fillLight: '#d1fae5', stroke: '#059669', gradientId: 'grad-ave-3', emoji: '🍃' },
-  { name: 'Lavanda', hex: '#7c3aed', fillLight: '#ede9fe', stroke: '#7c3aed', gradientId: 'grad-ave-4', emoji: '💜' },
-  { name: 'Pêssego', hex: '#ea580c', fillLight: '#ffedd5', stroke: '#ea580c', gradientId: 'grad-ave-5', emoji: '🍑' },
-  { name: 'Turquesa', hex: '#0891b2', fillLight: '#cffafe', stroke: '#0891b2', gradientId: 'grad-ave-6', emoji: '💎' },
-  { name: 'Rosa Bebê', hex: '#db2777', fillLight: '#fce7f3', stroke: '#db2777', gradientId: 'grad-ave-7', emoji: '🎀' },
-  { name: 'Verde Folha', hex: '#0d9488', fillLight: '#ccfbf1', stroke: '#0d9488', gradientId: 'grad-ave-8', emoji: '🌿' },
-  { name: 'Dourado Luz', hex: '#ca8a04', fillLight: '#fef9c3', stroke: '#ca8a04', gradientId: 'grad-ave-9', emoji: '✨' },
+  { name: 'Rosa Flor', hex: '#f43f5e', gradientId: 'grad-ave-0' },
+  { name: 'Azul Céu', hex: '#0284c7', gradientId: 'grad-ave-1' },
+  { name: 'Amarelo Sol', hex: '#d97706', gradientId: 'grad-ave-2' },
+  { name: 'Verde Menta', hex: '#059669', gradientId: 'grad-ave-3' },
+  { name: 'Lavanda', hex: '#7c3aed', gradientId: 'grad-ave-4' },
+  { name: 'Pêssego', hex: '#ea580c', gradientId: 'grad-ave-5' },
+  { name: 'Turquesa', hex: '#0891b2', gradientId: 'grad-ave-6' },
+  { name: 'Rosa Bebê', hex: '#db2777', gradientId: 'grad-ave-7' },
+  { name: 'Verde Folha', hex: '#0d9488', gradientId: 'grad-ave-8' },
+  { name: 'Dourado Luz', hex: '#ca8a04', gradientId: 'grad-ave-9' },
 ];
 
 /* ============================================================================
-   MISTÉRIOS DO TERÇO ADAPTADOS PARA CRIANÇAS
+   MISTÉRIOS DO TERÇO PARA CRIANÇAS
    ============================================================================ */
 export const KIDS_MYSTERY_GROUPS: MysteryGroupData[] = [
   {
     id: 'gozosos',
     name: 'Mistérios Gozosos',
     badgeEmoji: '🌟',
-    themeColor: '#4A90E2',
-    daysDescription: 'Segunda-feira e Sábado',
     days: [1, 6],
-    introAudio: '/terco-kids/intro-gozosos.mp3',
     mysteries: [
       {
         number: 1,
         title: 'A Anunciação do Anjo Gabriel a Maria',
-        kidsExplanation: 'O lindo anjo Gabriel desce do céu e diz a Maria que ela será a Mãezinha de Jesus! Maria responde com muito amor: "Faça-se em mim a vontade de Deus!"',
+        kidsExplanation: 'O lindo anjo Gabriel desce do céu e diz a Maria que ela será a Mãezinha de Jesus! Maria responde com amor: "Faça-se em mim a vontade de Deus!"',
         audioSrc: '/terco-kids/gozoso-1.mp3',
         fruit: 'Humildade e obedecer com alegria'
       },
       {
         number: 2,
         title: 'A Visita de Nossa Senhora a Santa Isabel',
-        kidsExplanation: 'Maria viaja pelas montanhas para ajudar sua prima Isabel que estava esperando o bebê João Batista. Quando Maria chega, todos se enchem do Espírito Santo!',
+        kidsExplanation: 'Maria viaja pelas montanhas para ajudar sua prima Isabel. Quando Maria chega, todos se enchem do Espírito Santo!',
         audioSrc: '/terco-kids/gozoso-2.mp3',
         fruit: 'Ajudar os outros com carinho'
       },
       {
         number: 3,
         title: 'O Nascimento de Jesus em Belém',
-        kidsExplanation: 'Jesus nasce em uma manjedoura simples, cheia de palhinha, entre os animaizinhos. Os anjos cantam "Glória a Deus nas alturas" e os pastores vão adorar o Menino Deus!',
+        kidsExplanation: 'Jesus nasce em uma manjedoura simples, cheia de palhinha, entre os animaizinhos. Os anjos cantam Glória a Deus!',
         audioSrc: '/terco-kids/gozoso-3.mp3',
         fruit: 'Coração simples e agradecido'
       },
       {
         number: 4,
         title: 'A Apresentação de Jesus no Templo',
-        kidsExplanation: 'Maria e José levam o bebê Jesus ao Templo para consagrá-lo a Deus Pai. O vovô Simeão fica radiante de alegria e abraça o Salvador nos braços!',
+        kidsExplanation: 'Maria e José levam o bebê Jesus ao Templo para consagrá-lo a Deus Pai. O vovô Simeão fica radiante e abraça o Salvador!',
         audioSrc: '/terco-kids/gozoso-4.mp3',
         fruit: 'Pureza de coração e amor à Igreja'
       },
       {
         number: 5,
         title: 'O Menino Jesus Encontrado no Templo',
-        kidsExplanation: 'Aos doze anos, Jesus conversa com os doutores da Lei no Templo de Jerusalém, ensinando as coisas mais lindas sobre Deus com muita sabedoria!',
+        kidsExplanation: 'Aos doze anos, Jesus conversa com os doutores no Templo de Jerusalém, ensinando as coisas mais lindas sobre Deus com muita sabedoria!',
         audioSrc: '/terco-kids/gozoso-5.mp3',
-        fruit: 'Buscar Jesus e escutar Seus ensinamentos'
+        fruit: 'Buscar sempre a Jesus'
       }
     ]
   },
@@ -148,45 +132,42 @@ export const KIDS_MYSTERY_GROUPS: MysteryGroupData[] = [
     id: 'dolorosos',
     name: 'Mistérios Dolorosos',
     badgeEmoji: '❤️‍🔥',
-    themeColor: '#E53E3E',
-    daysDescription: 'Terça-feira e Sexta-feira',
     days: [2, 5],
-    introAudio: '/terco-kids/intro-dolorosos.mp3',
     mysteries: [
       {
         number: 1,
-        title: 'A Oração de Jesus no Horto das Oliveiras',
-        kidsExplanation: 'No jardim do Getsêmani, Jesus reza com muito amor por todos nós e diz ao Pai do Céu: "Pai, faça-se a Tua santa vontade!"',
+        title: 'A Oração de Jesus no Horto',
+        kidsExplanation: 'No jardim do Getsêmani, Jesus reza com muito amor por nós e diz ao Pai: "Seja feita a Tua vontade!"',
         audioSrc: '/terco-kids/doloroso-1.mp3',
         fruit: 'Rezar sempre com confiança'
       },
       {
         number: 2,
-        title: 'A Flagelação de Nosso Senhor Jesus Cristo',
+        title: 'A Flagelação de Jesus',
         kidsExplanation: 'Jesus sofre por amor infinito a cada um de nós, ensinando-nos o valor de um coração paciente e perdoador.',
         audioSrc: '/terco-kids/doloroso-2.mp3',
-        fruit: 'Paciência e pureza nos pensamentos'
+        fruit: 'Paciência e bondade'
       },
       {
         number: 3,
-        title: 'A Coroação de Espinhos de Jesus',
-        kidsExplanation: 'Os soldados colocam uma coroa de espinhos na cabecinha de Jesus, mas Ele é o verdadeiro Rei do Céu e da Terra, o Rei do Amor!',
+        title: 'A Coroação de Espinhos',
+        kidsExplanation: 'Os soldados colocam uma coroa de espinhos em Jesus, mas Ele é o verdadeiro Rei do Amor!',
         audioSrc: '/terco-kids/doloroso-3.mp3',
-        fruit: 'Humildade e bondade com todos'
+        fruit: 'Humildade e mansidão'
       },
       {
         number: 4,
-        title: 'Jesus Carrega a Pesada Cruz',
-        kidsExplanation: 'Jesus abraça a pesada cruz a caminho do Calvário. No caminho, Ele encontra Sua Mãezinha Maria que Lhe dá consolo e força!',
+        title: 'Jesus Carrega a Cruz',
+        kidsExplanation: 'Jesus carrega a pesada cruz com coragem. No caminho, Ele encontra Sua Mãezinha Maria que Lhe dá consolo!',
         audioSrc: '/terco-kids/doloroso-4.mp3',
-        fruit: 'Ajudar os amigos em suas dificuldades'
+        fruit: 'Ajudar os amigos'
       },
       {
         number: 5,
-        title: 'A Crucificação e Morte de Jesus',
-        kidsExplanation: 'No alto da Cruz, Jesus nos entrega Nossa Senhora por Mãe dizendo: "Eis aí a tua Mãe!" Ele abre as portas do Céu com Seu amor infinito!',
+        title: 'A Morte de Jesus na Cruz',
+        kidsExplanation: 'No alto da Cruz, Jesus nos entrega Nossa Senhora por Mãe dizendo: "Eis aí a tua Mãe!" Ele abre as portas do Céu!',
         audioSrc: '/terco-kids/doloroso-5.mp3',
-        fruit: 'Perdoar de coração e amar a Mãezinha do Céu'
+        fruit: 'Perdoar de coração'
       }
     ]
   },
@@ -194,45 +175,42 @@ export const KIDS_MYSTERY_GROUPS: MysteryGroupData[] = [
     id: 'gloriosos',
     name: 'Mistérios Gloriosos',
     badgeEmoji: '👑',
-    themeColor: '#D69E2E',
-    daysDescription: 'Quarta-feira e Domingo',
     days: [0, 3],
-    introAudio: '/terco-kids/intro-gloriosos.mp3',
     mysteries: [
       {
         number: 1,
-        title: 'A Ressurreição Gloriosa de Jesus',
-        kidsExplanation: 'No terceiro dia, a pedra do túmulo se abre e Jesus ressuscita cheio de luz e glória! Ele venceu a morte e vive para sempre conosco!',
+        title: 'A Ressurreição de Jesus',
+        kidsExplanation: 'No terceiro dia, Jesus ressuscita cheio de luz e glória! Ele venceu a morte e vive para sempre!',
         audioSrc: '/terco-kids/glorioso-1.mp3',
-        fruit: 'Fé viva e alegria que nunca acaba'
+        fruit: 'Fé viva e alegria'
       },
       {
         number: 2,
-        title: 'A Ascensão Admirável de Jesus ao Céu',
-        kidsExplanation: 'Quarenta dias depois, diante dos Apóstolos e de Maria, Jesus sobe aos Céus em uma nuvem luminosa para nos preparar um lugar lindo!',
+        title: 'A Ascensão de Jesus ao Céu',
+        kidsExplanation: 'Jesus sobe aos Céus em uma nuvem luminosa para nos preparar um lugar muito lindo junto de Deus!',
         audioSrc: '/terco-kids/glorioso-2.mp3',
-        fruit: 'Desejo do Céu e esperança'
+        fruit: 'Esperança no Céu'
       },
       {
         number: 3,
-        title: 'A Vinda do Espírito Santo em Pentecostes',
-        kidsExplanation: 'No Cenáculo com Maria reunida em oração, o Espírito Santo desce como línguas de fogo e vento forte, enchendo os corações de coragem e amor!',
+        title: 'A Vinda do Espírito Santo',
+        kidsExplanation: 'Com Maria em oração, o Espírito Santo desce sobre os apóstolos como chamas de amor e paz!',
         audioSrc: '/terco-kids/glorioso-3.mp3',
-        fruit: 'Amor a Deus e os 7 dons do Espírito Santo'
+        fruit: 'Amor a Deus e sabedoria'
       },
       {
         number: 4,
-        title: 'A Assunção de Nossa Senhora ao Céu',
-        kidsExplanation: 'Os anjinhos descem do Céu e levam Nossa Senhora em corpo e alma para os braços de Jesus, cercada de flores celestiais!',
+        title: 'A Assunção de Nossa Senhora',
+        kidsExplanation: 'Os anjinhos levam Nossa Senhora em corpo e alma para o Céu, direto para os braços de Jesus!',
         audioSrc: '/terco-kids/glorioso-4.mp3',
-        fruit: 'Confiança na intercessão de Maria'
+        fruit: 'Confiança na Mãezinha'
       },
       {
         number: 5,
-        title: 'A Coroação de Maria como Rainha do Céu',
-        kidsExplanation: 'A Santíssima Trindade coroa Nossa Senhora com doze estrelas brilhantes como Rainha de todo o Universo e Protetora dos pequeninos!',
+        title: 'A Coroação de Maria',
+        kidsExplanation: 'Nossa Senhora é coroada com 12 estrelas brilhantes como Rainha do Céu e protetora dos pequeninos!',
         audioSrc: '/terco-kids/glorioso-5.mp3',
-        fruit: 'Devoção filial e entrega total a Maria'
+        fruit: 'Amar muito a Maria'
       }
     ]
   },
@@ -240,52 +218,49 @@ export const KIDS_MYSTERY_GROUPS: MysteryGroupData[] = [
     id: 'luminosos',
     name: 'Mistérios Luminosos',
     badgeEmoji: '💡',
-    themeColor: '#38A169',
-    daysDescription: 'Quinta-feira',
     days: [4],
-    introAudio: '/terco-kids/intro-luminosos.mp3',
     mysteries: [
       {
         number: 1,
-        title: 'O Batismo de Jesus no Rio Jordão',
-        kidsExplanation: 'São João Batista batiza Jesus no rio Jordão. O céu se abre, o Espírito Santo desce como pomba e a voz do Pai diz: "Este é meu Filho muito amado!"',
+        title: 'O Batismo de Jesus no Jordão',
+        kidsExplanation: 'São João Batista batiza Jesus no rio. O céu se abre e a voz do Pai diz: "Este é meu Filho muito amado!"',
         audioSrc: '/terco-kids/luminoso-1.mp3',
-        fruit: 'Viver a graça e pureza do nosso Batismo'
+        fruit: 'Pureza no coração'
       },
       {
         number: 2,
-        title: 'As Bodas de Caná e o Primeiro Milagre',
-        kidsExplanation: 'Na festa de casamento, Nossa Senhora percebe que o vinho acabou e diz a Jesus. Maria pede aos garçons: "Fazei tudo o que Ele vos disser!" E a água vira vinho excelente!',
+        title: 'O Primeiro Milagre em Caná',
+        kidsExplanation: 'Nossa Senhora pede a Jesus e diz: "Fazei tudo o que Ele vos disser!" E a água vira vinho excelente!',
         audioSrc: '/terco-kids/luminoso-2.mp3',
-        fruit: 'Obediência aos pedidos da Mãezinha'
+        fruit: 'Obedecer a Jesus'
       },
       {
         number: 3,
-        title: 'O Anúncio do Reino de Deus e Conversão',
-        kidsExplanation: 'Jesus caminha pelas cidades curando os doentinhos, acolhendo as criancinhas e anunciando que o Reino dos Céus é para os corações bons e humildes!',
+        title: 'O Anúncio do Reino de Deus',
+        kidsExplanation: 'Jesus cura os doentinhos, acolhe as criancinhas e ensina o amor a Deus Pai!',
         audioSrc: '/terco-kids/luminoso-3.mp3',
-        fruit: 'Confissão frequente e coração bondoso'
+        fruit: 'Coração bondoso'
       },
       {
         number: 4,
-        title: 'A Transfiguração de Jesus no Monte Tabor',
-        kidsExplanation: 'No alto do monte Tabor, as roupinhas de Jesus ficam brilhando como a luz do sol, mais brancas que a neve, revelando Sua glória divina aos apóstolos!',
+        title: 'A Transfiguração no Tabor',
+        kidsExplanation: 'No alto do monte, as roupinhas de Jesus brilham como a luz do sol, cheias de glória!',
         audioSrc: '/terco-kids/luminoso-4.mp3',
-        fruit: 'Vida de oração diária e comunhão com Deus'
+        fruit: 'Rezar todo dia'
       },
       {
         number: 5,
-        title: 'A Instituição da Santíssima Eucaristia',
-        kidsExplanation: 'Na Última Ceia, Jesus pega o pão e o cálice e nos dá Seu verdadeiro Corpo e Sangue no Santíssimo Sacramento! Ele fica para sempre na Hóstia Santa por nós!',
+        title: 'A Instituição da Eucaristia',
+        kidsExplanation: 'Na Última Ceia, Jesus nos dá Seu verdadeiro Corpo e Sangue na Santa Hóstia, ficando para sempre conosco!',
         audioSrc: '/terco-kids/luminoso-5.mp3',
-        fruit: 'Amor fervoroso à Santa Missa e adoração'
+        fruit: 'Amor à Santa Missa'
       }
     ]
   }
 ];
 
 /* ============================================================================
-   AVATARES ILUSTRADOS DA MÃEZINHA DO CÉU
+   AVATARES DE NOSSA SENHORA
    ============================================================================ */
 const AVATAR_IMAGES = {
   sorrindo: '/terco-kids/SORINDO-NORMAL.png',
@@ -294,7 +269,7 @@ const AVATAR_IMAGES = {
 };
 
 /* ============================================================================
-   TEXTOS DAS ORAÇÕES
+   ORAÇÕES CATÓLICAS
    ============================================================================ */
 const PRAYERS_TEXT = {
   credo: "Em nome do Pai, do Filho e do Espírito Santo. Amém! [...] Creio em Deus Pai Todo-Poderoso, [...] Criador do céu e da terra; [...] e em Jesus Cristo, seu único Filho, Nosso Senhor; [...] que foi concebido pelo poder do Espírito Santo; [...] nasceu da Virgem Maria; [...] padeceu sob Pôncio Pilatos; [...] foi crucificado, morto e sepultado; [...] desceu à mansão dos mortos; [...] ressuscitou ao terceiro dia; [...] subiu aos céus, [...] está sentado à direita de Deus Pai Todo-Poderoso, [...] donde há de vir a julgar os vivos e os mortos. [...] Creio no Espírito Santo; [...] na Santa Igreja Católica; [...] na comunhão dos santos; [...] na remissão dos pecados; [...] na ressurreição da carne; [...] na vida eterna. Amém!",
@@ -302,11 +277,11 @@ const PRAYERS_TEXT = {
   aveMaria: "Ave Maria, cheia de graça, [...] o Senhor é convosco; [...] bendita sois vós entre as mulheres, [...] e bendito é o fruto do vosso ventre, Jesus. [...] Santa Maria, Mãe de Deus, [...] rogai por nós, pecadores, [...] agora e na hora da nossa morte. Amém!",
   gloria: "Glória ao Pai, ao Filho e ao Espírito Santo. [...] Como era no princípio, agora e sempre. Amém! [...] Ó meu Jesus, perdoai-nos, livrai-nos do fogo do inferno, [...] levai as almas todas para o céu [...] e socorrei principalmente as que mais precisarem. Amém!",
   salveRainha: "Salve, Rainha, Mãe de misericórdia, [...] vida, doçura e esperança nossa, salve! [...] A vós bradamos os degredados filhos de Eva. [...] A vós suspiramos, gemendo e chorando neste vale de lágrimas. [...] Eia, pois, advogada nossa, [...] esses vossos olhos misericordiosos a nós volvei, [...] e depois deste desterro mostrai-nos Jesus, [...] bendito fruto do vosso ventre, [...] ó clemente, ó piedosa, ó doce sempre Virgem Maria. [...] Rogai por nós, Santa Mãe de Deus, [...] para que sejamos dignos das promessas de Cristo. Amém!",
-  santoAnjo: "Santo Anjo do Senhor, [...] meu zeloso guardador, [...] se a ti me confiou a piedade divina, [...] sempre me rege, me guarda, [...] me governa, me ilumina. Amém! [...] Nossa Senhora Rainha da Paz, rogai por nós e pelas nossas famílias!"
+  santoAnjo: "Santo Anjo do Senhor, [...] meu zeloso guardador, [...] se a ti me confiou a piedade divina, [...] sempre me rege, me guarda, [...] me governa, me ilumina. Amém! [...] Nossa Senhora Rainha da Paz, rogai por nós!"
 };
 
 /* ============================================================================
-   EFEITO SONORO NATIVO DE SININHO CELESTIAL AO TOCAR NA CONTA (WEB AUDIO API)
+   SOM DE SININHO CELESTIAL
    ============================================================================ */
 function playBeadClickSound() {
   try {
@@ -316,8 +291,8 @@ function playBeadClickSound() {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(880, ctx.currentTime); // Tom A5
-    osc.frequency.exponentialRampToValueAtTime(1760, ctx.currentTime + 0.15); // A6
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1760, ctx.currentTime + 0.15);
     gain.gain.setValueAtTime(0.2, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
     osc.connect(gain);
@@ -325,33 +300,21 @@ function playBeadClickSound() {
     osc.start();
     osc.stop(ctx.currentTime + 0.25);
   } catch {
-    // Silencioso se navegador bloquear autoplay de áudio
+    // Silencioso
   }
 }
 
 /* ============================================================================
-   GERADOR DA LISTA COMPLETA DE PASSOS DO TERÇO KIDS
+   GERAÇÃO DOS PASSOS
    ============================================================================ */
 function buildPrayerSteps(mysteryGroup: MysteryGroupData): PrayerStep[] {
   const steps: PrayerStep[] = [];
 
-  // 1. Mensagem Inicial Acolhedora
-  steps.push({
-    id: 'intro-welcome',
-    title: 'Olá, meu querido amiguinho!',
-    subtitle: 'Nossa Senhora acolhe você para rezar',
-    category: 'intro',
-    audioSrc: '/terco-kids/ola-meu-querido-amiguinho.mp3',
-    state: 'ensinando',
-    text: "Olá meu querido amiguinho! [...] Que alegria no coração rezar o Santo Terço com você! [...] Vamos juntos pedir a Jesus e a Nossa Senhora por você, pela sua família e por todo o mundo? [...] Pegue o seu tercinho bem bonito e vamos começar!",
-    beadId: 'bead-cross'
-  });
-
-  // 2. Sinal da Cruz e Credo (Crucifixo)
+  // Sinal da Cruz e Credo
   steps.push({
     id: 'credo',
-    title: 'Sinal da Cruz e o Santo Credo',
-    subtitle: 'Na Cruz do nosso Terço, professamos nossa fé em Deus Pai',
+    title: 'Sinal da Cruz e o Credo',
+    subtitle: 'Segure a Cruz e professe a nossa Fé',
     category: 'credo',
     audioSrc: '/terco-kids/CREIO.mp3',
     state: 'falando',
@@ -359,11 +322,11 @@ function buildPrayerSteps(mysteryGroup: MysteryGroupData): PrayerStep[] {
     beadId: 'bead-cross'
   });
 
-  // 3. Pai Nosso Inicial
+  // Pai Nosso Inicial
   steps.push({
     id: 'pai-nosso-intro',
     title: 'Pai Nosso Inicial',
-    subtitle: 'A oração que o próprio Jesus nos ensinou',
+    subtitle: 'A oração que Jesus nos ensinou',
     category: 'pai-nosso',
     audioSrc: '/terco-kids/pai-nosso.mp3',
     state: 'falando',
@@ -371,11 +334,11 @@ function buildPrayerSteps(mysteryGroup: MysteryGroupData): PrayerStep[] {
     beadId: 'bead-pn-intro'
   });
 
-  // 4. 3 Ave-Marias Iniciais (Fé, Esperança e Caridade)
+  // 3 Ave-Marias Iniciais
   steps.push({
     id: 'ave-maria-intro-1',
     title: '1ª Ave-Maria: Virtude da Fé',
-    subtitle: 'Para termos um coração que confia sempre em Jesus',
+    subtitle: 'Para confiar sempre em Jesus',
     category: 'ave-maria',
     audioSrc: '/terco-kids/ave-maria.mp3',
     state: 'falando',
@@ -386,7 +349,7 @@ function buildPrayerSteps(mysteryGroup: MysteryGroupData): PrayerStep[] {
   steps.push({
     id: 'ave-maria-intro-2',
     title: '2ª Ave-Maria: Virtude da Esperança',
-    subtitle: 'Para esperar com alegria nas promessas de Deus',
+    subtitle: 'Para esperar com alegria no Céu',
     category: 'ave-maria',
     audioSrc: '/terco-kids/ave-maria-2.mp3',
     state: 'falando',
@@ -397,7 +360,7 @@ function buildPrayerSteps(mysteryGroup: MysteryGroupData): PrayerStep[] {
   steps.push({
     id: 'ave-maria-intro-3',
     title: '3ª Ave-Maria: Virtude da Caridade',
-    subtitle: 'Para amarmos com carinho todos os nossos irmãos',
+    subtitle: 'Para amar a todos os irmãos',
     category: 'ave-maria',
     audioSrc: '/terco-kids/ave-maria.mp3',
     state: 'falando',
@@ -405,11 +368,11 @@ function buildPrayerSteps(mysteryGroup: MysteryGroupData): PrayerStep[] {
     beadId: 'bead-ave-intro-3'
   });
 
-  // 5. Glória ao Pai Inicial
+  // Glória Inicial
   steps.push({
     id: 'gloria-intro',
     title: 'Glória ao Pai Inicial',
-    subtitle: 'Louvor à Santíssima Trindade antes da Medalha',
+    subtitle: 'Louvor a Deus Pai, Filho e Espírito Santo',
     category: 'gloria',
     audioSrc: '/terco-kids/gloria-ao-pai.mp3',
     state: 'falando',
@@ -417,43 +380,29 @@ function buildPrayerSteps(mysteryGroup: MysteryGroupData): PrayerStep[] {
     beadId: 'bead-gloria-intro'
   });
 
-  // 6. Os 5 Mistérios com suas 10 Ave-Marias e Glória
+  // 5 Dezenas
   mysteryGroup.mysteries.forEach((mystery, decIdx) => {
-    // 6.1 Anúncio do Mistério
+    // Pai Nosso da Dezena (e Anúncio)
     steps.push({
-      id: `misterio-${decIdx + 1}-anuncio`,
+      id: `misterio-${decIdx + 1}-pn`,
       title: `${mystery.number}º Mistério: ${mystery.title}`,
-      subtitle: `Meditação infantil: ${mystery.fruit}`,
-      category: 'misterio',
+      subtitle: `Pai Nosso da ${decIdx + 1}ª Dezena`,
+      category: 'pai-nosso',
       mysteryNumber: mystery.number,
       decadeIndex: decIdx,
-      audioSrc: mystery.audioSrc,
+      audioSrc: mystery.audioSrc || '/terco-kids/pai-nosso.mp3',
       state: 'ensinando',
-      text: `${mystery.kidsExplanation} [...] Fruto do mistério para o seu coração: ${mystery.fruit}`,
+      text: `${mystery.kidsExplanation} [...] Vamos rezar juntos: [...] ` + PRAYERS_TEXT.paiNosso,
       fruit: mystery.fruit,
       beadId: `bead-dec-${decIdx}-pn`
     });
 
-    // 6.2 Pai Nosso da Dezena
-    steps.push({
-      id: `misterio-${decIdx + 1}-pn`,
-      title: `Pai Nosso (${mystery.number}º Mistério)`,
-      subtitle: 'Rezando juntos o Pai Nosso da dezena',
-      category: 'pai-nosso',
-      mysteryNumber: mystery.number,
-      decadeIndex: decIdx,
-      audioSrc: '/terco-kids/pai-nosso.mp3',
-      state: 'falando',
-      text: PRAYERS_TEXT.paiNosso,
-      beadId: `bead-dec-${decIdx}-pn`
-    });
-
-    // 6.3 10 Ave-Marias da Dezena
+    // 10 Ave-Marias
     for (let aveIdx = 1; aveIdx <= 10; aveIdx++) {
       steps.push({
         id: `misterio-${decIdx + 1}-ave-${aveIdx}`,
         title: `${aveIdx}ª Ave-Maria (${mystery.number}º Mistério)`,
-        subtitle: `Rosa ${aveIdx}/10 ofertada à Mãezinha do Céu 🌸`,
+        subtitle: `Rosa ${aveIdx}/10 ofertada a Nossa Senhora 🌸`,
         category: 'ave-maria',
         mysteryNumber: mystery.number,
         decadeIndex: decIdx,
@@ -465,11 +414,11 @@ function buildPrayerSteps(mysteryGroup: MysteryGroupData): PrayerStep[] {
       });
     }
 
-    // 6.4 Glória ao Pai e Jaculatória
+    // Glória ao Pai
     steps.push({
       id: `misterio-${decIdx + 1}-gloria`,
       title: `Glória ao Pai (${mystery.number}º Mistério)`,
-      subtitle: 'Glória e Oração de Fátima (Ó meu Jesus...)',
+      subtitle: 'Glória ao Pai e Oração de Fátima',
       category: 'gloria',
       mysteryNumber: mystery.number,
       decadeIndex: decIdx,
@@ -480,7 +429,7 @@ function buildPrayerSteps(mysteryGroup: MysteryGroupData): PrayerStep[] {
     });
   });
 
-  // 7. Encerramento na Medalha: Salve Rainha e Bênção
+  // Salve Rainha na Medalha
   steps.push({
     id: 'salve-rainha',
     title: 'Salve Rainha na Medalha de Nossa Senhora',
@@ -492,15 +441,15 @@ function buildPrayerSteps(mysteryGroup: MysteryGroupData): PrayerStep[] {
     beadId: 'bead-medal'
   });
 
-  // 8. Oração ao Santo Anjo da Guarda e Parabéns
+  // Bênção Final
   steps.push({
     id: 'final-blessing',
     title: 'Parabéns! Terço Concluído com Amor! 🌟',
-    subtitle: 'Oração ao Santo Anjo e Bênção de Jesus e Maria',
+    subtitle: 'Oração ao Santo Anjo da Guarda',
     category: 'final',
     audioSrc: '/terco-kids/santo-anjo.mp3',
     state: 'sorrindo',
-    text: "Parabéns, meu querido amiguinho! [...] Você concluiu o Santo Terço com muito amor no coração! [...] Jesus e Nossa Senhora estão muito felizes com a sua oração! [...] Vamos pedir a proteção do nosso Anjo da Guarda: [...] " + PRAYERS_TEXT.santoAnjo,
+    text: "Parabéns, meu querido amiguinho! [...] Você concluiu o Santo Terço com muito amor no coração! [...] Vamos rezar ao nosso Anjinho da Guarda: [...] " + PRAYERS_TEXT.santoAnjo,
     beadId: 'bead-medal'
   });
 
@@ -508,85 +457,78 @@ function buildPrayerSteps(mysteryGroup: MysteryGroupData): PrayerStep[] {
 }
 
 /* ============================================================================
-   CÁLCULO DAS COORDENADAS DA TRILHA COMPLETA DO TERÇO (INFOGRÁFICO INTERATIVO)
+   CÁLCULO GEOMÉTRICO DO TERÇO AMPLIADO E LIMPO
    ============================================================================ */
-function generateRosaryTrailBeads(): { beads: RosaryTrailBead[]; cordPath: string; stemPath: string } {
+function generateCleanRosaryTrail(): { beads: RosaryTrailBead[]; cordPath: string; stemPath: string } {
   const beads: RosaryTrailBead[] = [];
 
-  // Dimensões do viewBox: 860 x 1120
-  const cx = 430;
-  const cy = 350;
-  const rx = 285;
+  // Dimensões do viewBox: 800 x 980 (espaçoso, grande e sem poluição)
+  const cx = 400;
+  const cy = 300;
+  const rx = 295;
   const ry = 225;
 
-  // 1. HASTE VERTICAL (Crucifixo até a Medalha)
-  // Crucifixo na base
+  // 1. HASTE VERTICAL (Crucifixo -> Medalha)
   beads.push({
     id: 'bead-cross',
-    x: 430,
-    y: 1010,
-    radius: 24,
+    x: 400,
+    y: 890,
+    radius: 26,
     type: 'cross',
-    tooltip: 'Crucifixo: Sinal da Cruz e Santo Credo'
+    tooltip: 'Crucifixo: Sinal da Cruz e Credo'
   });
 
-  // Pai Nosso Inicial
   beads.push({
     id: 'bead-pn-intro',
-    x: 430,
-    y: 900,
-    radius: 17,
+    x: 400,
+    y: 795,
+    radius: 19,
     type: 'pn-intro',
     label: 'PN',
     tooltip: 'Pai Nosso Inicial'
   });
 
-  // 3 Ave-Marias Iniciais
   beads.push({
     id: 'bead-ave-intro-1',
-    x: 430,
-    y: 840,
-    radius: 12,
+    x: 400,
+    y: 740,
+    radius: 13,
     type: 'ave-intro',
-    colorName: 'Fé',
     colorHex: PASTEL_BEAD_THEMES[0].hex,
     gradientId: PASTEL_BEAD_THEMES[0].gradientId,
     label: '1',
-    tooltip: '1ª Ave-Maria: Virtude da Fé'
+    tooltip: '1ª Ave-Maria'
   });
 
   beads.push({
     id: 'bead-ave-intro-2',
-    x: 430,
-    y: 790,
-    radius: 12,
+    x: 400,
+    y: 692,
+    radius: 13,
     type: 'ave-intro',
-    colorName: 'Esperança',
     colorHex: PASTEL_BEAD_THEMES[1].hex,
     gradientId: PASTEL_BEAD_THEMES[1].gradientId,
     label: '2',
-    tooltip: '2ª Ave-Maria: Virtude da Esperança'
+    tooltip: '2ª Ave-Maria'
   });
 
   beads.push({
     id: 'bead-ave-intro-3',
-    x: 430,
-    y: 740,
-    radius: 12,
+    x: 400,
+    y: 644,
+    radius: 13,
     type: 'ave-intro',
-    colorName: 'Caridade',
     colorHex: PASTEL_BEAD_THEMES[2].hex,
     gradientId: PASTEL_BEAD_THEMES[2].gradientId,
     label: '3',
-    tooltip: '3ª Ave-Maria: Virtude da Caridade'
+    tooltip: '3ª Ave-Maria'
   });
 
-  // Glória Inicial
   beads.push({
     id: 'bead-gloria-intro',
-    x: 430,
-    y: 685,
-    radius: 9,
+    x: 400,
+    y: 596,
+    radius: 10,
     type: 'gloria-intro',
     tooltip: 'Glória ao Pai Inicial'
   });
@@ -594,20 +536,20 @@ function generateRosaryTrailBeads(): { beads: RosaryTrailBead[]; cordPath: strin
   // 2. MEDALHA CENTRAL DE NOSSA SENHORA
   beads.push({
     id: 'bead-medal',
-    x: 430,
-    y: 610,
-    radius: 28,
+    x: 400,
+    y: 530,
+    radius: 32,
     type: 'medal',
-    tooltip: 'Medalha de Nossa Senhora (Salve Rainha)'
+    tooltip: 'Medalha de Nossa Senhora'
   });
 
-  // 3. O GRANDE CÍRCULO DAS 5 DEZENAS (60 nós ao todo)
+  // 3. O GRANDE ARCO DAS 5 DEZENAS (60 nós)
   const loopCoords: { x: number; y: number }[] = [];
 
   for (let dec = 0; dec < 5; dec++) {
     const startAngle = 18 + dec * 64.8;
 
-    // Pai Nosso da Dezena (Bola Grande)
+    // Pai Nosso da Dezena (Bola Grande Dourada)
     const pnRad = (startAngle * Math.PI) / 180;
     const pnx = +(cx + rx * Math.sin(pnRad)).toFixed(1);
     const pny = +(cy + ry * Math.cos(pnRad)).toFixed(1);
@@ -616,11 +558,11 @@ function generateRosaryTrailBeads(): { beads: RosaryTrailBead[]; cordPath: strin
       id: `bead-dec-${dec}-pn`,
       x: pnx,
       y: pny,
-      radius: 17,
+      radius: 19,
       type: 'pn-decade',
       decadeIndex: dec,
       label: `${dec + 1}º`,
-      tooltip: `${dec + 1}ª Dezena: Pai Nosso e Anúncio do Mistério`
+      tooltip: `${dec + 1}ª Dezena: Pai Nosso`
     });
     loopCoords.push({ x: pnx, y: pny });
 
@@ -636,20 +578,19 @@ function generateRosaryTrailBeads(): { beads: RosaryTrailBead[]; cordPath: strin
         id: `bead-dec-${dec}-ave-${ave}`,
         x: aveX,
         y: aveY,
-        radius: 11,
+        radius: 12.5,
         type: 'ave-decade',
         decadeIndex: dec,
         aveIndex: ave,
-        colorName: theme.name,
         colorHex: theme.hex,
         gradientId: theme.gradientId,
         label: `${ave}`,
-        tooltip: `${ave}ª Ave-Maria (${dec + 1}º Mistério)`
+        tooltip: `${ave}ª Ave-Maria`
       });
       loopCoords.push({ x: aveX, y: aveY });
     }
 
-    // Glória ao Pai da Dezena (Bolinha separadora vermelha)
+    // Glória ao Pai da Dezena (Bolinha Vermelha)
     const gloriaAngle = startAngle + 55;
     const gloriaRad = (gloriaAngle * Math.PI) / 180;
     const gx = +(cx + rx * Math.sin(gloriaRad)).toFixed(1);
@@ -659,17 +600,16 @@ function generateRosaryTrailBeads(): { beads: RosaryTrailBead[]; cordPath: strin
       id: `bead-dec-${dec}-gloria`,
       x: gx,
       y: gy,
-      radius: 9,
+      radius: 10,
       type: 'gloria-decade',
       decadeIndex: dec,
-      tooltip: `Glória ao Pai da ${dec + 1}ª Dezena e Jaculatória de Fátima`
+      tooltip: `Glória ao Pai da ${dec + 1}ª Dezena`
     });
     loopCoords.push({ x: gx, y: gy });
   }
 
-  // Caminho do cordão: Haste e Círculo do Colar
-  const stemPath = `M 430,970 L 430,645`;
-  const medalTop = `430,578`;
+  const stemPath = `M 400,860 L 400,565`;
+  const medalTop = `400,496`;
   const loopPathPoints = loopCoords.map(p => `${p.x},${p.y}`).join(' L ');
   const cordPath = `M ${medalTop} L ${loopPathPoints} Z`;
 
@@ -677,7 +617,7 @@ function generateRosaryTrailBeads(): { beads: RosaryTrailBead[]; cordPath: strin
 }
 
 /* ============================================================================
-   COMPONENTE PRINCIPAL: SANTO TERÇO KIDS (TRILHA VISUAL COMPLETA)
+   COMPONENTE PRINCIPAL
    ============================================================================ */
 export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onSwitchToAdult }) => {
   const getTodayMysteryId = (): MysteryGroupKids => {
@@ -700,27 +640,15 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
 
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
-  const [autoAdvance, setAutoAdvance] = useState<boolean>(true);
   const [activePhraseIndex, setActivePhraseIndex] = useState<number>(0);
-  const [audioProgress, setAudioProgress] = useState<number>(0);
-  const [isSpeechFallback, setIsSpeechFallback] = useState<boolean>(false);
-  const [avatarStateOverride, setAvatarStateOverride] = useState<AvatarState | null>(null);
-  const [hoveredBeadTooltip, setHoveredBeadTooltip] = useState<string | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const preloaderRef = useRef<HTMLAudioElement | null>(null);
   const progressIntervalRef = useRef<any>(null);
 
-  const rosaryTrail = useMemo(() => generateRosaryTrailBeads(), []);
+  const rosaryTrail = useMemo(() => generateCleanRosaryTrail(), []);
 
-  // Avatar atual
-  const currentAvatarState: AvatarState = useMemo(() => {
-    if (avatarStateOverride) return avatarStateOverride;
-    if (isPlaying) return 'falando';
-    return currentStep.state || 'sorrindo';
-  }, [avatarStateOverride, isPlaying, currentStep.state]);
-
-  // Divide o texto em frases para leitura pausada
+  // Frases curtas para leitura acompanhada
   const phrases = useMemo(() => {
     return currentStep.text
       .split(/\[\.\.\.\]/g)
@@ -728,7 +656,7 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
       .filter((p) => p.length > 0);
   }, [currentStep.text]);
 
-  // Inicializa elemento de áudio
+  // Inicializa áudio
   useEffect(() => {
     const audio = new Audio();
     audio.preload = 'auto';
@@ -753,35 +681,24 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
     }
   }, [currentStepIndex, steps]);
 
-  // Fala nativa via Web Speech API
+  // Síntese de voz fallback
   const speakWithSynthesis = useCallback((textToSpeak: string, onEnd?: () => void) => {
     if (!('speechSynthesis' in window)) {
       if (onEnd) onEnd();
       return;
     }
     window.speechSynthesis.cancel();
-    setIsSpeechFallback(true);
-
     const cleanText = textToSpeak.replace(/\[\.\.\.\]/g, ', ');
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = 'pt-BR';
-    utterance.rate = 0.88; // Ritmo mais calmo e doce para crianças
-    utterance.pitch = 1.15; // Tom meigo
-
-    utterance.onend = () => {
-      setIsSpeechFallback(false);
-      if (onEnd) onEnd();
-    };
-
-    utterance.onerror = () => {
-      setIsSpeechFallback(false);
-      if (onEnd) onEnd();
-    };
-
+    utterance.rate = 0.88;
+    utterance.pitch = 1.15;
+    utterance.onend = () => { if (onEnd) onEnd(); };
+    utterance.onerror = () => { if (onEnd) onEnd(); };
     window.speechSynthesis.speak(utterance);
   }, []);
 
-  // Para áudios em andamento
+  // Para áudios
   const stopAllAudio = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.pause();
@@ -794,18 +711,13 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
       clearInterval(progressIntervalRef.current);
     }
     setIsPlaying(false);
-    setIsSpeechFallback(false);
-    setAudioProgress(0);
   }, []);
 
   // Avançar passo
   const goToNextStep = useCallback(() => {
     stopAllAudio();
     playBeadClickSound();
-    setCurrentStepIndex((prev) => {
-      if (prev < steps.length - 1) return prev + 1;
-      return prev;
-    });
+    setCurrentStepIndex((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
     setActivePhraseIndex(0);
   }, [steps.length, stopAllAudio]);
 
@@ -817,12 +729,10 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
     setActivePhraseIndex(0);
   }, [stopAllAudio]);
 
-  // Pular para conta clicada
+  // Clicar em uma conta da trilha
   const jumpToBead = useCallback((beadId: string) => {
     stopAllAudio();
     playBeadClickSound();
-
-    // Acha o passo correspondente a essa conta
     const targetIdx = steps.findIndex((s) => s.beadId === beadId);
     if (targetIdx !== -1) {
       setCurrentStepIndex(targetIdx);
@@ -830,7 +740,7 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
     }
   }, [steps, stopAllAudio]);
 
-  // Reproduzir áudio do passo atual
+  // Reproduzir áudio atual
   const playCurrentStepAudio = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -853,28 +763,20 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
       playPromise
         .then(() => {
           setIsPlaying(true);
-          setIsSpeechFallback(false);
-
           progressIntervalRef.current = setInterval(() => {
-            if (audio.duration && !isNaN(audio.duration)) {
-              const pct = (audio.currentTime / audio.duration) * 100;
-              setAudioProgress(pct);
-
-              if (phrases.length > 0) {
-                const phraseIdx = Math.min(
-                  Math.floor((audio.currentTime / audio.duration) * phrases.length),
-                  phrases.length - 1
-                );
-                setActivePhraseIndex(phraseIdx);
-              }
+            if (audio.duration && !isNaN(audio.duration) && phrases.length > 0) {
+              const phraseIdx = Math.min(
+                Math.floor((audio.currentTime / audio.duration) * phrases.length),
+                phrases.length - 1
+              );
+              setActivePhraseIndex(phraseIdx);
             }
           }, 150);
 
           audio.onended = () => {
             clearInterval(progressIntervalRef.current);
             setIsPlaying(false);
-            setAudioProgress(100);
-            if (autoAdvance && currentStepIndex < steps.length - 1) {
+            if (currentStepIndex < steps.length - 1) {
               setTimeout(() => {
                 goToNextStep();
               }, 800);
@@ -882,12 +784,10 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
           };
         })
         .catch(() => {
-          // Fallback para SpeechSynthesis
           setIsPlaying(true);
           speakWithSynthesis(currentStep.text, () => {
             setIsPlaying(false);
-            setAudioProgress(100);
-            if (autoAdvance && currentStepIndex < steps.length - 1) {
+            if (currentStepIndex < steps.length - 1) {
               setTimeout(() => {
                 goToNextStep();
               }, 800);
@@ -895,9 +795,8 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
           });
         });
     }
-  }, [autoAdvance, currentStep.audioSrc, currentStep.text, currentStepIndex, goToNextStep, isMuted, phrases.length, speakWithSynthesis, steps.length]);
+  }, [currentStep.audioSrc, currentStep.text, currentStepIndex, goToNextStep, isMuted, phrases.length, speakWithSynthesis, steps.length]);
 
-  // Tocar / Pausar
   const togglePlayPause = () => {
     if (isPlaying) {
       stopAllAudio();
@@ -906,21 +805,6 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
     }
   };
 
-  // Reiniciar Terço
-  const restartRosary = () => {
-    stopAllAudio();
-    playBeadClickSound();
-    setCurrentStepIndex(0);
-    setActivePhraseIndex(0);
-  };
-
-  // Percentual de progresso total
-  const totalProgressPercent = useMemo(() => {
-    if (steps.length <= 1) return 0;
-    return Math.round((currentStepIndex / (steps.length - 1)) * 100);
-  }, [currentStepIndex, steps.length]);
-
-  // Verifica se uma conta está rezada ou ativa
   const isBeadActive = (beadId: string) => currentStep.beadId === beadId;
   const isBeadCompleted = (beadId: string) => {
     const beadStepIdx = steps.findIndex((s) => s.beadId === beadId);
@@ -928,281 +812,133 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6 select-none font-sans text-slate-800 dark:text-amber-50">
+    <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 py-2 sm:py-4 select-none font-sans text-slate-800 dark:text-amber-50">
       
-      {/* 1. TOPO: HEADER LÚDICO COM SELEÇÃO DE MISTÉRIOS */}
-      <header className="text-center mb-6">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700/60 text-amber-900 dark:text-amber-200 text-xs sm:text-sm font-bold shadow-sm mb-2">
-          <span>✨</span>
-          <span>Trilha Interativa de Catequese Infantil</span>
-          <span>📿</span>
-        </div>
+      {/* 1. SELETOR LIMPO DOS 4 MISTÉRIOS NO TOPO */}
+      <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
+        {KIDS_MYSTERY_GROUPS.map((group) => {
+          const isToday = group.days.includes(new Date().getDay());
+          const isSelected = selectedGroup === group.id;
 
-        <h1 className="text-2xl sm:text-4xl md:text-5xl font-serif font-black text-amber-900 dark:text-amber-300 tracking-tight flex items-center justify-center gap-2">
-          <span>🎈</span> Santo Terço Kids <span>🕊️</span>
-        </h1>
-        <p className="text-sm sm:text-base text-slate-600 dark:text-amber-200/80 max-w-2xl mx-auto mt-1">
-          Toque em qualquer bolinha do terço para rezar com a Mãezinha do Céu! Acompanhe a trilha passo a passo com cores alegres e meditações.
-        </p>
+          return (
+            <button
+              key={group.id}
+              type="button"
+              onClick={() => {
+                stopAllAudio();
+                playBeadClickSound();
+                setSelectedGroup(group.id);
+                setCurrentStepIndex(0);
+                setActivePhraseIndex(0);
+              }}
+              className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 border shadow-xs ${
+                isSelected
+                  ? 'bg-amber-500 text-white border-amber-600 scale-105 shadow-md'
+                  : 'bg-white/90 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-amber-200 dark:border-slate-700 hover:bg-amber-50'
+              }`}
+            >
+              <span>{group.badgeEmoji}</span>
+              <span>{group.name}</span>
+              {isToday && (
+                <span className="text-[10px] bg-white/25 text-white px-1.5 py-0.2 rounded-full font-black uppercase">
+                  Hoje
+                </span>
+              )}
+            </button>
+          );
+        })}
 
-        {/* SELETOR DOS 4 MISTÉRIOS COM DESTAQUE PARA O DIA DE HOJE */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
-          {KIDS_MYSTERY_GROUPS.map((group) => {
-            const isToday = group.days.includes(new Date().getDay());
-            const isSelected = selectedGroup === group.id;
-
-            return (
-              <button
-                key={group.id}
-                type="button"
-                onClick={() => {
-                  stopAllAudio();
-                  playBeadClickSound();
-                  setSelectedGroup(group.id);
-                  setCurrentStepIndex(0);
-                  setActivePhraseIndex(0);
-                }}
-                className={`px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-bold transition-all duration-300 flex items-center gap-1.5 cursor-pointer border ${
-                  isSelected
-                    ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white border-amber-500 shadow-md scale-105'
-                    : 'bg-white/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-amber-200/60 dark:border-slate-700 hover:bg-amber-50'
-                }`}
-              >
-                <span>{group.badgeEmoji}</span>
-                <span>{group.name}</span>
-                {isToday && (
-                  <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-white/20 text-white font-extrabold">
-                    Hoje!
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </header>
-
-      {/* 2. BARRA SUPERIOR DE PROGRESSO E STATUS */}
-      <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-3xl p-4 shadow-md border border-amber-200/70 dark:border-slate-800 mb-6">
-        <div className="flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm">
-          <div className="flex items-center gap-2">
-            <span className="p-2 rounded-xl bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300">
-              <Sparkles className="w-4 h-4 animate-spin text-amber-600" />
-            </span>
-            <div>
-              <p className="font-extrabold text-amber-950 dark:text-amber-200">
-                {currentStep.title}
-              </p>
-              <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">
-                {currentStep.subtitle}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="text-right">
-              <span className="font-bold text-amber-700 dark:text-amber-300 text-xs sm:text-sm">
-                Passo {currentStepIndex + 1} de {steps.length}
-              </span>
-              <span className="text-xs text-slate-400 block">({totalProgressPercent}% concluído)</span>
-            </div>
-            {onSwitchToAdult && (
-              <button
-                type="button"
-                onClick={onSwitchToAdult}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition-colors"
-              >
-                Modo Adulto
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Linha colorida de progresso */}
-        <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full mt-3 overflow-hidden p-0.5">
-          <div
-            className="h-full bg-gradient-to-r from-amber-400 via-rose-400 to-emerald-400 rounded-full transition-all duration-500 shadow-sm"
-            style={{ width: `${Math.max(totalProgressPercent, 3)}%` }}
-          />
-        </div>
+        {onSwitchToAdult && (
+          <button
+            type="button"
+            onClick={onSwitchToAdult}
+            className="px-3 py-1.5 rounded-full text-xs font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:underline"
+          >
+            Modo Adulto
+          </button>
+        )}
       </div>
 
-      {/* 3. CORPO PRINCIPAL: TRILHA VISUAL DO TERÇO (ESQUERDA) + GUIA COM NOSSA SENHORA (DIREITA) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      {/* 2. LAYOUT LIMPO COM DOIS BLOCOS: TERÇO GIGANTE (ESQUERDA) + CARD DE NOSSA SENHORA (DIREITA) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
         
-        {/* COLUNA DA ESQUERDA: O TERÇO COMPLETO INTERATIVO (INFOGRÁFICO EM SVG) */}
-        <div className="lg:col-span-7 xl:col-span-8 bg-gradient-to-b from-sky-50/50 via-amber-50/30 to-purple-50/40 dark:from-slate-900/60 dark:to-slate-950 rounded-3xl p-3 sm:p-5 shadow-lg border-2 border-amber-200/60 dark:border-slate-800 relative overflow-hidden flex flex-col items-center">
+        {/* BLOCO 1: O TERÇO GRANDE, FLUIDO E CENTRALIZADO (SEM POLUIÇÃO VISUAL) */}
+        <div className="lg:col-span-7 xl:col-span-7 flex flex-col items-center justify-center bg-white/60 dark:bg-slate-900/40 rounded-3xl p-2 sm:p-4 border border-amber-100 dark:border-slate-800">
           
-          {/* Fundo decorativo com nuvens e estrelas */}
-          <div className="absolute top-3 left-4 text-sky-200 dark:text-slate-800 text-2xl select-none pointer-events-none">☁️</div>
-          <div className="absolute top-10 right-8 text-sky-200 dark:text-slate-800 text-3xl select-none pointer-events-none">☁️</div>
-          <div className="absolute bottom-20 left-6 text-amber-200 dark:text-slate-800 text-xl select-none pointer-events-none">⭐</div>
-          <div className="absolute bottom-16 right-8 text-amber-200 dark:text-slate-800 text-2xl select-none pointer-events-none">🌟</div>
-
-          {/* Dica de clique para a criança */}
-          <div className="w-full flex items-center justify-between px-2 mb-2 z-10 text-xs font-bold text-amber-800 dark:text-amber-200">
-            <span className="flex items-center gap-1 bg-amber-100/80 dark:bg-amber-950/80 px-3 py-1 rounded-full border border-amber-200 dark:border-amber-800">
-              👉 Toque em qualquer conta para rezar!
-            </span>
-            {hoveredBeadTooltip && (
-              <span className="hidden sm:inline-block bg-white dark:bg-slate-800 px-3 py-1 rounded-full shadow text-amber-900 dark:text-amber-200 border border-amber-300">
-                {hoveredBeadTooltip}
-              </span>
-            )}
-          </div>
-
-          {/* SVG DO TERÇO COMPLETO */}
-          <div className="w-full max-w-[620px] aspect-[860/1120] relative z-10 flex items-center justify-center">
+          <div className="w-full max-w-[620px] aspect-[800/980] relative flex items-center justify-center">
             <svg
-              viewBox="0 0 860 1120"
-              className="w-full h-full drop-shadow-md select-none"
+              viewBox="0 0 800 980"
+              className="w-full h-full drop-shadow-sm select-none"
               style={{ overflow: 'visible' }}
             >
               <defs>
-                {/* Sombra suave das contas */}
-                <filter id="beadShadow" x="-20%" y="-20%" width="140%" height="140%">
-                  <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.25" floodColor="#78350f" />
+                {/* Sombra das contas */}
+                <filter id="cleanShadow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="2" stdDeviation="2.5" floodOpacity="0.2" floodColor="#78350f" />
                 </filter>
 
-                {/* Brilho da conta ativa */}
-                <filter id="activeGlow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feGaussianBlur stdDeviation="6" result="blur" />
-                  <feComponentTransfer in="blur" result="glow">
-                    <feFuncA type="linear" slope="2" />
-                  </feComponentTransfer>
-                  <feMerge>
-                    <feMergeNode in="glow" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-
-                {/* Gradiente Dourado Real (Pai Nosso) */}
-                <radialGradient id="goldBeadGrad" cx="35%" cy="35%" r="65%">
+                {/* Dourado para Pai Nosso */}
+                <radialGradient id="cleanGoldGrad" cx="35%" cy="35%" r="65%">
                   <stop offset="0%" stopColor="#fef08a" />
                   <stop offset="45%" stopColor="#f59e0b" />
                   <stop offset="100%" stopColor="#b45309" />
                 </radialGradient>
 
-                {/* Gradiente Rubi (Glória ao Pai) */}
-                <radialGradient id="rubyBeadGrad" cx="35%" cy="35%" r="65%">
+                {/* Rubi para Glória */}
+                <radialGradient id="cleanRubyGrad" cx="35%" cy="35%" r="65%">
                   <stop offset="0%" stopColor="#fca5a5" />
                   <stop offset="50%" stopColor="#ef4444" />
                   <stop offset="100%" stopColor="#991b1b" />
                 </radialGradient>
 
-                {/* 10 Gradientes Pastéis para as Ave-Marias */}
-                <radialGradient id="grad-ave-0" cx="35%" cy="35%" r="65%">
-                  <stop offset="0%" stopColor="#ffe4e6" /><stop offset="60%" stopColor="#fda4af" /><stop offset="100%" stopColor="#f43f5e" />
-                </radialGradient>
-                <radialGradient id="grad-ave-1" cx="35%" cy="35%" r="65%">
-                  <stop offset="0%" stopColor="#e0f2fe" /><stop offset="60%" stopColor="#7dd3fc" /><stop offset="100%" stopColor="#0284c7" />
-                </radialGradient>
-                <radialGradient id="grad-ave-2" cx="35%" cy="35%" r="65%">
-                  <stop offset="0%" stopColor="#fef3c7" /><stop offset="60%" stopColor="#fcd34d" /><stop offset="100%" stopColor="#d97706" />
-                </radialGradient>
-                <radialGradient id="grad-ave-3" cx="35%" cy="35%" r="65%">
-                  <stop offset="0%" stopColor="#d1fae5" /><stop offset="60%" stopColor="#6ee7b7" /><stop offset="100%" stopColor="#059669" />
-                </radialGradient>
-                <radialGradient id="grad-ave-4" cx="35%" cy="35%" r="65%">
-                  <stop offset="0%" stopColor="#ede9fe" /><stop offset="60%" stopColor="#c4b5fd" /><stop offset="100%" stopColor="#7c3aed" />
-                </radialGradient>
-                <radialGradient id="grad-ave-5" cx="35%" cy="35%" r="65%">
-                  <stop offset="0%" stopColor="#ffedd5" /><stop offset="60%" stopColor="#fdba74" /><stop offset="100%" stopColor="#ea580c" />
-                </radialGradient>
-                <radialGradient id="grad-ave-6" cx="35%" cy="35%" r="65%">
-                  <stop offset="0%" stopColor="#cffafe" /><stop offset="60%" stopColor="#67e8f9" /><stop offset="100%" stopColor="#0891b2" />
-                </radialGradient>
-                <radialGradient id="grad-ave-7" cx="35%" cy="35%" r="65%">
-                  <stop offset="0%" stopColor="#fce7f3" /><stop offset="60%" stopColor="#f472b6" /><stop offset="100%" stopColor="#db2777" />
-                </radialGradient>
-                <radialGradient id="grad-ave-8" cx="35%" cy="35%" r="65%">
-                  <stop offset="0%" stopColor="#ccfbf1" /><stop offset="60%" stopColor="#5eead4" /><stop offset="100%" stopColor="#0d9488" />
-                </radialGradient>
-                <radialGradient id="grad-ave-9" cx="35%" cy="35%" r="65%">
-                  <stop offset="0%" stopColor="#fef9c3" /><stop offset="60%" stopColor="#fde047" /><stop offset="100%" stopColor="#ca8a04" />
-                </radialGradient>
+                {/* 10 Cores Pastéis Vivas das Ave-Marias */}
+                <radialGradient id="grad-ave-0" cx="35%" cy="35%" r="65%"><stop offset="0%" stopColor="#ffe4e6" /><stop offset="60%" stopColor="#fda4af" /><stop offset="100%" stopColor="#f43f5e" /></radialGradient>
+                <radialGradient id="grad-ave-1" cx="35%" cy="35%" r="65%"><stop offset="0%" stopColor="#e0f2fe" /><stop offset="60%" stopColor="#7dd3fc" /><stop offset="100%" stopColor="#0284c7" /></radialGradient>
+                <radialGradient id="grad-ave-2" cx="35%" cy="35%" r="65%"><stop offset="0%" stopColor="#fef3c7" /><stop offset="60%" stopColor="#fcd34d" /><stop offset="100%" stopColor="#d97706" /></radialGradient>
+                <radialGradient id="grad-ave-3" cx="35%" cy="35%" r="65%"><stop offset="0%" stopColor="#d1fae5" /><stop offset="60%" stopColor="#6ee7b7" /><stop offset="100%" stopColor="#059669" /></radialGradient>
+                <radialGradient id="grad-ave-4" cx="35%" cy="35%" r="65%"><stop offset="0%" stopColor="#ede9fe" /><stop offset="60%" stopColor="#c4b5fd" /><stop offset="100%" stopColor="#7c3aed" /></radialGradient>
+                <radialGradient id="grad-ave-5" cx="35%" cy="35%" r="65%"><stop offset="0%" stopColor="#ffedd5" /><stop offset="60%" stopColor="#fdba74" /><stop offset="100%" stopColor="#ea580c" /></radialGradient>
+                <radialGradient id="grad-ave-6" cx="35%" cy="35%" r="65%"><stop offset="0%" stopColor="#cffafe" /><stop offset="60%" stopColor="#67e8f9" /><stop offset="100%" stopColor="#0891b2" /></radialGradient>
+                <radialGradient id="grad-ave-7" cx="35%" cy="35%" r="65%"><stop offset="0%" stopColor="#fce7f3" /><stop offset="60%" stopColor="#f472b6" /><stop offset="100%" stopColor="#db2777" /></radialGradient>
+                <radialGradient id="grad-ave-8" cx="35%" cy="35%" r="65%"><stop offset="0%" stopColor="#ccfbf1" /><stop offset="60%" stopColor="#5eead4" /><stop offset="100%" stopColor="#0d9488" /></radialGradient>
+                <radialGradient id="grad-ave-9" cx="35%" cy="35%" r="65%"><stop offset="0%" stopColor="#fef9c3" /><stop offset="60%" stopColor="#fde047" /><stop offset="100%" stopColor="#ca8a04" /></radialGradient>
 
-                {/* Recorte circular para medalha */}
-                <clipPath id="medalClip">
-                  <ellipse cx="430" cy="610" rx="30" ry="36" />
+                <clipPath id="cleanMedalClip">
+                  <ellipse cx="400" cy="530" rx="28" ry="34" />
                 </clipPath>
               </defs>
 
-              {/* 1. LINHAS DO CORDÃO (HASTE E CÍRCULO PRINCIPAL) */}
-              {/* Cordão da Haste Vertical */}
+              {/* Cordão Dourado Suave */}
               <path
                 d={rosaryTrail.stemPath}
                 fill="none"
                 stroke="#d97706"
                 strokeWidth="4"
                 strokeDasharray="4 3"
-                opacity="0.75"
+                opacity="0.65"
               />
-
-              {/* Cordão do Círculo das 5 Dezenas */}
               <path
                 d={rosaryTrail.cordPath}
                 fill="none"
                 stroke="#d97706"
                 strokeWidth="4"
                 strokeDasharray="4 3"
-                opacity="0.75"
+                opacity="0.65"
               />
 
-              {/* 2. MEDALHÃO CENTRAL DO MISTÉRIO ATUAL (DENTRO DO CÍRCULO) */}
-              <g transform="translate(430, 340)">
-                <circle r="120" fill="#ffffff" fillOpacity="0.85" stroke="#fcd34d" strokeWidth="3" className="dark:fill-slate-900/90 dark:stroke-amber-600/50" />
-                <circle r="112" fill="none" stroke="#f59e0b" strokeWidth="1" strokeDasharray="5 3" opacity="0.6" />
-                
-                {/* Ícone e título do mistério */}
-                <text y="-50" textAnchor="middle" fontSize="32">
-                  {currentStep.mysteryNumber ? '🌟' : '🕊️'}
+              {/* Centro do Terço: Título Limpo do Mistério Atual */}
+              <g transform="translate(400, 300)" className="pointer-events-none">
+                <circle r="90" fill="#ffffff" fillOpacity="0.75" stroke="#fcd34d" strokeWidth="2" className="dark:fill-slate-900/80 dark:stroke-amber-600/40" />
+                <text y="-25" textAnchor="middle" fontSize="30">🕊️</text>
+                <text y="5" textAnchor="middle" fontSize="13" fontWeight="bold" fill="#78350f" className="dark:fill-amber-200">
+                  {currentStep.mysteryNumber ? `${currentStep.mysteryNumber}º MISTÉRIO` : 'SANTO TERÇO'}
                 </text>
-                <text y="-20" textAnchor="middle" fontSize="15" fontWeight="bold" fill="#78350f" className="dark:fill-amber-200">
-                  {currentStep.mysteryNumber ? `${currentStep.mysteryNumber}º MISTÉRIO` : 'SANTO TERÇO KIDS'}
-                </text>
-                <text y="5" textAnchor="middle" fontSize="13" fontWeight="600" fill="#92400e" className="dark:fill-amber-300">
-                  {currentStep.mysteryNumber ? activeGroup.mysteries[currentStep.mysteryNumber - 1]?.title.slice(0, 28) + '...' : 'Reze com Nossa Senhora'}
-                </text>
-
-                {/* Fruto do Mistério */}
-                {currentStep.fruit && (
-                  <text y="30" textAnchor="middle" fontSize="11" fontStyle="italic" fill="#047857" className="dark:fill-emerald-300">
-                    🌱 Fruto: {currentStep.fruit}
-                  </text>
-                )}
-
-                {/* Indicador da oração no centro */}
-                <rect x="-80" y="45" width="160" height="28" rx="14" fill="#fef3c7" stroke="#f59e0b" strokeWidth="1.5" className="dark:fill-amber-950 dark:stroke-amber-600" />
-                <text y="64" textAnchor="middle" fontSize="12" fontWeight="bold" fill="#78350f" className="dark:fill-amber-200">
-                  {currentStep.category === 'ave-maria' && currentStep.beadIndex
-                    ? `Ave-Maria ${currentStep.beadIndex} / 10 🌸`
-                    : currentStep.title.slice(0, 18)}
+                <text y="25" textAnchor="middle" fontSize="11" fontWeight="600" fill="#92400e" className="dark:fill-amber-300">
+                  {currentStep.mysteryNumber ? activeGroup.mysteries[currentStep.mysteryNumber - 1]?.title.slice(0, 26) + '...' : 'Reze com Amor'}
                 </text>
               </g>
 
-              {/* 3. BANNERS DAS 5 DEZENAS NO SVG */}
-              <g transform="translate(630, 520)" className="cursor-pointer" onClick={() => jumpToBead('bead-dec-0-pn')}>
-                <rect x="-45" y="-12" width="90" height="24" rx="12" fill="#dbeafe" stroke="#3b82f6" strokeWidth="1.5" />
-                <text y="4" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#1e40af">1ª Dezena</text>
-              </g>
-              <g transform="translate(710, 310)" className="cursor-pointer" onClick={() => jumpToBead('bead-dec-1-pn')}>
-                <rect x="-45" y="-12" width="90" height="24" rx="12" fill="#dbeafe" stroke="#3b82f6" strokeWidth="1.5" />
-                <text y="4" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#1e40af">2ª Dezena</text>
-              </g>
-              <g transform="translate(430, 95)" className="cursor-pointer" onClick={() => jumpToBead('bead-dec-2-pn')}>
-                <rect x="-45" y="-12" width="90" height="24" rx="12" fill="#dbeafe" stroke="#3b82f6" strokeWidth="1.5" />
-                <text y="4" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#1e40af">3ª Dezena</text>
-              </g>
-              <g transform="translate(150, 310)" className="cursor-pointer" onClick={() => jumpToBead('bead-dec-3-pn')}>
-                <rect x="-45" y="-12" width="90" height="24" rx="12" fill="#dbeafe" stroke="#3b82f6" strokeWidth="1.5" />
-                <text y="4" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#1e40af">4ª Dezena</text>
-              </g>
-              <g transform="translate(230, 520)" className="cursor-pointer" onClick={() => jumpToBead('bead-dec-4-pn')}>
-                <rect x="-45" y="-12" width="90" height="24" rx="12" fill="#dbeafe" stroke="#3b82f6" strokeWidth="1.5" />
-                <text y="4" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#1e40af">5ª Dezena</text>
-              </g>
-
-              {/* 4. RENDERIZAÇÃO DE TODAS AS CONTAS DO TERÇO */}
+              {/* Contas Grandes e Clicáveis */}
               {rosaryTrail.beads.map((bead) => {
                 const active = isBeadActive(bead.id);
                 const completed = isBeadCompleted(bead.id);
@@ -1210,37 +946,30 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                 return (
                   <g
                     key={bead.id}
-                    className="cursor-pointer transition-transform duration-200"
+                    className="cursor-pointer transition-transform duration-200 hover:scale-110"
                     onClick={() => jumpToBead(bead.id)}
-                    onMouseEnter={() => setHoveredBeadTooltip(bead.tooltip)}
-                    onMouseLeave={() => setHoveredBeadTooltip(null)}
                   >
-                    {/* HALO ANIMADO PARA A CONTA ATIVA */}
+                    {/* Área de Toque Invisível Ampliada (Touch Target) */}
+                    <circle cx={bead.x} cy={bead.y} r={bead.radius + 10} fill="transparent" />
+
+                    {/* Destaque suave na conta ativa */}
                     {active && (
                       <>
                         <circle
                           cx={bead.x}
                           cy={bead.y}
-                          r={bead.radius + 12}
+                          r={bead.radius + 9}
                           fill="none"
                           stroke="#f59e0b"
-                          strokeWidth="3"
-                          opacity="0.8"
-                          className="animate-ping"
-                        />
-                        <circle
-                          cx={bead.x}
-                          cy={bead.y}
-                          r={bead.radius + 7}
-                          fill="#fef08a"
-                          opacity="0.45"
+                          strokeWidth="3.5"
+                          opacity="0.85"
                           className="animate-pulse"
                         />
                         <text
                           x={bead.x}
                           y={bead.y - bead.radius - 8}
                           textAnchor="middle"
-                          fontSize="22"
+                          fontSize="20"
                           className="animate-bounce"
                         >
                           ⭐
@@ -1248,20 +977,16 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                       </>
                     )}
 
-                    {/* A) CRUCIFIXO */}
+                    {/* Crucifixo */}
                     {bead.type === 'cross' && (
-                      <g transform={`translate(${bead.x - 28}, ${bead.y - 42})`}>
-                        <rect x="20" y="0" width="16" height="84" rx="4" fill="#1e3a8a" stroke="#f59e0b" strokeWidth="3" filter="url(#beadShadow)" />
-                        <rect x="0" y="20" width="56" height="16" rx="4" fill="#1e3a8a" stroke="#f59e0b" strokeWidth="3" />
-                        <circle cx="28" cy="28" r="8" fill="#fef08a" opacity="0.8" />
-                        <text x="28" y="32" textAnchor="middle" fontSize="12" fontWeight="bold" fill="#1e3a8a">✝️</text>
-                        <text x="28" y="98" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#78350f" className="dark:fill-amber-200">
-                          Creio / Início
-                        </text>
+                      <g transform={`translate(${bead.x - 24}, ${bead.y - 36})`}>
+                        <rect x="17" y="0" width="14" height="72" rx="3" fill="#1e3a8a" stroke="#f59e0b" strokeWidth="2.5" filter="url(#cleanShadow)" />
+                        <rect x="0" y="17" width="48" height="14" rx="3" fill="#1e3a8a" stroke="#f59e0b" strokeWidth="2.5" />
+                        <text x="24" y="28" textAnchor="middle" fontSize="10">✝️</text>
                       </g>
                     )}
 
-                    {/* B) MEDALHA DE NOSSA SENHORA */}
+                    {/* Medalha de Nossa Senhora */}
                     {bead.type === 'medal' && (
                       <g>
                         <ellipse
@@ -1271,69 +996,53 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                           ry={bead.radius + 6}
                           fill="#fef08a"
                           stroke="#d97706"
-                          strokeWidth="3.5"
-                          filter="url(#beadShadow)"
+                          strokeWidth="3"
+                          filter="url(#cleanShadow)"
                         />
                         <image
                           href="/terco-kids/SORINDO-NORMAL.png"
-                          x={bead.x - 26}
+                          x={bead.x - 25}
                           y={bead.y - 30}
-                          width="52"
+                          width="50"
                           height="60"
-                          clipPath="url(#medalClip)"
+                          clipPath="url(#cleanMedalClip)"
                           preserveAspectRatio="xMidYMid slice"
                         />
-                        {/* 12 Estrelas em volta da medalha */}
-                        <circle cx={bead.x} cy={bead.y - 36} r="2.5" fill="#ca8a04" />
-                        <circle cx={bead.x + 28} cy={bead.y} r="2.5" fill="#ca8a04" />
-                        <circle cx={bead.x} cy={bead.y + 36} r="2.5" fill="#ca8a04" />
-                        <circle cx={bead.x - 28} cy={bead.y} r="2.5" fill="#ca8a04" />
                       </g>
                     )}
 
-                    {/* C) PAI NOSSO (BOLA GRANDE DOURADA) */}
+                    {/* Pai Nosso (Grande Dourado) */}
                     {(bead.type === 'pn-intro' || bead.type === 'pn-decade') && (
                       <g>
                         <circle
                           cx={bead.x}
                           cy={bead.y}
                           r={bead.radius}
-                          fill="url(#goldBeadGrad)"
+                          fill="url(#cleanGoldGrad)"
                           stroke="#78350f"
                           strokeWidth="1.5"
-                          filter="url(#beadShadow)"
+                          filter="url(#cleanShadow)"
                         />
-                        <circle cx={bead.x - 4} cy={bead.y - 4} r={bead.radius * 0.35} fill="#ffffff" opacity="0.6" />
-                        <text
-                          x={bead.x}
-                          y={bead.y + 4}
-                          textAnchor="middle"
-                          fontSize="10"
-                          fontWeight="bold"
-                          fill="#78350f"
-                        >
+                        <text x={bead.x} y={bead.y + 4.5} textAnchor="middle" fontSize="11" fontWeight="bold" fill="#78350f">
                           👑
                         </text>
                       </g>
                     )}
 
-                    {/* D) GLÓRIA AO PAI (BOLINHA VERMELHA SEPARADORA) */}
+                    {/* Glória ao Pai (Bolinha Vermelha) */}
                     {(bead.type === 'gloria-intro' || bead.type === 'gloria-decade') && (
-                      <g>
-                        <circle
-                          cx={bead.x}
-                          cy={bead.y}
-                          r={bead.radius}
-                          fill="url(#rubyBeadGrad)"
-                          stroke="#7f1d1d"
-                          strokeWidth="1.2"
-                          filter="url(#beadShadow)"
-                        />
-                        <circle cx={bead.x - 2} cy={bead.y - 2} r={bead.radius * 0.35} fill="#ffffff" opacity="0.6" />
-                      </g>
+                      <circle
+                        cx={bead.x}
+                        cy={bead.y}
+                        r={bead.radius}
+                        fill="url(#cleanRubyGrad)"
+                        stroke="#7f1d1d"
+                        strokeWidth="1.2"
+                        filter="url(#cleanShadow)"
+                      />
                     )}
 
-                    {/* E) AVE-MARIAS (BOLINHAS COLORIDAS PASTÉIS) */}
+                    {/* Ave-Marias (Grandes e Coloridas) */}
                     {(bead.type === 'ave-intro' || bead.type === 'ave-decade') && (
                       <g>
                         <circle
@@ -1343,20 +1052,12 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                           fill={`url(#${bead.gradientId || 'grad-ave-0'})`}
                           stroke={bead.colorHex || '#d97706'}
                           strokeWidth="1.5"
-                          filter="url(#beadShadow)"
+                          filter="url(#cleanShadow)"
                         />
-                        <circle cx={bead.x - 3} cy={bead.y - 3} r={bead.radius * 0.35} fill="#ffffff" opacity="0.65" />
-                        
-                        {/* Indicador de orado ou número da ave maria */}
-                        {completed ? (
-                          <text x={bead.x} y={bead.y + 3.5} textAnchor="middle" fontSize="9" fontWeight="bold" fill="#ffffff">
-                            ✓
-                          </text>
-                        ) : (
-                          <text x={bead.x} y={bead.y + 3.5} textAnchor="middle" fontSize="8" fontWeight="bold" fill="#ffffff">
-                            {bead.label}
-                          </text>
-                        )}
+                        <circle cx={bead.x - 3} cy={bead.y - 3} r={bead.radius * 0.35} fill="#ffffff" opacity="0.6" />
+                        <text x={bead.x} y={bead.y + 4} textAnchor="middle" fontSize="9" fontWeight="bold" fill="#ffffff">
+                          {completed ? '✓' : bead.label}
+                        </text>
                       </g>
                     )}
                   </g>
@@ -1364,104 +1065,62 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
               })}
             </svg>
           </div>
-
-          {/* LEGENDA VISUAL DO TERÇO (INSPIRADA NO POSTER DE CATEQUESE) */}
-          <div className="w-full mt-4 bg-white/80 dark:bg-slate-900/80 rounded-2xl p-3 border border-amber-200 dark:border-slate-800 text-xs">
-            <p className="font-extrabold text-amber-900 dark:text-amber-200 mb-2 flex items-center gap-1.5">
-              <span>📖</span> Legenda das Contas do Terço:
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
-              <div className="flex items-center gap-1.5">
-                <span className="text-base">✝️</span>
-                <span><strong>Crucifixo:</strong> Creio / Começo</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3.5 h-3.5 rounded-full bg-amber-400 border border-amber-600 block shadow-xs" />
-                <span><strong>Bola Grande:</strong> Pai Nosso</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3.5 h-3.5 rounded-full bg-rose-400 border border-rose-600 block shadow-xs" />
-                <span><strong>Coloridas:</strong> 10 Ave-Marias</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-full bg-red-600 border border-red-800 block shadow-xs" />
-                <span><strong>Vermelha:</strong> Glória ao Pai</span>
-              </div>
-            </div>
-          </div>
         </div>
 
-        {/* COLUNA DA DIREITA: PERSONAGEM COM BALÃO DE FALA & CONTROLES */}
-        <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-5 sticky top-6">
+        {/* BLOCO 2: CARD ACOLHEDOR DE NOSSA SENHORA COM BALÃO DE FALA E CONTROLES */}
+        <div className="lg:col-span-5 xl:col-span-5 flex flex-col gap-4">
           
-          {/* CARTÃO DA GUIA: MÃEZINHA DO CÉU COM BALÃO DE CONVERSA */}
-          <div className="bg-gradient-to-b from-amber-50 to-orange-50/40 dark:from-slate-900 dark:to-slate-950 rounded-3xl p-5 shadow-xl border-2 border-amber-200 dark:border-amber-800/60 relative">
+          <div className="bg-gradient-to-b from-amber-50 to-orange-50/30 dark:from-slate-900 dark:to-slate-950 rounded-3xl p-5 sm:p-6 shadow-lg border border-amber-200 dark:border-amber-800/50">
             
-            {/* AVATAR ILUSTRADO DE NOSSA SENHORA */}
+            {/* PERSONAGEM: NOSSA SENHORA */}
             <div className="flex items-center gap-4 mb-4">
               <div className="relative">
-                {/* Halo celestial animado */}
-                <div className="absolute -inset-2 bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 rounded-full blur-md opacity-75 animate-pulse" />
-                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-4 border-amber-300 shadow-lg bg-amber-100 flex items-center justify-center">
+                <div className="absolute -inset-1.5 bg-amber-300 rounded-full blur-sm opacity-70 animate-pulse" />
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-3 border-amber-300 shadow-md bg-amber-100 flex items-center justify-center">
                   <img
-                    src={AVATAR_IMAGES[currentAvatarState] || AVATAR_IMAGES.sorrindo}
-                    alt="Nossa Senhora ensinando a rezar o terço"
-                    className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                    src={isPlaying ? AVATAR_IMAGES.falando : AVATAR_IMAGES.sorrindo}
+                    alt="Nossa Senhora ensinando a rezar"
+                    className="w-full h-full object-cover"
                     onError={(e) => {
                       (e.currentTarget as HTMLImageElement).src = '/terco-kids/SORINDO-NORMAL.png';
                     }}
                   />
                 </div>
-                {/* Badge de presença de Nossa Senhora */}
-                <div className="absolute -bottom-1 -right-1 bg-amber-500 text-white rounded-full p-1 shadow-md">
+                <div className="absolute -bottom-1 -right-1 bg-amber-500 text-white rounded-full p-1 shadow-sm">
                   <Heart className="w-3.5 h-3.5 fill-white" />
                 </div>
               </div>
 
               <div>
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-amber-700 dark:text-amber-300 flex items-center gap-1">
-                  <span>👑</span> Mãezinha do Céu
+                <span className="text-xs font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wide">
+                  Mãezinha do Céu
                 </span>
-                <h3 className="text-lg font-serif font-black text-amber-950 dark:text-amber-100">
-                  Nossa Senhora
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  {isPlaying ? 'Rezando com você agora... 🕊️' : 'Pronta para rezar com você!'}
+                <h2 className="text-xl font-serif font-black text-amber-950 dark:text-amber-100">
+                  {currentStep.title}
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {currentStep.subtitle}
                 </p>
               </div>
             </div>
 
-            {/* BALÃO DE CONVERSA DINÂMICO (SPEECH BUBBLE) */}
-            <div className="relative bg-white/95 dark:bg-slate-850/95 rounded-3xl p-5 shadow-md border-2 border-amber-200 dark:border-slate-700 text-slate-800 dark:text-amber-50">
+            {/* BALÃO DE CONVERSA COM A ORAÇÃO LIMPA E DESTACADA */}
+            <div className="relative bg-white dark:bg-slate-850 rounded-3xl p-5 shadow-sm border border-amber-200/80 dark:border-slate-700 min-h-[160px] flex flex-col justify-center">
               
-              {/* Cauda do Balão de Fala apontando para o avatar */}
-              <div className="absolute -top-3 left-8 w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-b-[14px] border-b-amber-200 dark:border-b-slate-700" />
-              <div className="absolute -top-2.5 left-8 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[12px] border-b-white dark:border-b-slate-850" />
+              {/* Cauda suave do balão */}
+              <div className="absolute -top-2.5 left-8 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[10px] border-b-white dark:border-b-slate-850" />
 
-              {/* Título da Oração Atual dentro do balão */}
-              <div className="flex items-center justify-between mb-2 pb-2 border-b border-amber-100 dark:border-slate-800">
-                <span className="text-xs font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1">
-                  <span>💬</span> {currentStep.title}
-                </span>
-                {currentStep.fruit && (
-                  <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full font-bold">
-                    {currentStep.fruit}
-                  </span>
-                )}
-              </div>
-
-              {/* TEXTO DA ORAÇÃO COM FRASES PAUSADAS PARA A CRIANÇA ACOMPANHAR */}
-              <div className="space-y-2 text-sm sm:text-base leading-relaxed max-h-[220px] overflow-y-auto pr-1">
+              <div className="space-y-2 text-sm sm:text-base leading-relaxed text-slate-700 dark:text-slate-200 max-h-[220px] overflow-y-auto">
                 {phrases.map((phrase, idx) => {
                   const isCurrentPhrase = isPlaying && activePhraseIndex === idx;
 
                   return (
                     <p
                       key={idx}
-                      className={`transition-all duration-300 rounded-xl px-2.5 py-1 ${
+                      className={`transition-colors duration-200 rounded-lg px-2 py-0.5 ${
                         isCurrentPhrase
-                          ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-950 dark:text-amber-200 font-bold border-l-4 border-amber-500 scale-[1.02]'
-                          : 'text-slate-700 dark:text-slate-300'
+                          ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-950 dark:text-amber-200 font-bold border-l-3 border-amber-500'
+                          : ''
                       }`}
                     >
                       {phrase}
@@ -1469,26 +1128,16 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                   );
                 })}
               </div>
-
-              {/* Barra de progresso do áudio dentro do balão */}
-              {isPlaying && (
-                <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full mt-3 overflow-hidden">
-                  <div
-                    className="h-full bg-amber-500 rounded-full transition-all duration-200"
-                    style={{ width: `${audioProgress}%` }}
-                  />
-                </div>
-              )}
             </div>
 
-            {/* CONTROLES PRINCIPAIS GRANDES (TOUCH-FRIENDLY PARA CELULARES E TABLETS) */}
+            {/* BOTÕES GRANDES DE NAVEGAÇÃO */}
             <div className="mt-5 space-y-3">
               
-              {/* Botão Gigante de Play/Pausa */}
+              {/* Botão Gigante de Ouvir / Pausar */}
               <button
                 type="button"
                 onClick={togglePlayPause}
-                className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-600 to-orange-500 text-white font-black text-base shadow-lg shadow-amber-500/30 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 cursor-pointer"
+                className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black text-base sm:text-lg shadow-md hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3 cursor-pointer"
               >
                 {isPlaying ? (
                   <>
@@ -1498,18 +1147,18 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                 ) : (
                   <>
                     <Play className="w-6 h-6 fill-white" />
-                    <span>Ouvir e Rezar Juntos</span>
+                    <span>Ouvir Oração</span>
                   </>
                 )}
               </button>
 
-              {/* Botões de Navegação (Anterior, Repetir, Próxima) */}
-              <div className="grid grid-cols-3 gap-2">
+              {/* Botões de Voltar e Avançar */}
+              <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={goToPrevStep}
                   disabled={currentStepIndex === 0}
-                  className="py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-amber-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center gap-1 disabled:opacity-40 hover:bg-amber-50 cursor-pointer shadow-xs"
+                  className="py-3 px-4 rounded-xl bg-white dark:bg-slate-800 border border-amber-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm flex items-center justify-center gap-2 hover:bg-amber-50 disabled:opacity-40 cursor-pointer shadow-xs"
                 >
                   <SkipBack className="w-4 h-4" />
                   <span>Voltar</span>
@@ -1517,62 +1166,35 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
 
                 <button
                   type="button"
-                  onClick={() => {
-                    stopAllAudio();
-                    playBeadClickSound();
-                    setActivePhraseIndex(0);
-                    playCurrentStepAudio();
-                  }}
-                  className="py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-amber-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center gap-1 hover:bg-amber-50 cursor-pointer shadow-xs"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  <span>Repetir</span>
-                </button>
-
-                <button
-                  type="button"
                   onClick={goToNextStep}
                   disabled={currentStepIndex >= steps.length - 1}
-                  className="py-2.5 rounded-xl bg-amber-500 text-white font-bold text-xs flex items-center justify-center gap-1 hover:bg-amber-600 cursor-pointer shadow-xs disabled:opacity-40"
+                  className="py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-40"
                 >
                   <span>Próxima</span>
                   <SkipForward className="w-4 h-4" />
                 </button>
               </div>
 
-              {/* Opções extras (Mudo, Auto-Avanço, Reiniciar) */}
-              <div className="flex items-center justify-between pt-2 border-t border-amber-200/50 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400">
+              {/* Controle simples de som */}
+              <div className="flex items-center justify-between pt-2 text-xs text-slate-500 dark:text-slate-400">
                 <button
                   type="button"
                   onClick={() => setIsMuted((prev) => !prev)}
-                  className="flex items-center gap-1 hover:text-amber-700 cursor-pointer"
+                  className="flex items-center gap-1.5 hover:text-amber-700 cursor-pointer"
                 >
                   {isMuted ? <VolumeX className="w-4 h-4 text-rose-500" /> : <Volume2 className="w-4 h-4 text-emerald-600" />}
-                  <span>{isMuted ? 'Mudo' : 'Som Ligado'}</span>
+                  <span>{isMuted ? 'Sem som' : 'Com som'}</span>
                 </button>
 
-                <label className="flex items-center gap-1.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={autoAdvance}
-                    onChange={(e) => setAutoAdvance(e.target.checked)}
-                    className="rounded text-amber-500 focus:ring-amber-400 w-3.5 h-3.5"
-                  />
-                  <span>Avançar sozinho</span>
-                </label>
-
-                <button
-                  type="button"
-                  onClick={restartRosary}
-                  className="text-amber-700 dark:text-amber-300 hover:underline cursor-pointer font-bold"
-                >
-                  Do Início
-                </button>
+                <span>Conta {currentStepIndex + 1} de {steps.length}</span>
               </div>
             </div>
+
           </div>
         </div>
+
       </div>
+
     </div>
   );
 };
