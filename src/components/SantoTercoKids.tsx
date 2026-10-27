@@ -89,8 +89,9 @@ const SHORT_TEXTS = {
   av2:      'Segunda Ave-Maria pela Santa Esperança! 💛',
   av3:      'Terceira Ave-Maria pela Santa Caridade! 💖',
   gloriaI:  'Glória ao Pai, ao Filho e ao Espírito Santo! ✨',
-  salve:    'Salve Rainha! Vamos rezar à nossa Mãezinha do Céu! 👑',
-  final:    'Parabéns! Você terminou o Santo Terço com muito amor! 🎉',
+  trans:    'Mãezinha do Céu, abençoai nossa oração ao iniciarmos os Santos Mistérios! 🌸',
+  salve:    'Salve Rainha! Vamos rezar com muito amor à nossa Mãezinha do Céu! 👑',
+  final:    'Parabéns! Você terminou o Santo Terço com muito amor e fé! 🎉',
 };
 
 /* ============================================================================
@@ -114,36 +115,56 @@ function playBell() {
 }
 
 /* ============================================================================
-   CONSTRUÇÃO DOS PASSOS
+   CONSTRUÇÃO DOS PASSOS (CRUCIFIXO -> HASTE -> TRANSIÇÃO MEDALHA -> 5 DEZENAS -> SALVE RAINHA)
    ============================================================================ */
 function buildSteps(group: MysteryGroupData): PrayerStep[] {
   const s: PrayerStep[] = [];
+  // 1. Sinal da Cruz e Credo
   s.push({ id: 'credo',  title: 'Sinal da Cruz e o Credo',  shortText: SHORT_TEXTS.credo,   audioSrc: '/terco-kids/CREIO.mp3',        beadId: 'bead-cross'   });
+  // 2. Pai Nosso Inicial
   s.push({ id: 'pn0',    title: 'Pai Nosso Inicial',         shortText: SHORT_TEXTS.pnIntro, audioSrc: '/terco-kids/pai-nosso.mp3',    beadId: 'bead-pn-intro' });
+  // 3-5. 3 Ave-Marias
   s.push({ id: 'av0-1',  title: '1ª Ave-Maria — pela Fé',    shortText: SHORT_TEXTS.av1,     audioSrc: '/terco-kids/ave-maria.mp3',    beadId: 'bead-av0-1'   });
   s.push({ id: 'av0-2',  title: '2ª Ave-Maria — pela Esperança', shortText: SHORT_TEXTS.av2, audioSrc: '/terco-kids/ave-maria-2.mp3',  beadId: 'bead-av0-2'   });
   s.push({ id: 'av0-3',  title: '3ª Ave-Maria — pela Caridade',  shortText: SHORT_TEXTS.av3, audioSrc: '/terco-kids/ave-maria.mp3',    beadId: 'bead-av0-3'   });
+  // 6. Glória ao Pai inicial (bolinha vermelha antes da medalha)
   s.push({ id: 'gl-i',   title: 'Glória ao Pai',             shortText: SHORT_TEXTS.gloriaI, audioSrc: '/terco-kids/gloria-ao-pai.mp3',beadId: 'bead-gl-intro' });
 
+  // 7. Passo de transição na Medalha de Nossa Senhora
+  s.push({
+    id: 'trans-medal',
+    title: 'Medalha de Nossa Senhora',
+    shortText: SHORT_TEXTS.trans,
+    audioSrc: '/terco-kids/santo-anjo.mp3',
+    beadId: 'bead-medal'
+  });
+
+  // 5 Dezenas completas
   group.mysteries.forEach((m, di) => {
     s.push({
-      id: `pn${di+1}`, title: `${m.number}º Mistério — ${m.title}`,
+      id: `pn${di+1}`,
+      title: `${m.number}º Mistério — ${m.title}`,
       shortText: m.kidsExplanation,
       audioSrc: m.audioSrc,
-      mysteryNumber: m.number, decadeIndex: di, fruit: m.fruit,
+      mysteryNumber: m.number,
+      decadeIndex: di,
+      fruit: m.fruit,
       beadId: `bead-dec${di}-pn`
     });
     for (let a = 1; a <= 10; a++) {
       s.push({
-        id: `av${di+1}-${a}`, title: `${a}ª Ave-Maria`,
+        id: `av${di+1}-${a}`,
+        title: `${a}ª Ave-Maria`,
         shortText: `${a}ª Ave-Maria da ${m.number}ª Dezena — ${m.title} 🌸`,
         audioSrc: a % 2 === 0 ? '/terco-kids/ave-maria-2.mp3' : '/terco-kids/ave-maria.mp3',
-        mysteryNumber: m.number, decadeIndex: di,
+        mysteryNumber: m.number,
+        decadeIndex: di,
         beadId: `bead-dec${di}-av${a}`
       });
     }
     s.push({
-      id: `gl${di+1}`, title: `Glória ao Pai — ${m.number}ª Dezena`,
+      id: `gl${di+1}`,
+      title: `Glória ao Pai — ${m.number}ª Dezena`,
       shortText: `Glória ao Pai! Rezamos com amor pela ${m.number}ª Dezena! ✨`,
       audioSrc: di % 2 === 0 ? '/terco-kids/gloria-ao-pai.mp3' : '/terco-kids/gloria-ao-pai-2.mp3',
       decadeIndex: di,
@@ -151,14 +172,15 @@ function buildSteps(group: MysteryGroupData): PrayerStep[] {
     });
   });
 
+  // Retorno à Medalha: Salve Rainha e Conclusão
   s.push({ id: 'salve', title: 'Salve Rainha', shortText: SHORT_TEXTS.salve, audioSrc: '/terco-kids/santo-anjo.mp3', beadId: 'bead-medal' });
-  s.push({ id: 'final', title: 'Terço Concluído! 🌟',       shortText: SHORT_TEXTS.final,   audioSrc: '/terco-kids/santo-anjo.mp3',   beadId: 'bead-medal'   });
+  s.push({ id: 'final', title: 'Terço Concluído! 🌟', shortText: SHORT_TEXTS.final, audioSrc: '/terco-kids/santo-anjo.mp3', beadId: 'bead-medal' });
   return s;
 }
 
 /* ============================================================================
-   GEOMETRIA DAS CONTAS — CÍRCULO GRANDE
-   ViewBox 900 × 960
+   GEOMETRIA DAS CONTAS — CÍRCULO GIGANTE E VISÍVEL 100% SEM CORTES
+   ViewBox 0 -30 900 1030 (amplo espaço superior e inferior)
    ============================================================================ */
 interface BeadDef {
   id: string; x: number; y: number; r: number;
@@ -166,25 +188,27 @@ interface BeadDef {
 }
 
 function buildBeads(): { beads: BeadDef[]; loopPath: string; stemPath: string } {
-  const CX = 450, CY = 315, RX = 330, RY = 255;
+  // Centro abaixado (CY = 345) e raio RY = 250 para deixar folga no topo (y mínimo = 95, viewBox começa em -30)
+  const CX = 450, CY = 345, RX = 340, RY = 250;
   const beads: BeadDef[] = [];
   const loopPts: string[] = [];
 
-  // Haste
-  beads.push({ id: 'bead-cross',    x: 450, y: 895, r: 28,   type: 'cross'  });
-  beads.push({ id: 'bead-pn-intro', x: 450, y: 800, r: 22,   type: 'pn'     });
-  beads.push({ id: 'bead-av0-1',    x: 450, y: 742, r: 15,   type: 'ave'    });
-  beads.push({ id: 'bead-av0-2',    x: 450, y: 692, r: 15,   type: 'ave'    });
-  beads.push({ id: 'bead-av0-3',    x: 450, y: 642, r: 15,   type: 'ave'    });
-  beads.push({ id: 'bead-gl-intro', x: 450, y: 592, r: 11,   type: 'gloria' });
-  beads.push({ id: 'bead-medal',    x: 450, y: 525, r: 36,   type: 'medal'  });
+  // Haste vertical inferior (stem)
+  beads.push({ id: 'bead-cross',    x: 450, y: 938, r: 28, type: 'cross'  });
+  beads.push({ id: 'bead-pn-intro', x: 450, y: 854, r: 23, type: 'pn'     });
+  beads.push({ id: 'bead-av0-1',    x: 450, y: 794, r: 16, type: 'ave'    });
+  beads.push({ id: 'bead-av0-2',    x: 450, y: 746, r: 16, type: 'ave'    });
+  beads.push({ id: 'bead-av0-3',    x: 450, y: 698, r: 16, type: 'ave'    });
+  beads.push({ id: 'bead-gl-intro', x: 450, y: 648, r: 12, type: 'gloria' });
+  beads.push({ id: 'bead-medal',    x: 450, y: 580, r: 38, type: 'medal'  });
 
+  // As 5 Dezenas distribuídas no arco do terço
   for (let dec = 0; dec < 5; dec++) {
     const startAngle = 18 + dec * 64.8;
     const pnRad = (startAngle * Math.PI) / 180;
     const px = +(CX + RX * Math.sin(pnRad)).toFixed(1);
     const py = +(CY + RY * Math.cos(pnRad)).toFixed(1);
-    beads.push({ id: `bead-dec${dec}-pn`, x: px, y: py, r: 22, type: 'pn' });
+    beads.push({ id: `bead-dec${dec}-pn`, x: px, y: py, r: 23, type: 'pn' });
     loopPts.push(`${px},${py}`);
 
     for (let a = 1; a <= 10; a++) {
@@ -192,7 +216,7 @@ function buildBeads(): { beads: BeadDef[]; loopPath: string; stemPath: string } 
       const rad = (ang * Math.PI) / 180;
       const ax  = +(CX + RX * Math.sin(rad)).toFixed(1);
       const ay  = +(CY + RY * Math.cos(rad)).toFixed(1);
-      beads.push({ id: `bead-dec${dec}-av${a}`, x: ax, y: ay, r: 15, type: 'ave' });
+      beads.push({ id: `bead-dec${dec}-av${a}`, x: ax, y: ay, r: 16, type: 'ave' });
       loopPts.push(`${ax},${ay}`);
     }
 
@@ -200,12 +224,12 @@ function buildBeads(): { beads: BeadDef[]; loopPath: string; stemPath: string } 
     const glRad = (glAng * Math.PI) / 180;
     const gx    = +(CX + RX * Math.sin(glRad)).toFixed(1);
     const gy    = +(CY + RY * Math.cos(glRad)).toFixed(1);
-    beads.push({ id: `bead-dec${dec}-gl`, x: gx, y: gy, r: 11, type: 'gloria' });
+    beads.push({ id: `bead-dec${dec}-gl`, x: gx, y: gy, r: 12, type: 'gloria' });
     loopPts.push(`${gx},${gy}`);
   }
 
-  const stemPath = `M 450,866 L 450,563`;
-  const loopPath = `M 450,488 L ${loopPts.join(' L ')} Z`;
+  const stemPath = `M 450,910 L 450,626`;
+  const loopPath = `M 450,542 L ${loopPts.join(' L ')} Z`;
   return { beads, loopPath, stemPath };
 }
 
@@ -241,6 +265,12 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
 
   const [stepIdx, setStepIdx] = useState(0);
   const step = steps[stepIdx] ?? steps[0];
+
+  // Marcos importantes para a medalha e progresso
+  const transStepIdx      = useMemo(() => steps.findIndex(s => s.id === 'trans-medal'), [steps]);
+  const lastDecadeStepIdx = useMemo(() => steps.findIndex(s => s.id === 'gl5'), [steps]);
+  const salveStepIdx      = useMemo(() => steps.findIndex(s => s.id === 'salve'), [steps]);
+  const finalStepIdx      = useMemo(() => steps.findIndex(s => s.id === 'final'), [steps]);
 
   const [playing, setPlaying] = useState(false);
   const [muted,   setMuted]   = useState(false);
@@ -309,15 +339,48 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
   const jumpToBead = useCallback((beadId: string) => {
     stopAll();
     playBell();
+
+    // ── TRATAMENTO ESPECIAL DA MEDALHA CENTRAL ──
+    if (beadId === 'bead-medal') {
+      // 1. Se já completou ou chegou ao fim da 5ª dezena: ativa a Salve Rainha
+      if (lastDecadeStepIdx !== -1 && stepIdx >= lastDecadeStepIdx) {
+        setStepIdx(salveStepIdx);
+        const target = steps[salveStepIdx];
+        setTimeout(() => {
+          playStep(target.audioSrc, target.shortText, () => setTimeout(advance, 700));
+        }, 60);
+        return;
+      }
+
+      // 2. Se está nas orações introdutórias (antes das dezenas): vai para o passo de transição
+      if (transStepIdx !== -1 && stepIdx <= transStepIdx) {
+        setStepIdx(transStepIdx);
+        const target = steps[transStepIdx];
+        setTimeout(() => {
+          playStep(target.audioSrc, target.shortText, () => setTimeout(advance, 700));
+        }, 60);
+        return;
+      }
+
+      // 3. Se a criança já está no meio das dezenas (ex: 1ª, 2ª, 3ª dezena):
+      //    NÃO PULA PARA A SALVE RAINHA NEM MARCA O RESTO COMO REZADO!
+      //    Apenas reproduz uma bênção carinhosa de Nossa Senhora mantendo o progresso atual.
+      playStep(
+        '/terco-kids/santo-anjo.mp3',
+        'Mãezinha do Céu está com você! Continue rezando os Santos Mistérios com muito amor! 🌸'
+      );
+      return;
+    }
+
+    // ── DEMAIS CONTAS DO TERÇO ──
     const idx = steps.findIndex(s => s.beadId === beadId);
     if (idx === -1) return;
     setStepIdx(idx);
     const target = steps[idx];
-    // Autoplay com pequeno delay para garantir que o estado foi atualizado
     setTimeout(() => {
       playStep(target.audioSrc, target.shortText, () => setTimeout(advance, 700));
     }, 60);
-  }, [advance, playStep, steps, stopAll]);
+  }, [advance, lastDecadeStepIdx, playStep, salveStepIdx, steps, stopAll, transStepIdx, stepIdx]);
 
   /* ── voltar ── */
   const prev = () => {
@@ -331,8 +394,12 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
   };
 
   /* ── Lógica de estado de cada conta ── */
-  const isActive    = (id: string) => step.beadId === id;
-  const isPrayed    = (id: string) => {
+  const isActive = (id: string) => step.beadId === id;
+  const isPrayed = (id: string) => {
+    if (id === 'bead-medal') {
+      // A medalha só é considerada 'concluída/rezada' ao término absoluto do terço
+      return finalStepIdx !== -1 && stepIdx >= finalStepIdx;
+    }
     const bi = steps.findIndex(s => s.beadId === id);
     return bi !== -1 && bi < stepIdx;
   };
@@ -380,13 +447,17 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
         )}
       </div>
 
-      {/* ── LAYOUT: TERÇO GIGANTE (65%) + CARD MARIA (35%) ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-[65%_35%] gap-6 items-center">
+      {/* ── LAYOUT: TERÇO GIGANTE E COMPLETO (70%) + CARD MARIA (30%) ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-[70%_30%] gap-6 items-center">
 
-        {/* ═══ TERÇO GIGANTE (sem container, flutuante) ═══ */}
-        <div className="flex items-center justify-center">
-          <div className="w-full" style={{ maxWidth: '760px' }}>
-            <svg viewBox="0 0 900 960" className="w-full h-auto select-none" style={{ overflow: 'visible' }}>
+        {/* ═══ TERÇO GIGANTE (100% visível, sem cortes superiores) ═══ */}
+        <div className="flex items-center justify-center w-full">
+          <div className="w-full max-w-[860px]">
+            <svg
+              viewBox="0 -30 900 1030"
+              className="w-full h-auto select-none"
+              style={{ overflow: 'visible' }}
+            >
               <defs>
                 {/* Sombra suave */}
                 <filter id="bs" x="-30%" y="-30%" width="160%" height="160%">
@@ -402,30 +473,34 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                   <stop offset="0%" stopColor="#1e40af" /><stop offset="100%" stopColor="#1e3a8a" />
                 </linearGradient>
                 {/* Clip medalha */}
-                <clipPath id="mc"><ellipse cx="450" cy="525" rx="31" ry="38" /></clipPath>
+                <clipPath id="mc"><ellipse cx="450" cy="580" rx="33" ry="42" /></clipPath>
               </defs>
 
               {/* Cordão dourado suave */}
-              <path d={STEM_PATH} fill="none" stroke="#c9a96e" strokeWidth="4" strokeDasharray="5 3" opacity="0.7" />
-              <path d={LOOP_PATH} fill="none" stroke="#c9a96e" strokeWidth="4" strokeDasharray="5 3" opacity="0.7" />
+              <path d={STEM_PATH} fill="none" stroke="#c9a96e" strokeWidth="4" strokeDasharray="5 3" opacity="0.75" />
+              <path d={LOOP_PATH} fill="none" stroke="#c9a96e" strokeWidth="4" strokeDasharray="5 3" opacity="0.75" />
 
               {/* Centro: título do mistério atual */}
-              <g transform="translate(450,315)" className="pointer-events-none">
-                <circle r="78" fill="white" fillOpacity="0.82" stroke="#e5c97a" strokeWidth="2"
-                  className="dark:fill-slate-900/80 dark:stroke-amber-700/40" />
-                <text y="-20" textAnchor="middle" fontSize="26">🕊️</text>
-                <text y="8" textAnchor="middle" fontSize="12" fontWeight="800" fill="#78350f"
+              <g transform="translate(450, 345)" className="pointer-events-none">
+                <circle r="82" fill="white" fillOpacity="0.88" stroke="#e5c97a" strokeWidth="2.5"
+                  className="dark:fill-slate-900/85 dark:stroke-amber-700/50" />
+                <text y="-22" textAnchor="middle" fontSize="28">🕊️</text>
+                <text y="8" textAnchor="middle" fontSize="13" fontWeight="800" fill="#78350f"
                   className="dark:fill-amber-200">
                   {step.mysteryNumber ? `${step.mysteryNumber}º MISTÉRIO` : 'SANTO TERÇO'}
                 </text>
-                {step.fruit && (
-                  <text y="27" textAnchor="middle" fontSize="11" fontStyle="italic" fill="#059669">
+                {step.fruit ? (
+                  <text y="28" textAnchor="middle" fontSize="11" fontWeight="600" fill="#059669">
                     🌱 {step.fruit}
+                  </text>
+                ) : (
+                  <text y="28" textAnchor="middle" fontSize="11" fontWeight="600" fill="#d97706">
+                    MÃE DE DEUS
                   </text>
                 )}
               </g>
 
-              {/* ── CONTAS ── */}
+              {/* ── CONTAS DO TERÇO ── */}
               {BEAD_DEFS.map(bead => {
                 const active = isActive(bead.id);
                 const colors = beadColors(bead);
@@ -435,10 +510,10 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                     className="cursor-pointer"
                     style={{ transition: 'transform 0.1s ease-out' }}>
 
-                    {/* Área de toque ampliada */}
-                    <circle cx={bead.x} cy={bead.y} r={bead.r + 12} fill="transparent" />
+                    {/* Área de toque ampliada para tablets e celulares */}
+                    <circle cx={bead.x} cy={bead.y} r={bead.r + 14} fill="transparent" />
 
-                    {/* Anel indicador estático na conta ativa (sem pulse) */}
+                    {/* Anel indicador estático na conta ativa */}
                     {active && (
                       <circle cx={bead.x} cy={bead.y} r={bead.r + 8}
                         fill="none" stroke="#f59e0b" strokeWidth="4" opacity="0.95" />
@@ -456,20 +531,20 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                       </g>
                     )}
 
-                    {/* ── Medalha de Nossa Senhora ── */}
+                    {/* ── Medalha de Nossa Senhora (Imagem Central) ── */}
                     {bead.type === 'medal' && (() => {
                       const c = active ? ACTIVE : isPrayed(bead.id) ? PRAYED : NEUTRAL;
                       return (
                         <g>
-                          <ellipse cx={bead.x} cy={bead.y} rx={bead.r} ry={bead.r + 8}
+                          <ellipse cx={bead.x} cy={bead.y} rx={bead.r} ry={bead.r + 9}
                             fill={c.fill} stroke={c.stroke} strokeWidth="3.5" filter="url(#bs)" />
                           <image href="/terco-kids/SORINDO-NORMAL.png"
-                            x={bead.x - 29} y={bead.y - 35} width="58" height="72"
+                            x={bead.x - 30} y={bead.y - 37} width="60" height="74"
                             clipPath="url(#mc)" preserveAspectRatio="xMidYMid slice" />
                           {/* estrelas decorativas */}
                           {[-1, 1].map((s, i) => (
-                            <circle key={i} cx={bead.x + s * (bead.r + 5)} cy={bead.y}
-                              r="4" fill="#fcd34d" opacity="0.8" />
+                            <circle key={i} cx={bead.x + s * (bead.r + 6)} cy={bead.y}
+                              r="4.5" fill="#fcd34d" opacity="0.85" />
                           ))}
                         </g>
                       );
@@ -489,7 +564,7 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                       );
                     })()}
 
-                    {/* ── Glória ao Pai (bolinha separadora) ── */}
+                    {/* ── Glória ao Pai (bolinha separadora vermelha) ── */}
                     {bead.type === 'gloria' && (() => {
                       const c = colors as typeof GLORIA_NEUTRAL;
                       return (
@@ -499,7 +574,7 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                       );
                     })()}
 
-                    {/* ── Ave-Maria (bolinha de cor por progresso) ── */}
+                    {/* ── Ave-Maria (bolinha com progresso de cor e check) ── */}
                     {bead.type === 'ave' && (() => {
                       const c = colors as typeof NEUTRAL;
                       const done = isPrayed(bead.id);
@@ -511,7 +586,7 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                             fill="white" opacity={active ? 0.75 : 0.5} />
                           {done && (
                             <text x={bead.x} y={bead.y + 5} textAnchor="middle"
-                              fontSize="10" fontWeight="bold" fill="white">✓</text>
+                              fontSize="11" fontWeight="bold" fill="white">✓</text>
                           )}
                         </g>
                       );
@@ -556,7 +631,7 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                 {step.mysteryNumber ? `${step.mysteryNumber}º Mistério` : step.title}
               </p>
 
-              {/* Frase curta e alegre */}
+              {/* Frase curta e acolhedora */}
               <p className="text-base sm:text-lg font-semibold text-slate-800 dark:text-amber-50 leading-snug">
                 {step.shortText}
               </p>
