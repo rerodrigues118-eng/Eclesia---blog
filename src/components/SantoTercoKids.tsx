@@ -206,19 +206,19 @@ function buildBeads(): { beads: BeadDef[]; loopPath: string; stemPath: string } 
   beads.push({ id: 'bead-pn-intro', x: 450, y: 855,  r: 22, type: 'pn'     });
   beads.push({ id: 'bead-medal',    x: 450, y: 745,  r: 38, type: 'medal'  });
 
-  // 2. LAÇO DAS 5 DEZENAS (Curva paramétrica esguia em gota vertical alongada)
+  // 2. LAÇO DAS 5 DEZENAS (Curva paramétrica orgânica em gota/colar natural da foto de referência)
   const N = 1000;
   const samples: { x: number; y: number }[] = [];
   for (let i = 0; i <= N; i++) {
     const t = i / N;
     const phi = t * 2 * Math.PI;
-    // Y: 715 nas pontas conectando à medalha, 70 no topo (altura vertical de 645px!)
-    const topFactor = Math.pow((1 - Math.cos(phi)) / 2, 0.92);
-    const y = 715 - 645 * topFactor;
+    // Y: 710 nas pontas conectando em V suave à medalha, 85 no topo com arco relaxado
+    const topFactor = Math.pow((1 - Math.cos(phi)) / 2, 0.82);
+    const y = 710 - 625 * topFactor;
 
-    // X: largura lateral ajustada para 225px (muito mais esguio e elegante!)
-    const baseOffset = -26 * Math.cos(phi / 2);
-    const bulge = -225 * Math.sin(phi);
+    // X: simétrico com abertura elegante de 230px
+    const baseOffset = -24 * Math.cos(phi / 2);
+    const bulge = -230 * Math.sin(phi);
     const x = 450 + bulge + baseOffset;
     samples.push({ x, y });
   }
@@ -280,7 +280,7 @@ function buildBeads(): { beads: BeadDef[]; loopPath: string; stemPath: string } 
   }
 
   const stemPath = 'M 450,1140 L 450,780';
-  const loopPath = `M 424,715 L ${loopPts.join(' L ')} L 476,715`;
+  const loopPath = `M 426,710 L ${loopPts.join(' L ')} L 474,710`;
 
   return { beads, loopPath, stemPath };
 }
@@ -522,42 +522,42 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
   return (
     <div className="relative w-full select-none">
 
-      {/* ═══ CENÁRIO CELESTIAL DE PERSONAGENS INFANTIS E NUVENS FLUTUANTES (Z-0) ═══ */}
-      {/* 1. Sol Dourado Suave (Canto superior direito) */}
-      <GentleSunSVG className="absolute -top-6 right-6 sm:right-16 md:right-24 w-20 sm:w-28 md:w-32 pointer-events-none select-none z-0 opacity-90 transition-transform duration-700 hover:scale-105" />
+      {/* ═══ CENÁRIO CELESTIAL DE PERSONAGENS INFANTIS E NUVENS FLUTUANTES (Z-0 e Z-10) ═══ */}
+      {/* 1. Sol Dourado Radiante e Sorridente (100% visível, livre e sem obstrução) */}
+      <GentleSunSVG className="absolute -top-6 sm:-top-8 right-16 sm:right-28 md:right-40 w-22 sm:w-28 md:w-34 pointer-events-none select-none z-10 opacity-100 drop-shadow-md transition-transform duration-700 hover:scale-105" />
 
-      {/* 2. Anjinho Infantil sentado na Nuvem (Lateral esquerda, flutuando ao lado do terço) */}
-      <div className="absolute -left-2 sm:left-2 md:left-6 top-[28%] sm:top-[30%] w-24 sm:w-32 md:w-40 pointer-events-none select-none z-0 transition-transform duration-1000 animate-pulse">
+      {/* 2. Anjinho Infantil sentado na Nuvem (Lateral esquerda, sem moldura, sem fundo xadrez, 100% livre) */}
+      <div className="absolute left-1 sm:left-4 md:left-8 top-[36%] sm:top-[38%] w-24 sm:w-32 md:w-40 pointer-events-none select-none z-10 drop-shadow-xl animate-pulse">
         <img
           src="/terco-kids/anjinho-clean.png"
-          alt="Anjinho"
-          className="w-full h-auto object-contain drop-shadow-xl"
+          alt="Anjinho na Nuvem"
+          className="w-full h-auto object-contain filter drop-shadow-md"
           onError={e => { (e.currentTarget as HTMLImageElement).src = '/terco-kids/anjinho.png'; }}
         />
       </div>
 
-      {/* 3. Menino Jesus Infantil na Nuvem (Lateral direita, flutuando harmoniosamente) */}
-      <div className="absolute -right-2 sm:right-2 md:right-6 top-[30%] sm:top-[32%] w-24 sm:w-32 md:w-40 pointer-events-none select-none z-0 transition-transform duration-1000 animate-pulse">
+      {/* 3. Menino Jesus Infantil na Nuvem (Acima do card de oração na direita, 100% nítido, colorido e sem obstrução) */}
+      <div className="absolute right-2 sm:right-6 md:right-10 top-[15%] sm:top-[17%] md:top-[18%] w-26 sm:w-34 md:w-42 pointer-events-none select-none z-10 drop-shadow-2xl animate-pulse">
         <img
           src="/terco-kids/jesus-clean.png"
-          alt="Menino Jesus"
-          className="w-full h-auto object-contain drop-shadow-xl"
+          alt="Menino Jesus na Nuvem"
+          className="w-full h-auto object-contain filter drop-shadow-md"
           onError={e => { (e.currentTarget as HTMLImageElement).src = '/terco-kids/jesus.png'; }}
         />
       </div>
 
-      {/* 4. Camadas de Nuvens Macias pelo Topo e Laterais */}
+      {/* 4. Camadas de Nuvens Macias pelo Topo e Laterais (Sem encostar nos botões) */}
       {/* Topo Esquerdo */}
-      <SoftCloudSVG className="absolute -top-8 -left-6 sm:-left-10 w-48 sm:w-64 md:w-80 pointer-events-none select-none z-0 opacity-90" />
-      {/* Topo Direito (atrás do sol) */}
-      <SoftCloudSVG flipped className="absolute -top-10 -right-6 sm:-right-10 w-56 sm:w-72 md:w-96 pointer-events-none select-none z-0 opacity-90" />
+      <SoftCloudSVG className="absolute -top-12 sm:-top-16 -left-8 sm:-left-12 w-52 sm:w-72 md:w-92 pointer-events-none select-none z-0 opacity-70" />
+      {/* Topo Direito (recuado para não cobrir o sol) */}
+      <SoftCloudSVG flipped className="absolute -top-12 sm:-top-16 -right-8 sm:-right-12 w-52 sm:w-72 md:w-92 pointer-events-none select-none z-0 opacity-70" />
       {/* Meio Esquerdo (abaixo do anjinho) */}
-      <SoftCloudSVG className="absolute top-[48%] -left-8 sm:-left-12 w-36 sm:w-52 pointer-events-none select-none z-0 opacity-60" />
-      {/* Meio Direito */}
-      <SoftCloudSVG flipped className="absolute top-[52%] -right-8 sm:-right-12 w-40 sm:w-56 pointer-events-none select-none z-0 opacity-60" />
+      <SoftCloudSVG className="absolute top-[52%] -left-8 sm:-left-12 w-36 sm:w-52 pointer-events-none select-none z-0 opacity-55" />
+      {/* Meio Direito (abaixo do card) */}
+      <SoftCloudSVG flipped className="absolute top-[68%] -right-8 sm:-right-12 w-40 sm:w-56 pointer-events-none select-none z-0 opacity-55" />
 
-      {/* ── CONTEÚDO EM CAMADA SUPERIOR (Z-10) 100% LIVRE DE QUALQUER BLOQUEIO DE CLIQUES ── */}
-      <div className="relative z-10 pt-2 sm:pt-4 space-y-4">
+      {/* ── CONTEÚDO EM CAMADA SUPERIOR (Z-20) 100% LIVRE DE QUALQUER BLOQUEIO DE CLIQUES ── */}
+      <div className="relative z-20 pt-6 sm:pt-8 mb-6 sm:mb-8 space-y-4">
 
         {/* ── SELETOR DE MISTÉRIOS LÚDICO ── */}
         <div className="flex flex-wrap justify-center gap-2">
@@ -848,12 +848,12 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                           {/* Imagem de Nossa Senhora Sorrindo/Falando (100% centralizada na medalha) */}
                           <g clipPath="url(#innerMedalClip)">
                             <image
-                              href={playing ? '/terco-kids/FALANDO.png' : '/terco-kids/SORINDO-NORMAL.png'}
-                              x="-34"
-                              y="-38"
-                              width="68"
-                              height="76"
-                              preserveAspectRatio="xMidYMid slice"
+                              href={playing ? '/terco-kids/medalha-rosto-falando.png' : '/terco-kids/medalha-rosto.png'}
+                              x="-33"
+                              y="-39"
+                              width="66"
+                              height="78"
+                              preserveAspectRatio="xMidYMid meet"
                             />
                           </g>
 
