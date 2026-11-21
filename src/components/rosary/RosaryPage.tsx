@@ -82,7 +82,7 @@ export const RosaryPage: React.FC = () => {
       {activeTab === 'traditional' ? (
         <TercoInterativo hideHeaderTitle />
       ) : (
-        <div className="w-full max-w-4xl mx-auto pt-2">
+        <div className="w-full max-w-6xl mx-auto pt-2">
           <KidsRosary onSwitchToTraditional={() => handleTabChange('traditional')} />
         </div>
       )}

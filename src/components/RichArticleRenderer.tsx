@@ -376,11 +376,16 @@ function formatInlineText(text: string): React.ReactNode {
       );
     }
 
-    // Bold **text**
+    // Bold **text** (apenas para termos curtos, evitando negrito em parágrafos inteiros)
     if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+      const inner = part.slice(2, -2);
+      const words = inner.trim().split(/\s+/);
+      if (words.length > 5 || inner.length > 40) {
+        return <span key={i} className="text-[#1c1b1b] dark:text-zinc-200">{inner}</span>;
+      }
       return (
-        <strong key={i} className="font-bold text-[#1c1b1b]">
-          {part.slice(2, -2)}
+        <strong key={i} className="font-bold text-[#785600] dark:text-amber-400">
+          {inner}
         </strong>
       );
     }

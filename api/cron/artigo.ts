@@ -6,18 +6,22 @@ import { gerarArtigoEmAlta } from '../../src/services/contentAutomation';
 import { submitToIndexNow, pingSearchEnginesSitemap, SITE_URL } from '../../src/services/seoIndexing';
 
 /**
- * Inferência de slot com base na hora UTC atual.
- * Slot 1 → 06h BRT (09h UTC)
- * Slot 2 → 10h30 BRT (13h30 UTC)
- * Slot 3 → 15h BRT (18h UTC)
- * Slot 4 → 19h30 BRT (22h30 UTC)
+ * Inferência de slot com base na hora UTC atual (Brasil = UTC-3).
+ * Slot 1 → 05h00 BRT (08h00 UTC) - Santo do Dia
+ * Slot 2 → 07h30 BRT (10h30 UTC) - Notícia 1 (Vaticano & Santa Sé)
+ * Slot 3 → 10h30 BRT (13h30 UTC) - Espiritualidade & Dores Contemporâneas 1
+ * Slot 4 → 13h30 BRT (16h30 UTC) - Juventude & Vocação
+ * Slot 5 → 16h30 BRT (19h30 UTC) - Notícia 2 (Igreja no Brasil & Missão)
+ * Slot 6 → 19h30 BRT (22h30 UTC) - Espiritualidade & Dores Contemporâneas 2
  */
 function inferSlotFromHour(): number {
   const utcHours = new Date().getUTCHours();
-  if (utcHours >= 6  && utcHours < 12) return 1;
-  if (utcHours >= 12 && utcHours < 16) return 2;
-  if (utcHours >= 16 && utcHours < 21) return 3;
-  return 4;
+  if (utcHours >= 6 && utcHours < 9) return 1;
+  if (utcHours >= 9 && utcHours < 12) return 2;
+  if (utcHours >= 12 && utcHours < 15) return 3;
+  if (utcHours >= 15 && utcHours < 18) return 4;
+  if (utcHours >= 18 && utcHours < 21) return 5;
+  return 6;
 }
 
 export async function handleArtigo(req: Request, env?: Record<string, string>): Promise<Response> {
@@ -35,7 +39,7 @@ export async function handleArtigo(req: Request, env?: Record<string, string>): 
     const url = new URL(req.url);
     const slotParam = url.searchParams.get('slot');
     const slotParsed = slotParam ? parseInt(slotParam, 10) : NaN;
-    const slot = !isNaN(slotParsed) && slotParsed >= 1 && slotParsed <= 4
+    const slot = !isNaN(slotParsed) && slotParsed >= 1 && slotParsed <= 6
       ? slotParsed
       : inferSlotFromHour();
 

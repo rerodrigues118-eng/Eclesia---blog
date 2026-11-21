@@ -165,45 +165,63 @@ export async function fetchCatholicTrends(): Promise<CatholicTrend[]> {
  */
 const PAUTAS_FALLBACK: Record<number, CatholicTrend> = {
   1: {
-    title: 'A oração contínua e o combate da fé: Como rezar nos momentos de aflição',
+    title: 'Santo do Dia: Vida, Martírio e Virtudes Heroicas para os Tempos de Hoje',
     link: 'https://eclesia.blog',
-    description: 'Aprofundamento sobre a vida de recolhimento, silêncio interior e o valor do Santo Terço na rotina do católico.',
+    description: 'A memória litúrgica dos santos da Igreja Católica, seu testemunho inabalável e lições práticas para a santidade diária.',
+    pubDate: new Date().toISOString(),
+    source: 'Santoral Romano',
+    categorySuggested: 'Santo do Dia'
+  },
+  2: {
+    title: 'Vaticano e Santa Sé: A Palavra do Papa e a Missão da Igreja Universal',
+    link: 'https://eclesia.blog',
+    description: 'Os pronunciamentos da Sé Apostólica sobre a paz, o valor inegociável da vida humana e a defesa dos vulneráveis.',
+    pubDate: new Date().toISOString(),
+    source: 'Vaticano News',
+    categorySuggested: 'Vaticano'
+  },
+  3: {
+    title: 'A Paz Interior na Era da Ansiedade: O Silêncio da Oração Diante do Cansaço Mental',
+    link: 'https://eclesia.blog',
+    description: 'Como a sabedoria milenar dos Padres da Igreja e a adoração eucarística curam a dispersão e a inquietação contemporânea.',
     pubDate: new Date().toISOString(),
     source: 'Tradição Espiritual da Igreja',
     categorySuggested: 'Espiritualidade'
   },
-  2: {
-    title: 'A Presença Real de Cristo na Eucaristia: Mistério de Fé e Alimento de Salvação',
+  4: {
+    title: 'Juventude e Propósito: Pureza, Afetividade e Coragem Vocacional no Século XXI',
     link: 'https://eclesia.blog',
-    description: 'Reflexão teológica sobre a transubstanciação segundo Santo Tomás de Aquino e o Catecismo da Igreja Católica.',
-    pubDate: new Date().toISOString(),
-    source: 'Magistério e Doutrina',
-    categorySuggested: 'Teologia'
-  },
-  3: {
-    title: 'Santidade Jovem no Século XXI: O Testemunho Heroico de Carlo Acutis e Pier Giorgio Frassati',
-    link: 'https://eclesia.blog',
-    description: 'Como os jovens católicos podem viver a pureza, o amor à Eucaristia e a coragem da evangelização no ambiente digital.',
+    description: 'O testemunho heroico dos jovens santos como Carlo Acutis e Pier Giorgio Frassati para vencer o vazio existencial.',
     pubDate: new Date().toISOString(),
     source: 'Pastoral Juvenil Católica',
-    categorySuggested: 'Juventude & Fé'
+    categorySuggested: 'Juventude'
   },
-  4: {
-    title: 'A Missão Evangelizadora da Igreja no Mundo Contemporâneo e a Esperança Cristã',
+  5: {
+    title: 'Igreja no Brasil: Ação Evangelizadora, Missão Paroquial e Defesa da Fé',
     link: 'https://eclesia.blog',
-    description: 'Os pronunciamentos da Sé Apostólica sobre a paz, o valor inegociável da vida humana e a defesa dos vulneráveis.',
+    description: 'A caminhada pastoral das dioceses brasileiras, iniciativas de caridade e o testemunho vibrante das comunidades católicas.',
     pubDate: new Date().toISOString(),
-    source: 'Vaticano & Magistério',
-    categorySuggested: 'Vaticano'
+    source: 'CNBB & Canção Nova',
+    categorySuggested: 'Igreja no Brasil'
+  },
+  6: {
+    title: 'O Mistério da Cruz e a Graça do Perdão: Vencendo o Ressentimento e as Feridas da Alma',
+    link: 'https://eclesia.blog',
+    description: 'Como a reconciliação cristã e os sacramentos restauram relacionamentos e devolvem a esperança nos momentos de provação.',
+    pubDate: new Date().toISOString(),
+    source: 'Vida Interior & Teologia Moral',
+    categorySuggested: 'Vida Interior'
   }
 };
 
 /**
- * Seleciona a melhor pauta católica com base no Slot do dia:
- * - Slot 1 (06:00 BRT): Espiritualidade, oração, vida interior, adoração
- * - Slot 2 (10:30 BRT): Teologia, sacramentos, doutrina, Santo Tomás, patrística
- * - Slot 3 (15:00 BRT): Juventude, família, apologética, Carlo Acutis, santidade moderna
- * - Slot 4 (19:30 BRT): Notícias quentes do Vaticano, Papa, CNBB, acontecimentos globais da Igreja
+ * Seleciona a melhor pauta católica com base no Slot do dia (1 a 6):
+ * - Slot 1 (05:00 BRT): Santo do Dia (Santoral e mística)
+ * - Slot 2 (07:30 BRT): Notícia 1 (Vaticano, Santa Sé, Papa)
+ * - Slot 3 (10:30 BRT): Espiritualidade & Dores Contemporâneas 1 (Ansiedade, cansaço mental, redes)
+ * - Slot 4 (13:30 BRT): Juventude, vocação, afetividade, amizades e fé no digital
+ * - Slot 5 (16:30 BRT): Notícia 2 (Igreja no Brasil, CNBB, ação pastoral nacional)
+ * - Slot 6 (19:30 BRT): Espiritualidade & Dores Contemporâneas 2 (Perdão, cura, reconciliação)
  */
 export async function obterPautaDoSlot(slot: number = 1): Promise<CatholicTrend> {
   const trends = await fetchCatholicTrends();
@@ -216,61 +234,53 @@ export async function obterPautaDoSlot(slot: number = 1): Promise<CatholicTrend>
   const filtrosSlot: Record<number, (t: CatholicTrend) => boolean> = {
     1: t => {
       const txt = `${t.title} ${t.description}`.toLowerCase();
-      return (
-        txt.includes('oração') ||
-        txt.includes('oracao') ||
-        txt.includes('espiritual') ||
-        txt.includes('recolhimento') ||
-        txt.includes('rosário') ||
-        txt.includes('terço') ||
-        txt.includes('nossa senhora') ||
-        txt.includes('virgem') ||
-        txt.includes('misericórdia') ||
-        txt.includes('conversão')
-      );
+      return txt.includes('santo') || txt.includes('santoral') || txt.includes('beato') || txt.includes('festa') || txt.includes('memória');
     },
     2: t => {
       const txt = `${t.title} ${t.description}`.toLowerCase();
-      return (
-        txt.includes('eucaristia') ||
-        txt.includes('missa') ||
-        txt.includes('sacramento') ||
-        txt.includes('teologia') ||
-        txt.includes('doutrina') ||
-        txt.includes('catecismo') ||
-        txt.includes('liturgia') ||
-        txt.includes('padres da igreja') ||
-        txt.includes('evangelho')
-      );
+      return t.source === 'Vatican News' || txt.includes('papa') || txt.includes('vatican') || txt.includes('santa sé') || txt.includes('roma');
     },
     3: t => {
       const txt = `${t.title} ${t.description}`.toLowerCase();
       return (
-        txt.includes('jovem') ||
-        txt.includes('juventude') ||
-        txt.includes('família') ||
-        txt.includes('familia') ||
-        txt.includes('vida') ||
-        txt.includes('acutis') ||
-        txt.includes('vocação') ||
-        txt.includes('vocacao') ||
-        txt.includes('testemunho') ||
-        txt.includes('apologética') ||
-        txt.includes('apologetica')
+        txt.includes('oração') ||
+        txt.includes('oracao') ||
+        txt.includes('espiritual') ||
+        txt.includes('ansiedade') ||
+        txt.includes('silêncio') ||
+        txt.includes('recolhimento') ||
+        txt.includes('paz') ||
+        txt.includes('eucaristia')
       );
     },
     4: t => {
       const txt = `${t.title} ${t.description}`.toLowerCase();
       return (
-        t.source === 'Vatican News' ||
-        t.source === 'CNBB' ||
-        txt.includes('papa') ||
-        txt.includes('vaticano') ||
-        txt.includes('santa sé') ||
-        txt.includes('bispos') ||
-        txt.includes('igreja') ||
-        txt.includes('sínodo') ||
-        txt.includes('paz')
+        txt.includes('jovem') ||
+        txt.includes('juventude') ||
+        txt.includes('vocação') ||
+        txt.includes('vocacao') ||
+        txt.includes('acutis') ||
+        txt.includes('digital') ||
+        txt.includes('namoro') ||
+        txt.includes('estudante')
+      );
+    },
+    5: t => {
+      const txt = `${t.title} ${t.description}`.toLowerCase();
+      return t.source === 'CNBB' || t.source === 'Canção Nova' || txt.includes('brasil') || txt.includes('bispos') || txt.includes('paróquia') || txt.includes('diocese');
+    },
+    6: t => {
+      const txt = `${t.title} ${t.description}`.toLowerCase();
+      return (
+        txt.includes('perdão') ||
+        txt.includes('perdao') ||
+        txt.includes('misericórdia') ||
+        txt.includes('luto') ||
+        txt.includes('sofrimento') ||
+        txt.includes('família') ||
+        txt.includes('confissão') ||
+        txt.includes('esperança')
       );
     }
   };
@@ -283,9 +293,12 @@ export async function obterPautaDoSlot(slot: number = 1): Promise<CatholicTrend>
   }
 
   // Se nenhum item bateu com as palavras-chave específicas, escolhe um item da fonte preferencial do slot
-  if (slot === 4) {
-    const vaticanItem = trends.find(t => t.source === 'Vatican News' || t.source === 'CNBB');
+  if (slot === 2) {
+    const vaticanItem = trends.find(t => t.source === 'Vatican News');
     if (vaticanItem) return vaticanItem;
+  } else if (slot === 5) {
+    const brasilItem = trends.find(t => t.source === 'CNBB' || t.source === 'Canção Nova');
+    if (brasilItem) return brasilItem;
   }
 
   // Fallback para a primeira notícia disponível nos feeds

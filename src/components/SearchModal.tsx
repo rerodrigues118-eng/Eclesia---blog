@@ -113,7 +113,14 @@ export const SearchModal: React.FC<SearchModalProps> = ({
                     }}
                     className="p-3 bg-[#fcf9f8] hover:bg-[#f6f3f2] border border-[#d3c4af]/40 rounded-lg cursor-pointer transition-colors flex items-center gap-3"
                   >
-                    <img src={saint.imageUrl} alt={saint.name} className="w-10 h-10 rounded-md object-cover" />
+                    <img
+                      src={saint.imageUrl}
+                      alt={saint.name}
+                      className="w-10 h-10 rounded-md object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=400';
+                      }}
+                    />
                     <div>
                       <h5 className="font-display font-bold text-[#1c1b1b]">{saint.name}</h5>
                       <p className="font-sans text-xs text-[#817563]">{saint.feastDate}</p>
@@ -140,7 +147,14 @@ export const SearchModal: React.FC<SearchModalProps> = ({
                     }}
                     className="p-3 bg-[#fcf9f8] hover:bg-[#f6f3f2] border border-[#d3c4af]/40 rounded-lg cursor-pointer transition-colors flex items-center gap-3"
                   >
-                    <img src={essay.imageUrl} alt={essay.title} className="w-12 h-9 rounded-md object-cover" />
+                    <img
+                      src={essay.imageUrl}
+                      alt={essay.title}
+                      className="w-12 h-9 rounded-md object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=400';
+                      }}
+                    />
                     <div>
                       <h5 className="font-display font-bold text-[#1c1b1b]">{essay.title}</h5>
                       <p className="font-sans text-xs text-[#817563]">{essay.category} • {essay.author}</p>

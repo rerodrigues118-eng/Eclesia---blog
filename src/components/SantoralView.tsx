@@ -99,15 +99,15 @@ export const SantoralView: React.FC<SantoralViewProps> = ({ onSelectSaint, saint
   const allAvailableSaints = useMemo(() => {
     const map = new Map<string, Saint>();
 
-    // Insere primeiro os santos do prop (do Supabase)
+    // Insere primeiro os santos do prop (do Supabase) com chave única por ID/slug/nome
     saints.forEach((s) => {
-      const key = `${s.month}-${s.day}`;
+      const key = s.id || s.name || `${s.month}-${s.day}`;
       map.set(key, s);
     });
 
     // Garante que o Santo de Hoje esteja no mapa
     if (todaySaintDynamic) {
-      const key = `${todaySaintDynamic.month}-${todaySaintDynamic.day}`;
+      const key = todaySaintDynamic.id || todaySaintDynamic.name || `${todaySaintDynamic.month}-${todaySaintDynamic.day}`;
       map.set(key, todaySaintDynamic);
     }
 

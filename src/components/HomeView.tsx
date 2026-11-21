@@ -291,29 +291,30 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 <div
                   key={essay.id}
                   onClick={() => onSelectEssay(essay)}
-                  className="bg-white dark:bg-zinc-900/90 rounded-2xl border border-[#d3c4af]/60 dark:border-zinc-800 p-4 sm:p-5 flex flex-col sm:flex-row gap-5 hover:border-[#785600] dark:hover:border-amber-500/70 hover:shadow-md transition-all cursor-pointer group"
+                  className="bg-white dark:bg-zinc-900/90 rounded-2xl border border-[#d3c4af]/60 dark:border-zinc-800 p-4 sm:p-5 flex flex-col sm:flex-row gap-5 hover:border-[#785600] dark:hover:border-amber-500/70 hover:shadow-md transition-all cursor-pointer group overflow-hidden"
                 >
                   {/* Square Sacred Art Image */}
-                  <div className="w-full sm:w-44 h-36 rounded-xl overflow-hidden shrink-0 bg-[#f6f3f2] dark:bg-zinc-800">
+                  <div className="w-full sm:w-44 h-40 sm:h-auto sm:aspect-square rounded-xl overflow-hidden shrink-0 bg-[#f6f3f2] dark:bg-zinc-800 relative">
                     <img
-                      src={essay.imageUrl}
+                      src={isValidImageUrl(essay.imageUrl) ? essay.imageUrl : getSacredFallbackImage(essay.category || essay.title)}
                       alt={essay.title}
-                      className="w-full h-full max-w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => handleSacredImageError(e, essay.category || essay.title)}
+                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
                       decoding="async"
                     />
                   </div>
 
                   {/* Content */}
-                  <div className="flex-1 flex flex-col justify-between space-y-2">
+                  <div className="flex-1 min-w-0 flex flex-col justify-between space-y-2">
                     <div>
                       <span className="inline-block px-2.5 py-0.5 bg-[#fff3e0] dark:bg-amber-950/40 text-[#e65100] dark:text-amber-300 border border-[#ffe0b2] dark:border-amber-900/50 text-[10px] font-bold uppercase tracking-wider rounded-md mb-1.5">
                         {essay.category}
                       </span>
-                      <h3 className="font-display text-base sm:text-lg font-bold text-[#1c1b1b] dark:text-zinc-100 leading-snug group-hover:text-[#785600] dark:group-hover:text-amber-300 transition-colors">
+                      <h3 className="font-display text-base sm:text-lg font-bold text-[#1c1b1b] dark:text-zinc-100 leading-snug group-hover:text-[#785600] dark:group-hover:text-amber-300 transition-colors line-clamp-2 break-words">
                         {essay.title}
                       </h3>
-                      <p className="font-sans text-xs text-[#4f4535] dark:text-zinc-300 mt-1 line-clamp-2 leading-relaxed">
+                      <p className="font-sans text-xs text-[#4f4535] dark:text-zinc-300 mt-1 line-clamp-2 leading-relaxed break-words">
                         {essay.excerpt}
                       </p>
                     </div>

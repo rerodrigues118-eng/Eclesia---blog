@@ -299,7 +299,16 @@ export const EssayDetailView: React.FC<EssayDetailViewProps> = ({ essay, onBack,
                       onClick={() => onSelectEssay(r)}
                       className="cursor-pointer group flex items-start gap-3 border-b border-[#d3c4af]/30 dark:border-zinc-800 pb-3"
                     >
-                      <img src={r.imageUrl} alt={r.title} className="w-16 h-12 object-cover rounded-lg shrink-0" loading="lazy" decoding="async" />
+                      <img
+                        src={r.imageUrl}
+                        alt={r.title}
+                        className="w-16 h-12 object-cover rounded-lg shrink-0"
+                        loading="lazy"
+                        decoding="async"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=800';
+                        }}
+                      />
                       <div>
                         <h5 className="text-xs font-bold text-[#1c1b1b] dark:text-zinc-200 group-hover:text-[#785600] dark:group-hover:text-amber-400 line-clamp-2">{r.title}</h5>
                         <span className="text-[10px] text-[#817563] dark:text-zinc-400">{r.date}</span>

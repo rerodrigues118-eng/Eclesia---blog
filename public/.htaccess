@@ -1,5 +1,5 @@
 <IfModule mod_headers.c>
-  # Cabeçalhos de Segurança HTTP
+  # Cabeçalhos de Segurança HTTP e SEO
   Header set X-Frame-Options "SAMEORIGIN"
   Header set X-Content-Type-Options "nosniff"
   Header set Referrer-Policy "strict-origin-when-cross-origin"
@@ -11,6 +11,24 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
+
+  # 1. Forçar HTTPS canônico (HTTP -> HTTPS 301)
+  RewriteCond %{HTTPS} off
+  RewriteRule ^(.*)$ https://eclesia.blog/$1 [R=301,L]
+
+  # 2. Forçar domínio sem www (www.eclesia.blog -> eclesia.blog 301)
+  RewriteCond %{HTTP_HOST} ^www\.eclesia\.blog$ [NC]
+  RewriteRule ^(.*)$ https://eclesia.blog/$1 [R=301,L]
+
+  # 3. Redirecionar /home e /home/ para a raiz canônica /
+  RewriteRule ^home/?$ / [R=301,L]
+
+  # 4. Remover trailing slash de rotas comuns (evita conteúdo duplicado e loop no Googlebot)
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_URI} (.+)/$
+  RewriteRule ^ %1 [R=301,L]
+
+  # 5. SPA Fallback: arquivos ou pastas reais são servidos diretamente, o resto vai para index.html
   RewriteRule ^index\.html$ - [L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d

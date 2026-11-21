@@ -1,0 +1,27 @@
+# ==============================================================================
+# ECLESIA.BLOG — REGRAS DE REDIRECIONAMENTO E ROTEAMENTO CANÔNICO (CLOUDFLARE PAGES)
+# ==============================================================================
+
+# 1. Redirecionamento de rotas legadas (/home) para a raiz canônica
+/home               /                   301!
+/home/              /                   301!
+
+# 2. Normalização de Trailing Slash (remove a barra final para rota canônica única)
+/blog/              /blog               301!
+/santoral/          /santoral           301!
+/liturgia/          /liturgia           301!
+/oracoes/           /oracoes            301!
+/loja/              /loja               301!
+/terco/             /terco              301!
+/benfeitores/       /benfeitores        301!
+/assinaturas/       /assinaturas        301!
+/termos/            /termos             301!
+/privacidade/       /privacidade        301!
+
+# 3. Aliases institucionais
+/apoiar             /benfeitores        301!
+/apoiar/            /benfeitores        301!
+/terco-kids         /terco?modo=kids    302
+
+# 4. Fallback Single-Page Application (SPA) para roteamento React HTML5 pushState
+/*                  /index.html         200

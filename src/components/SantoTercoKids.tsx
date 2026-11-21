@@ -34,7 +34,7 @@ export interface MysteryGroupData {
 }
 
 /* ============================================================================
-   MISTÉRIOS
+   MISTÉRIOS COM TEXTOS E ÁUDIOS INFANTIS
    ============================================================================ */
 export const KIDS_MYSTERY_GROUPS: MysteryGroupData[] = [
   {
@@ -80,7 +80,7 @@ export const KIDS_MYSTERY_GROUPS: MysteryGroupData[] = [
 ];
 
 /* ============================================================================
-   TEXTOS CURTOS PARA O BALÃO (SEM ORAÇÃO POR EXTENSO)
+   TEXTOS CURTOS PARA O BALÃO DE DIÁLOGO
    ============================================================================ */
 const SHORT_TEXTS = {
   credo:    'Vamos começar rezando o Sinal da Cruz e o Santo Credo! ✝️',
@@ -95,7 +95,7 @@ const SHORT_TEXTS = {
 };
 
 /* ============================================================================
-   SOM DE SININHO
+   SOM DE SININHO SUAVE
    ============================================================================ */
 function playBell() {
   try {
@@ -115,7 +115,7 @@ function playBell() {
 }
 
 /* ============================================================================
-   CONSTRUÇÃO DOS PASSOS (CRUCIFIXO -> HASTE -> TRANSIÇÃO MEDALHA -> 5 DEZENAS -> SALVE RAINHA)
+   CONSTRUÇÃO DOS PASSOS (CRUCIFIXO -> HASTE -> MEDALHA -> 5 DEZENAS -> SALVE RAINHA)
    ============================================================================ */
 function buildSteps(group: MysteryGroupData): PrayerStep[] {
   const s: PrayerStep[] = [];
@@ -127,7 +127,7 @@ function buildSteps(group: MysteryGroupData): PrayerStep[] {
   s.push({ id: 'av0-1',  title: '1ª Ave-Maria — pela Fé',    shortText: SHORT_TEXTS.av1,     audioSrc: '/terco-kids/ave-maria.mp3',    beadId: 'bead-av0-1'   });
   s.push({ id: 'av0-2',  title: '2ª Ave-Maria — pela Esperança', shortText: SHORT_TEXTS.av2, audioSrc: '/terco-kids/ave-maria-2.mp3',  beadId: 'bead-av0-2'   });
   s.push({ id: 'av0-3',  title: '3ª Ave-Maria — pela Caridade',  shortText: SHORT_TEXTS.av3, audioSrc: '/terco-kids/ave-maria.mp3',    beadId: 'bead-av0-3'   });
-  // 6. Glória ao Pai inicial (bolinha vermelha antes da medalha)
+  // 6. Glória ao Pai inicial
   s.push({ id: 'gl-i',   title: 'Glória ao Pai',             shortText: SHORT_TEXTS.gloriaI, audioSrc: '/terco-kids/gloria-ao-pai.mp3',beadId: 'bead-gl-intro' });
 
   // 7. Passo de transição na Medalha de Nossa Senhora
@@ -179,76 +179,113 @@ function buildSteps(group: MysteryGroupData): PrayerStep[] {
 }
 
 /* ============================================================================
-   GEOMETRIA DAS CONTAS — CÍRCULO GIGANTE E VISÍVEL 100% SEM CORTES
-   ViewBox 0 -30 900 1030 (amplo espaço superior e inferior)
+   GEOMETRIA DAS CONTAS — NOVO FORMATO LONGO E ORGÂNICO (BASEADO NA FOTO DE REFERÊNCIA)
+   ViewBox 0 0 900 1200
+   Colar alongado convergindo para a Medalha de Nossa Senhora Aparecida Infantil,
+   com ramo vertical inferior e Cruz Azul com Coração Dourado no Centro.
    ============================================================================ */
-interface BeadDef {
-  id: string; x: number; y: number; r: number;
+export interface BeadDef {
+  id: string;
+  x: number;
+  y: number;
+  r: number;
   type: 'cross' | 'pn' | 'ave' | 'gloria' | 'medal';
 }
 
 function buildBeads(): { beads: BeadDef[]; loopPath: string; stemPath: string } {
-  // Centro abaixado (CY = 345) e raio RY = 250 para deixar folga no topo (y mínimo = 95, viewBox começa em -30)
-  const CX = 450, CY = 345, RX = 340, RY = 250;
   const beads: BeadDef[] = [];
   const loopPts: string[] = [];
 
-  // Haste vertical inferior (stem)
-  beads.push({ id: 'bead-cross',    x: 450, y: 938, r: 28, type: 'cross'  });
-  beads.push({ id: 'bead-pn-intro', x: 450, y: 854, r: 23, type: 'pn'     });
-  beads.push({ id: 'bead-av0-1',    x: 450, y: 794, r: 16, type: 'ave'    });
-  beads.push({ id: 'bead-av0-2',    x: 450, y: 746, r: 16, type: 'ave'    });
-  beads.push({ id: 'bead-av0-3',    x: 450, y: 698, r: 16, type: 'ave'    });
-  beads.push({ id: 'bead-gl-intro', x: 450, y: 648, r: 12, type: 'gloria' });
-  beads.push({ id: 'bead-medal',    x: 450, y: 580, r: 38, type: 'medal'  });
+  // 1. HASTE VERTICAL INFERIOR (da Cruz subindo até a Medalha)
+  // X = 450 fixo
+  beads.push({ id: 'bead-cross',    x: 450, y: 1105, r: 28, type: 'cross'  });
+  beads.push({ id: 'bead-gl-intro', x: 450, y: 995,  r: 10, type: 'gloria' });
+  beads.push({ id: 'bead-av0-3',    x: 450, y: 945,  r: 15, type: 'ave'    });
+  beads.push({ id: 'bead-av0-2',    x: 450, y: 900,  r: 15, type: 'ave'    });
+  beads.push({ id: 'bead-av0-1',    x: 450, y: 855,  r: 15, type: 'ave'    });
+  beads.push({ id: 'bead-pn-intro', x: 450, y: 795,  r: 22, type: 'pn'     });
+  beads.push({ id: 'bead-medal',    x: 450, y: 680,  r: 36, type: 'medal'  });
 
-  // As 5 Dezenas distribuídas no arco do terço
-  for (let dec = 0; dec < 5; dec++) {
-    const startAngle = 18 + dec * 64.8;
-    const pnRad = (startAngle * Math.PI) / 180;
-    const px = +(CX + RX * Math.sin(pnRad)).toFixed(1);
-    const py = +(CY + RY * Math.cos(pnRad)).toFixed(1);
-    beads.push({ id: `bead-dec${dec}-pn`, x: px, y: py, r: 23, type: 'pn' });
-    loopPts.push(`${px},${py}`);
+  // 2. LAÇO DAS 5 DEZENAS (Curva paramétrica em forma de gota aberta/colar da foto)
+  const N = 1000;
+  const samples: { x: number; y: number }[] = [];
+  for (let i = 0; i <= N; i++) {
+    const t = i / N;
+    const phi = t * 2 * Math.PI;
+    // Y: 640 nas pontas junto à medalha, 105 no topo do colar
+    const topFactor = Math.pow((1 - Math.cos(phi)) / 2, 0.88);
+    const y = 640 - 535 * topFactor;
 
-    for (let a = 1; a <= 10; a++) {
-      const ang = startAngle + 5.2 + (a - 1) * 4.7;
-      const rad = (ang * Math.PI) / 180;
-      const ax  = +(CX + RX * Math.sin(rad)).toFixed(1);
-      const ay  = +(CY + RY * Math.cos(rad)).toFixed(1);
-      beads.push({ id: `bead-dec${dec}-av${a}`, x: ax, y: ay, r: 16, type: 'ave' });
-      loopPts.push(`${ax},${ay}`);
-    }
-
-    const glAng = startAngle + 56.5;
-    const glRad = (glAng * Math.PI) / 180;
-    const gx    = +(CX + RX * Math.sin(glRad)).toFixed(1);
-    const gy    = +(CY + RY * Math.cos(glRad)).toFixed(1);
-    beads.push({ id: `bead-dec${dec}-gl`, x: gx, y: gy, r: 12, type: 'gloria' });
-    loopPts.push(`${gx},${gy}`);
+    // X: simétrico com abaulamento lateral orgânico
+    const baseOffset = -34 * Math.cos(phi / 2);
+    const bulge = -320 * Math.sin(phi);
+    const x = 450 + bulge + baseOffset;
+    samples.push({ x, y });
   }
 
-  const stemPath = `M 450,910 L 450,626`;
-  const loopPath = `M 450,542 L ${loopPts.join(' L ')} Z`;
+  // Comprimento acumulado do arco para distribuição uniforme das 60 contas
+  const dists = [0];
+  let totalLen = 0;
+  for (let i = 1; i <= N; i++) {
+    const dx = samples[i].x - samples[i - 1].x;
+    const dy = samples[i].y - samples[i - 1].y;
+    totalLen += Math.sqrt(dx * dx + dy * dy);
+    dists.push(totalLen);
+  }
+
+  function getPt(len: number) {
+    let low = 0, high = N;
+    while (low <= high) {
+      const mid = (low + high) >> 1;
+      if (dists[mid] < len) low = mid + 1;
+      else high = mid - 1;
+    }
+    const idx = Math.min(Math.max(low, 1), N);
+    const d0 = dists[idx - 1], d1 = dists[idx];
+    const f = (len - d0) / (d1 - d0);
+    const p0 = samples[idx - 1], p1 = samples[idx];
+    return {
+      x: +(p0.x + f * (p1.x - p0.x)).toFixed(1),
+      y: +(p0.y + f * (p1.y - p0.y)).toFixed(1)
+    };
+  }
+
+  // 60 contas ao longo da curva (5 dezenas x 12 contas cada: 1 PN, 10 AV, 1 Glória)
+  const marginStart = totalLen * 0.02;
+  const marginEnd = totalLen * 0.98;
+  const usableLen = marginEnd - marginStart;
+  const count = 60;
+  const step = usableLen / (count - 1);
+
+  for (let dec = 0; dec < 5; dec++) {
+    // Pai Nosso da dezena
+    const pnIdx = dec * 12;
+    const pnPt = getPt(marginStart + pnIdx * step);
+    beads.push({ id: `bead-dec${dec}-pn`, x: pnPt.x, y: pnPt.y, r: 21, type: 'pn' });
+    loopPts.push(`${pnPt.x},${pnPt.y}`);
+
+    // 10 Ave-Marias
+    for (let a = 1; a <= 10; a++) {
+      const avIdx = dec * 12 + a;
+      const avPt = getPt(marginStart + avIdx * step);
+      beads.push({ id: `bead-dec${dec}-av${a}`, x: avPt.x, y: avPt.y, r: 14.5, type: 'ave' });
+      loopPts.push(`${avPt.x},${avPt.y}`);
+    }
+
+    // Glória ao Pai (marcador separador)
+    const glIdx = dec * 12 + 11;
+    const glPt = getPt(marginStart + glIdx * step);
+    beads.push({ id: `bead-dec${dec}-gl`, x: glPt.x, y: glPt.y, r: 9.5, type: 'gloria' });
+    loopPts.push(`${glPt.x},${glPt.y}`);
+  }
+
+  const stemPath = 'M 450,1075 L 450,715';
+  const loopPath = `M 416,645 L ${loopPts.join(' L ')} L 484,645`;
+
   return { beads, loopPath, stemPath };
 }
 
 const { beads: BEAD_DEFS, loopPath: LOOP_PATH, stemPath: STEM_PATH } = buildBeads();
-
-/* ============================================================================
-   CORES POR ESTADO DA CONTA
-   - Não rezada   → madeira neutra suave
-   - Rezada       → âmbar/dourado rico
-   - Ativa agora  → branco-âmbar brilhante com anel destacado
-   ============================================================================ */
-const NEUTRAL  = { fill: '#f5e6c8', stroke: '#c9a96e', shimmer: '#e8d0a4' };
-const PRAYED   = { fill: '#f59e0b', stroke: '#92400e', shimmer: '#fcd34d' };
-const ACTIVE   = { fill: '#fef3c7', stroke: '#d97706', shimmer: '#fef9c3' };
-
-// Glória: variações da bolinha vermelha separadora
-const GLORIA_NEUTRAL = { fill: '#fecaca', stroke: '#ef4444' };
-const GLORIA_PRAYED  = { fill: '#b91c1c', stroke: '#7f1d1d' };
-const GLORIA_ACTIVE  = { fill: '#ef4444', stroke: '#991b1b' };
 
 /* ============================================================================
    COMPONENTE PRINCIPAL
@@ -342,7 +379,6 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
 
     // ── TRATAMENTO ESPECIAL DA MEDALHA CENTRAL ──
     if (beadId === 'bead-medal') {
-      // 1. Se já completou ou chegou ao fim da 5ª dezena: ativa a Salve Rainha
       if (lastDecadeStepIdx !== -1 && stepIdx >= lastDecadeStepIdx) {
         setStepIdx(salveStepIdx);
         const target = steps[salveStepIdx];
@@ -352,7 +388,6 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
         return;
       }
 
-      // 2. Se está nas orações introdutórias (antes das dezenas): vai para o passo de transição
       if (transStepIdx !== -1 && stepIdx <= transStepIdx) {
         setStepIdx(transStepIdx);
         const target = steps[transStepIdx];
@@ -362,9 +397,6 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
         return;
       }
 
-      // 3. Se a criança já está no meio das dezenas (ex: 1ª, 2ª, 3ª dezena):
-      //    NÃO PULA PARA A SALVE RAINHA NEM MARCA O RESTO COMO REZADO!
-      //    Apenas reproduz uma bênção carinhosa de Nossa Senhora mantendo o progresso atual.
       playStep(
         '/terco-kids/santo-anjo.mp3',
         'Mãezinha do Céu está com você! Continue rezando os Santos Mistérios com muito amor! 🌸'
@@ -397,290 +429,571 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
   const isActive = (id: string) => step.beadId === id;
   const isPrayed = (id: string) => {
     if (id === 'bead-medal') {
-      // A medalha só é considerada 'concluída/rezada' ao término absoluto do terço
       return finalStepIdx !== -1 && stepIdx >= finalStepIdx;
     }
     const bi = steps.findIndex(s => s.beadId === id);
     return bi !== -1 && bi < stepIdx;
   };
 
-  /* ── Cor da conta baseada no estado ── */
-  function beadColors(bead: BeadDef) {
-    const active  = isActive(bead.id);
-    const prayed  = isPrayed(bead.id);
-    if (bead.type === 'gloria') {
-      if (active)  return GLORIA_ACTIVE;
-      if (prayed)  return GLORIA_PRAYED;
-      return GLORIA_NEUTRAL;
-    }
-    if (active)  return ACTIVE;
-    if (prayed)  return PRAYED;
-    return NEUTRAL;
-  }
-
   return (
-    <div className="w-full max-w-screen-2xl mx-auto px-2 sm:px-4 py-2 select-none">
+    <div className="relative w-full rounded-3xl p-3 sm:p-6 md:p-8 select-none overflow-hidden shadow-2xl border border-sky-200/90 dark:border-sky-800/40 bg-gradient-to-b from-[#cae9ff] via-[#e2f3fe] to-[#f4faff] dark:from-[#0b1c2e] dark:via-[#10273f] dark:to-[#071321]">
 
-      {/* ── SELETOR DE MISTÉRIOS ── */}
-      <div className="flex flex-wrap justify-center gap-2 mb-3">
-        {KIDS_MYSTERY_GROUPS.map(g => {
-          const today = g.days.includes(new Date().getDay());
-          const sel   = g.id === groupId;
-          return (
-            <button key={g.id} type="button"
-              onClick={() => { stopAll(); playBell(); setGroupId(g.id); setStepIdx(0); }}
-              className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 border shadow-xs ${
-                sel
-                  ? 'bg-amber-500 text-white border-amber-600 shadow-md scale-105'
-                  : 'bg-white/90 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-amber-200 dark:border-slate-700 hover:bg-amber-50'
-              }`}>
-              {g.badgeEmoji} {g.name}
-              {today && <span className="text-[10px] bg-white/25 px-1.5 rounded-full font-black">Hoje</span>}
-            </button>
-          );
-        })}
-        {onSwitchToAdult && (
-          <button type="button" onClick={onSwitchToAdult}
-            className="px-3 py-1.5 rounded-full text-xs text-slate-400 hover:text-slate-600 cursor-pointer hover:underline">
-            Modo Adulto
-          </button>
-        )}
-      </div>
+      {/* ═══ IMAGENS DE NUVENS E SOL NO TOPO DO CENÁRIO (CÉU AZUL PASTEL) ═══ */}
+      {/* Nuvem Esquerda Superior */}
+      <img
+        src="/terco-kids/nuvem-1-clean.png"
+        onError={e => { (e.currentTarget as HTMLImageElement).src = '/terco-kids/nuvem-1.png'; }}
+        alt=""
+        aria-hidden="true"
+        className="absolute -top-3 -left-6 sm:-top-5 sm:-left-3 w-40 sm:w-60 md:w-72 max-h-32 object-contain pointer-events-none select-none z-0 opacity-85 transition-opacity"
+      />
 
-      {/* ── LAYOUT: TERÇO GIGANTE E COMPLETO (70%) + CARD MARIA (30%) ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-[70%_30%] gap-6 items-center">
+      {/* Nuvem Direita Superior */}
+      <img
+        src="/terco-kids/nuvem-2-clean.png"
+        onError={e => { (e.currentTarget as HTMLImageElement).src = '/terco-kids/nuvem-2.png'; }}
+        alt=""
+        aria-hidden="true"
+        className="absolute -top-4 -right-6 sm:-top-6 sm:-right-4 w-44 sm:w-64 md:w-80 max-h-36 object-contain pointer-events-none select-none z-0 opacity-85 transition-opacity"
+      />
 
-        {/* ═══ TERÇO GIGANTE (100% visível, sem cortes superiores) ═══ */}
-        <div className="flex items-center justify-center w-full">
-          <div className="w-full max-w-[860px]">
-            <svg
-              viewBox="0 -30 900 1030"
-              className="w-full h-auto select-none"
-              style={{ overflow: 'visible' }}
-            >
-              <defs>
-                {/* Sombra suave */}
-                <filter id="bs" x="-30%" y="-30%" width="160%" height="160%">
-                  <feDropShadow dx="0" dy="2" stdDeviation="2.5" floodOpacity="0.2" floodColor="#78350f" />
-                </filter>
-                {/* Brilho da conta ativa */}
-                <filter id="activeGlow" x="-60%" y="-60%" width="220%" height="220%">
-                  <feGaussianBlur stdDeviation="5" result="blur" />
-                  <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-                </filter>
-                {/* Cruz */}
-                <linearGradient id="crossBg" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#1e40af" /><stop offset="100%" stopColor="#1e3a8a" />
-                </linearGradient>
-                {/* Clip medalha */}
-                <clipPath id="mc"><ellipse cx="450" cy="580" rx="33" ry="42" /></clipPath>
-              </defs>
+      {/* Solzinho carinhoso suave */}
+      <img
+        src="/terco-kids/sol-clean.png"
+        onError={e => { (e.currentTarget as HTMLImageElement).src = '/terco-kids/sol.png'; }}
+        alt=""
+        aria-hidden="true"
+        className="absolute top-2 right-1/4 sm:right-1/3 w-12 sm:w-16 md:w-20 object-contain pointer-events-none select-none z-0 opacity-80"
+      />
 
-              {/* Cordão dourado suave */}
-              <path d={STEM_PATH} fill="none" stroke="#c9a96e" strokeWidth="4" strokeDasharray="5 3" opacity="0.75" />
-              <path d={LOOP_PATH} fill="none" stroke="#c9a96e" strokeWidth="4" strokeDasharray="5 3" opacity="0.75" />
+      {/* ── CONTEÚDO EM CAMADA SUPERIOR (z-10) LIVRE DE QUALQUER BLOQUEIO DE CLIQUES ── */}
+      <div className="relative z-10 space-y-4">
 
-              {/* Centro: título do mistério atual */}
-              <g transform="translate(450, 345)" className="pointer-events-none">
-                <circle r="82" fill="white" fillOpacity="0.88" stroke="#e5c97a" strokeWidth="2.5"
-                  className="dark:fill-slate-900/85 dark:stroke-amber-700/50" />
-                <text y="-22" textAnchor="middle" fontSize="28">🕊️</text>
-                <text y="8" textAnchor="middle" fontSize="13" fontWeight="800" fill="#78350f"
-                  className="dark:fill-amber-200">
-                  {step.mysteryNumber ? `${step.mysteryNumber}º MISTÉRIO` : 'SANTO TERÇO'}
-                </text>
-                {step.fruit ? (
-                  <text y="28" textAnchor="middle" fontSize="11" fontWeight="600" fill="#059669">
-                    🌱 {step.fruit}
-                  </text>
-                ) : (
-                  <text y="28" textAnchor="middle" fontSize="11" fontWeight="600" fill="#d97706">
-                    MÃE DE DEUS
-                  </text>
+        {/* ── SELETOR DE MISTÉRIOS LÚDICO ── */}
+        <div className="flex flex-wrap justify-center gap-2">
+          {KIDS_MYSTERY_GROUPS.map(g => {
+            const today = g.days.includes(new Date().getDay());
+            const sel   = g.id === groupId;
+            return (
+              <button
+                key={g.id}
+                type="button"
+                onClick={() => { stopAll(); playBell(); setGroupId(g.id); setStepIdx(0); }}
+                className={`px-4 py-2 rounded-full text-xs sm:text-sm font-black transition-all cursor-pointer flex items-center gap-1.5 border shadow-sm ${
+                  sel
+                    ? 'bg-amber-500 text-white border-amber-600 shadow-md scale-105'
+                    : 'bg-white/90 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-sky-200 dark:border-slate-700 hover:bg-sky-50'
+                }`}
+              >
+                <span>{g.badgeEmoji}</span>
+                <span>{g.name}</span>
+                {today && (
+                  <span className="text-[10px] bg-white/30 text-white px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
+                    Hoje
+                  </span>
                 )}
-              </g>
+              </button>
+            );
+          })}
+          {onSwitchToAdult && (
+            <button
+              type="button"
+              onClick={onSwitchToAdult}
+              className="px-3.5 py-2 rounded-full text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer bg-white/60 dark:bg-slate-800/60 border border-sky-100 dark:border-slate-700 hover:shadow-xs transition-all"
+            >
+              Modo Tradicional
+            </button>
+          )}
+        </div>
 
-              {/* ── CONTAS DO TERÇO ── */}
-              {BEAD_DEFS.map(bead => {
-                const active = isActive(bead.id);
-                const colors = beadColors(bead);
+        {/* ── LAYOUT PRINCIPAL: TERÇO EM DESTAQUE (PROTAGONISTA) + CARD LATERAL ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-[64%_36%] gap-6 items-center pt-2">
 
-                return (
-                  <g key={bead.id} onClick={() => jumpToBead(bead.id)}
-                    className="cursor-pointer"
-                    style={{ transition: 'transform 0.1s ease-out' }}>
+          {/* ═══ ÁREA DO TERÇO INFANTIL (MAIOR, PROTAGONISTA E EM NOVO FORMATO) ═══ */}
+          <div className="flex items-center justify-center w-full">
+            <div className="w-full max-w-[760px] sm:px-2">
+              <svg
+                viewBox="0 0 900 1200"
+                className="w-full h-auto select-none drop-shadow-md"
+                style={{ overflow: 'visible' }}
+              >
+                <defs>
+                  {/* Sombra suave de profundidade */}
+                  <filter id="beadShadow" x="-30%" y="-30%" width="160%" height="160%">
+                    <feDropShadow dx="0" dy="2.5" stdDeviation="2.5" floodOpacity="0.28" floodColor="#0f172a" />
+                  </filter>
 
-                    {/* Área de toque ampliada para tablets e celulares */}
-                    <circle cx={bead.x} cy={bead.y} r={bead.r + 14} fill="transparent" />
+                  {/* Brilho da conta ativa com glow radiante */}
+                  <filter id="activeBeadGlow" x="-60%" y="-60%" width="220%" height="220%">
+                    <feGaussianBlur stdDeviation="6" result="blur" />
+                    <feMerge>
+                      <feMergeNode in="blur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
 
-                    {/* Anel indicador estático na conta ativa */}
-                    {active && (
-                      <circle cx={bead.x} cy={bead.y} r={bead.r + 8}
-                        fill="none" stroke="#f59e0b" strokeWidth="4" opacity="0.95" />
-                    )}
+                  {/* ── GRADIENTES DAS CONTAS ── */}
+                  {/* Ave-Maria: Azul Safira Pérola com reflexo esférico 3D (como na foto de referência) */}
+                  <radialGradient id="aveBeadNormal" cx="35%" cy="35%" r="65%">
+                    <stop offset="0%" stopColor="#bfdbfe" />
+                    <stop offset="25%" stopColor="#60a5fa" />
+                    <stop offset="70%" stopColor="#1d4ed8" />
+                    <stop offset="100%" stopColor="#172554" />
+                  </radialGradient>
 
-                    {/* ── Crucifixo ── */}
-                    {bead.type === 'cross' && (
-                      <g transform={`translate(${bead.x - 26}, ${bead.y - 42})`}>
-                        <rect x="18" y="0" width="16" height="84" rx="4"
-                          fill="url(#crossBg)" stroke="#fcd34d" strokeWidth="2.5" filter="url(#bs)" />
-                        <rect x="0" y="22" width="52" height="16" rx="4"
-                          fill="url(#crossBg)" stroke="#fcd34d" strokeWidth="2.5" />
-                        <circle cx="26" cy="30" r="7" fill="#fef08a" opacity="0.7" />
-                        <text x="26" y="71" textAnchor="middle" fontSize="10">✝️</text>
-                      </g>
-                    )}
+                  {/* Ave-Maria Rezada: Azul Safira luminoso e sereno */}
+                  <radialGradient id="aveBeadPrayed" cx="35%" cy="35%" r="65%">
+                    <stop offset="0%" stopColor="#e0e7ff" />
+                    <stop offset="35%" stopColor="#3b82f6" />
+                    <stop offset="85%" stopColor="#1e3a8a" />
+                    <stop offset="100%" stopColor="#0f172a" />
+                  </radialGradient>
 
-                    {/* ── Medalha de Nossa Senhora (Imagem Central) ── */}
-                    {bead.type === 'medal' && (() => {
-                      const c = active ? ACTIVE : isPrayed(bead.id) ? PRAYED : NEUTRAL;
-                      return (
-                        <g>
-                          <ellipse cx={bead.x} cy={bead.y} rx={bead.r} ry={bead.r + 9}
-                            fill={c.fill} stroke={c.stroke} strokeWidth="3.5" filter="url(#bs)" />
-                          <image href="/terco-kids/SORINDO-NORMAL.png"
-                            x={bead.x - 30} y={bead.y - 37} width="60" height="74"
-                            clipPath="url(#mc)" preserveAspectRatio="xMidYMid slice" />
-                          {/* estrelas decorativas */}
-                          {[-1, 1].map((s, i) => (
-                            <circle key={i} cx={bead.x + s * (bead.r + 6)} cy={bead.y}
-                              r="4.5" fill="#fcd34d" opacity="0.85" />
-                          ))}
+                  {/* Ave-Maria Ativa: Azul Celeste Elétrico Radiante */}
+                  <radialGradient id="aveBeadActive" cx="35%" cy="35%" r="65%">
+                    <stop offset="0%" stopColor="#ffffff" />
+                    <stop offset="30%" stopColor="#38bdf8" />
+                    <stop offset="75%" stopColor="#0284c7" />
+                    <stop offset="100%" stopColor="#0c4a6e" />
+                  </radialGradient>
+
+                  {/* Pai Nosso: Esfera Dourada Metálica Brilhante (como na foto) */}
+                  <radialGradient id="goldBeadNormal" cx="32%" cy="32%" r="68%">
+                    <stop offset="0%" stopColor="#fef9c3" />
+                    <stop offset="30%" stopColor="#facc15" />
+                    <stop offset="70%" stopColor="#f59e0b" />
+                    <stop offset="100%" stopColor="#b45309" />
+                  </radialGradient>
+
+                  {/* Pai Nosso Rezado */}
+                  <radialGradient id="goldBeadPrayed" cx="32%" cy="32%" r="68%">
+                    <stop offset="0%" stopColor="#fef08a" />
+                    <stop offset="40%" stopColor="#eab308" />
+                    <stop offset="85%" stopColor="#ca8a04" />
+                    <stop offset="100%" stopColor="#854d0e" />
+                  </radialGradient>
+
+                  {/* Pai Nosso Ativo: Ouro Radiante */}
+                  <radialGradient id="goldBeadActive" cx="32%" cy="32%" r="68%">
+                    <stop offset="0%" stopColor="#ffffff" />
+                    <stop offset="35%" stopColor="#fde047" />
+                    <stop offset="80%" stopColor="#eab308" />
+                    <stop offset="100%" stopColor="#a16207" />
+                  </radialGradient>
+
+                  {/* Cruz: Azul Royal com nuances da foto */}
+                  <linearGradient id="crossBlueGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#3b82f6" />
+                    <stop offset="50%" stopColor="#1d4ed8" />
+                    <stop offset="100%" stopColor="#1e3a8a" />
+                  </linearGradient>
+
+                  {/* Clip da Medalha de Nossa Senhora */}
+                  <clipPath id="medalClip">
+                    <circle cx="450" cy="680" r="34" />
+                  </clipPath>
+                </defs>
+
+                {/* Cordão Dourado de sustentação passando pelas contas */}
+                <path
+                  d={STEM_PATH}
+                  fill="none"
+                  stroke="#d97706"
+                  strokeWidth="3.5"
+                  strokeDasharray="4 2.5"
+                  opacity="0.8"
+                />
+                <path
+                  d={LOOP_PATH}
+                  fill="none"
+                  stroke="#d97706"
+                  strokeWidth="3.5"
+                  strokeDasharray="4 2.5"
+                  opacity="0.8"
+                />
+
+                {/* ── MEDALHÃO CENTRAL DO ESPÍRITO SANTO E MISTÉRIO ATUAL ── */}
+                <g transform="translate(450, 360)" className="pointer-events-none">
+                  <circle
+                    r="92"
+                    fill="white"
+                    fillOpacity="0.9"
+                    stroke="#fbbf24"
+                    strokeWidth="3"
+                    className="dark:fill-slate-900/90 dark:stroke-amber-500/60"
+                    filter="url(#beadShadow)"
+                  />
+                  <circle
+                    r="84"
+                    fill="none"
+                    stroke="#bfdbfe"
+                    strokeWidth="1.5"
+                    strokeDasharray="4 3"
+                    opacity="0.7"
+                  />
+                  <text y="-26" textAnchor="middle" fontSize="30">🕊️</text>
+                  <text
+                    y="4"
+                    textAnchor="middle"
+                    fontSize="13"
+                    fontWeight="900"
+                    fill="#1e3a8a"
+                    className="dark:fill-sky-200 tracking-wider"
+                  >
+                    {step.mysteryNumber ? `${step.mysteryNumber}º MISTÉRIO` : 'SANTO TERÇO'}
+                  </text>
+                  <text
+                    y="24"
+                    textAnchor="middle"
+                    fontSize="12"
+                    fontWeight="800"
+                    fill="#b45309"
+                    className="dark:fill-amber-300"
+                  >
+                    {activeGroup.name}
+                  </text>
+                  {step.fruit ? (
+                    <text y="44" textAnchor="middle" fontSize="11" fontWeight="700" fill="#059669">
+                      🌱 {step.fruit}
+                    </text>
+                  ) : (
+                    <text y="44" textAnchor="middle" fontSize="11" fontWeight="700" fill="#0284c7">
+                      Nossa Senhora do Rosário
+                    </text>
+                  )}
+                </g>
+
+                {/* ── RENDERIZAÇÃO DAS CONTAS DO TERÇO ── */}
+                {BEAD_DEFS.map(bead => {
+                  const active = isActive(bead.id);
+                  const prayed = isPrayed(bead.id);
+
+                  return (
+                    <g
+                      key={bead.id}
+                      onClick={() => jumpToBead(bead.id)}
+                      className="cursor-pointer transition-transform duration-150 active:scale-95"
+                    >
+                      {/* Área de toque expandida (facilita o toque em telas sensíveis e celulares) */}
+                      <circle cx={bead.x} cy={bead.y} r={bead.r + 14} fill="transparent" />
+
+                      {/* Anel indicador dourado pulsante na conta ativa */}
+                      {active && (
+                        <circle
+                          cx={bead.x}
+                          cy={bead.y}
+                          r={bead.r + 7}
+                          fill="none"
+                          stroke="#f59e0b"
+                          strokeWidth="3.5"
+                          opacity="0.95"
+                          className="animate-pulse"
+                        />
+                      )}
+
+                      {/* ══ 1. CRUCIFIXO AZUL COM CORAÇÃO DOURADO NO CENTRO (IDÊNTICO À FOTO) ══ */}
+                      {bead.type === 'cross' && (
+                        <g transform={`translate(${bead.x}, ${bead.y})`} filter="url(#beadShadow)">
+                          {/* Argolinha dourada superior */}
+                          <circle cx="0" cy="-44" r="5" fill="none" stroke="#f59e0b" strokeWidth="2.5" />
+
+                          {/* Braço vertical da cruz com pontas trilobadas */}
+                          <path
+                            d="M -9,-38 C -14,-38 -18,-33 -18,-27 C -18,-22 -14,-19 -9,-18 L -9,18 C -14,19 -18,22 -18,27 C -18,33 -14,38 -9,38 L 9,38 C 14,38 18,33 18,27 C 18,22 14,19 9,18 L 9,-18 C 14,-19 18,-22 18,-27 C 18,-33 14,-38 9,-38 Z"
+                            fill="url(#crossBlueGrad)"
+                            stroke="#172554"
+                            strokeWidth="2"
+                          />
+                          {/* Braço horizontal da cruz com pontas trilobadas */}
+                          <path
+                            d="M -32,-9 C -38,-9 -42,-5 -42,0 C -42,5 -38,9 -32,9 L 32,9 C 38,9 42,5 42,0 C 42,-5 38,-9 32,-9 Z"
+                            fill="url(#crossBlueGrad)"
+                            stroke="#172554"
+                            strokeWidth="2"
+                          />
+
+                          {/* Coração Dourado Central (como no terço da foto de referência) */}
+                          <path
+                            d="M 0,-5 C -4,-13 -12,-9 -12,-2 C -12,5 -5,10 0,16 C 5,10 12,5 12,-2 C 12,-9 4,-13 0,-5 Z"
+                            fill="url(#goldBeadNormal)"
+                            stroke="#78350f"
+                            strokeWidth="1.5"
+                          />
                         </g>
-                      );
-                    })()}
+                      )}
 
-                    {/* ── Pai Nosso (bola grande) ── */}
-                    {bead.type === 'pn' && (() => {
-                      const c = active ? ACTIVE : isPrayed(bead.id) ? PRAYED : NEUTRAL;
-                      return (
-                        <g filter={active ? 'url(#activeGlow)' : 'url(#bs)'}>
-                          <circle cx={bead.x} cy={bead.y} r={bead.r}
-                            fill={c.fill} stroke={c.stroke} strokeWidth="2" />
-                          <circle cx={bead.x - 6} cy={bead.y - 6} r={bead.r * 0.32}
-                            fill="white" opacity="0.55" />
-                          <text x={bead.x} y={bead.y + 6} textAnchor="middle" fontSize="13">👑</text>
+                      {/* ══ 2. MEDALHA DE NOSSA SENHORA APARECIDA INFANTIL (ENTREMEIO DA FOTO) ══ */}
+                      {bead.type === 'medal' && (
+                        <g transform={`translate(${bead.x}, ${bead.y})`}>
+                          {/* Anéis de fixação dourados laterais e inferior */}
+                          <circle cx="-38" cy="-5" r="4.5" fill="none" stroke="#f59e0b" strokeWidth="2.5" />
+                          <circle cx="38"  cy="-5" r="4.5" fill="none" stroke="#f59e0b" strokeWidth="2.5" />
+                          <circle cx="0"   cy="44" r="4.5" fill="none" stroke="#f59e0b" strokeWidth="2.5" />
+
+                          {/* Moldura da medalha com relevo dourado */}
+                          <ellipse
+                            cx="0"
+                            cy="0"
+                            rx="38"
+                            ry="44"
+                            fill={active ? '#fef08a' : '#1e3a8a'}
+                            stroke="#f59e0b"
+                            strokeWidth="4"
+                            filter="url(#beadShadow)"
+                          />
+
+                          {/* Coroa Dourada de 3 Pontas no topo da medalha */}
+                          <g transform="translate(0, -42)">
+                            <path
+                              d="M -16,0 L -20,-12 L -8,-4 L 0,-16 L 8,-4 L 20,-12 L 16,0 Z"
+                              fill="url(#goldBeadNormal)"
+                              stroke="#78350f"
+                              strokeWidth="1.5"
+                            />
+                            <circle cx="-20" cy="-13" r="2" fill="#ffffff" />
+                            <circle cx="0"   cy="-17" r="2.5" fill="#ffffff" />
+                            <circle cx="20"  cy="-13" r="2" fill="#ffffff" />
+                          </g>
+
+                          {/* Imagem de Nossa Senhora Sorrindo/Falando */}
+                          <g clipPath="url(#medalClip)">
+                            <image
+                              href={playing ? '/terco-kids/FALANDO.png' : '/terco-kids/SORINDO-NORMAL.png'}
+                              x="414"
+                              y="642"
+                              width="72"
+                              height="82"
+                              preserveAspectRatio="xMidYMid slice"
+                            />
+                          </g>
+
+                          {/* Manto azul marinho e detalhes dourados */}
+                          <ellipse
+                            cx="0"
+                            cy="0"
+                            rx="34"
+                            ry="40"
+                            fill="none"
+                            stroke="#fbbf24"
+                            strokeWidth="2"
+                            strokeDasharray="5 3"
+                            opacity="0.85"
+                          />
                         </g>
-                      );
-                    })()}
+                      )}
 
-                    {/* ── Glória ao Pai (bolinha separadora vermelha) ── */}
-                    {bead.type === 'gloria' && (() => {
-                      const c = colors as typeof GLORIA_NEUTRAL;
-                      return (
-                        <circle cx={bead.x} cy={bead.y} r={bead.r}
-                          fill={c.fill} stroke={c.stroke} strokeWidth="1.5"
-                          filter="url(#bs)" />
-                      );
-                    })()}
+                      {/* ══ 3. PAI NOSSO (ESFERAS DOURADAS GRANDES METÁLICAS) ══ */}
+                      {bead.type === 'pn' && (
+                        <g filter={active ? 'url(#activeBeadGlow)' : 'url(#beadShadow)'}>
+                          <circle
+                            cx={bead.x}
+                            cy={bead.y}
+                            r={bead.r}
+                            fill={active ? 'url(#goldBeadActive)' : prayed ? 'url(#goldBeadPrayed)' : 'url(#goldBeadNormal)'}
+                            stroke={active ? '#d97706' : '#78350f'}
+                            strokeWidth="2.5"
+                          />
+                          {/* Ponto de brilho de luz na esfera metálica */}
+                          <circle
+                            cx={bead.x - bead.r * 0.35}
+                            cy={bead.y - bead.r * 0.35}
+                            r={bead.r * 0.28}
+                            fill="#ffffff"
+                            opacity={active ? 0.9 : 0.65}
+                          />
+                          {/* Coroa dourada no centro do Pai Nosso */}
+                          <text
+                            x={bead.x}
+                            y={bead.y + 6}
+                            textAnchor="middle"
+                            fontSize="13"
+                            className="pointer-events-none select-none"
+                          >
+                            👑
+                          </text>
+                        </g>
+                      )}
 
-                    {/* ── Ave-Maria (bolinha com progresso de cor e check) ── */}
-                    {bead.type === 'ave' && (() => {
-                      const c = colors as typeof NEUTRAL;
-                      const done = isPrayed(bead.id);
-                      return (
-                        <g filter={active ? 'url(#activeGlow)' : 'url(#bs)'}>
-                          <circle cx={bead.x} cy={bead.y} r={bead.r}
-                            fill={c.fill} stroke={c.stroke} strokeWidth="1.5" />
-                          <circle cx={bead.x - 4} cy={bead.y - 4} r={bead.r * 0.32}
-                            fill="white" opacity={active ? 0.75 : 0.5} />
-                          {done && (
-                            <text x={bead.x} y={bead.y + 5} textAnchor="middle"
-                              fontSize="11" fontWeight="bold" fill="white">✓</text>
+                      {/* ══ 4. AVE-MARIA (AZUL SAFIRA PÉROLA COM PONTO DE LUZ 3D) ══ */}
+                      {bead.type === 'ave' && (
+                        <g filter={active ? 'url(#activeBeadGlow)' : 'url(#beadShadow)'}>
+                          <circle
+                            cx={bead.x}
+                            cy={bead.y}
+                            r={bead.r}
+                            fill={active ? 'url(#aveBeadActive)' : prayed ? 'url(#aveBeadPrayed)' : 'url(#aveBeadNormal)'}
+                            stroke={active ? '#38bdf8' : '#1e3a8a'}
+                            strokeWidth="2"
+                          />
+                          {/* Reflexo esférico perolado de luz clara (estilo pérola de vidro/resina) */}
+                          <circle
+                            cx={bead.x - bead.r * 0.32}
+                            cy={bead.y - bead.r * 0.32}
+                            r={bead.r * 0.3}
+                            fill="#ffffff"
+                            opacity={active ? 0.85 : 0.6}
+                          />
+                          {/* Check branco na conta já rezada */}
+                          {prayed && (
+                            <text
+                              x={bead.x}
+                              y={bead.y + 4.5}
+                              textAnchor="middle"
+                              fontSize="11"
+                              fontWeight="bold"
+                              fill="#fde047"
+                              className="pointer-events-none"
+                            >
+                              ✓
+                            </text>
                           )}
                         </g>
-                      );
-                    })()}
-                  </g>
-                );
-              })}
-            </svg>
+                      )}
+
+                      {/* ══ 5. GLÓRIA AO PAI (SEPARADOR DOURADO/ÂMBAR) ══ */}
+                      {bead.type === 'gloria' && (
+                        <g filter="url(#beadShadow)">
+                          <circle
+                            cx={bead.x}
+                            cy={bead.y}
+                            r={bead.r}
+                            fill={active ? '#facc15' : prayed ? '#f59e0b' : '#fbbf24'}
+                            stroke="#78350f"
+                            strokeWidth="1.5"
+                          />
+                          <circle
+                            cx={bead.x - bead.r * 0.3}
+                            cy={bead.y - bead.r * 0.3}
+                            r={bead.r * 0.3}
+                            fill="#ffffff"
+                            opacity="0.6"
+                          />
+                        </g>
+                      )}
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
           </div>
-        </div>
 
-        {/* ═══ CARD DE NOSSA SENHORA (limpo, compacto, apenas ícone + fala + botões) ═══ */}
-        <div className="flex flex-col rounded-3xl overflow-hidden shadow-2xl border border-amber-200 dark:border-amber-800/50 bg-gradient-to-b from-amber-50 to-white dark:from-slate-900 dark:to-slate-950">
+          {/* ═══ CARD LATERAL DE ORIENTAÇÃO DE NOSSA SENHORA ═══ */}
+          <div className="flex flex-col rounded-3xl overflow-hidden shadow-xl border border-sky-200/90 dark:border-sky-800/50 bg-gradient-to-b from-white via-sky-50/40 to-white dark:from-slate-900 dark:via-slate-900/90 dark:to-slate-950 backdrop-blur-xs">
 
-          {/* Ícone grande de Nossa Senhora + balão de fala */}
-          <div className="flex flex-col items-center px-6 pt-8 pb-4 gap-4">
-            {/* Ícone circular da Mãezinha */}
-            <div className="relative">
-              <div className="absolute -inset-2 bg-amber-300 rounded-full blur-md opacity-50" />
-              <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border-4 border-amber-300 shadow-lg bg-amber-100">
-                <img
-                  src={playing ? '/terco-kids/FALANDO.png' : '/terco-kids/SORINDO-NORMAL.png'}
-                  alt="Nossa Senhora"
-                  className="w-full h-full object-cover"
-                  onError={e => { (e.currentTarget as HTMLImageElement).src = '/terco-kids/SORINDO-NORMAL.png'; }}
-                />
+            {/* Imagem de Nossa Senhora + Balão de fala */}
+            <div className="flex flex-col items-center px-5 pt-7 pb-3 gap-3">
+
+              {/* Retrato de Nossa Senhora */}
+              <div className="relative">
+                <div className="absolute -inset-2 bg-amber-300 rounded-full blur-md opacity-40 animate-pulse" />
+                <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border-4 border-amber-300 shadow-md bg-amber-50">
+                  <img
+                    src={playing ? '/terco-kids/FALANDO.png' : '/terco-kids/SORINDO-NORMAL.png'}
+                    alt="Nossa Senhora"
+                    className="w-full h-full object-cover"
+                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/terco-kids/SORINDO-NORMAL.png'; }}
+                  />
+                </div>
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-2xl pointer-events-none">👑</span>
               </div>
-              {/* Coroa animada */}
-              <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-2xl pointer-events-none">👑</span>
-            </div>
 
-            {/* Balão de fala: APENAS o shortText da oração atual */}
-            <div className="relative w-full bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-amber-200 dark:border-slate-700 px-5 py-4">
-              {/* Cauda do balão apontando para cima (Nossa Senhora) */}
-              <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-0 h-0
-                border-l-[10px] border-l-transparent
-                border-r-[10px] border-r-transparent
-                border-b-[12px] border-b-white dark:border-b-slate-800" />
+              {/* Balão de Fala Acolhedor */}
+              <div className="relative w-full bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-sky-200 dark:border-slate-700 px-5 py-4">
+                <div
+                  className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-0 h-0
+                  border-l-[10px] border-l-transparent
+                  border-r-[10px] border-r-transparent
+                  border-b-[12px] border-b-white dark:border-b-slate-800"
+                />
 
-              {/* Título do passo atual */}
-              <p className="text-xs font-extrabold uppercase tracking-wider text-amber-700 dark:text-amber-400 mb-1">
-                {step.mysteryNumber ? `${step.mysteryNumber}º Mistério` : step.title}
-              </p>
-
-              {/* Frase curta e acolhedora */}
-              <p className="text-base sm:text-lg font-semibold text-slate-800 dark:text-amber-50 leading-snug">
-                {step.shortText}
-              </p>
-
-              {step.fruit && (
-                <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-2 font-medium">
-                  🌱 Fruto: {step.fruit}
+                <p className="text-xs font-black uppercase tracking-wider text-amber-700 dark:text-amber-400 mb-1">
+                  {step.mysteryNumber ? `${step.mysteryNumber}º Mistério` : step.title}
                 </p>
-              )}
+
+                <p className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100 leading-snug">
+                  {step.shortText}
+                </p>
+
+                {step.fruit && (
+                  <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-2 font-bold flex items-center gap-1">
+                    <span>🌱</span>
+                    <span>Fruto: {step.fruit}</span>
+                  </p>
+                )}
+              </div>
             </div>
+
+            {/* Controles de Áudio e Navegação */}
+            <div className="px-5 pb-6 pt-2 space-y-3">
+              {/* Botão Principal Play/Pause */}
+              <button
+                type="button"
+                onClick={togglePlay}
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-black text-base sm:text-lg shadow-md hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2.5 cursor-pointer"
+              >
+                {playing ? (
+                  <>
+                    <Pause className="w-5 h-5 fill-white" />
+                    <span>Pausar</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-5 h-5 fill-white" />
+                    <span>Ouvir Oração</span>
+                  </>
+                )}
+              </button>
+
+              {/* Botões Voltar / Próxima */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={prev}
+                  disabled={stepIdx === 0}
+                  className="py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-sky-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 hover:bg-sky-50 disabled:opacity-40 cursor-pointer shadow-xs transition-colors"
+                >
+                  <SkipBack className="w-4 h-4" />
+                  <span>Voltar</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={next}
+                  disabled={stepIdx >= steps.length - 1}
+                  className="py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-40 transition-colors"
+                >
+                  <span>Próxima</span>
+                  <SkipForward className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Controle de Volume/Mudo */}
+              <div className="flex justify-center pt-1">
+                <button
+                  type="button"
+                  onClick={() => setMuted(m => !m)}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-amber-700 cursor-pointer transition-colors"
+                >
+                  {muted ? (
+                    <>
+                      <VolumeX className="w-4 h-4 text-rose-500" />
+                      <span>Sem som</span>
+                    </>
+                  ) : (
+                    <>
+                      <Volume2 className="w-4 h-4 text-emerald-600" />
+                      <span>Com som</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
           </div>
 
-          {/* Botões de controle */}
-          <div className="px-5 pb-7 pt-2 space-y-3">
-
-            {/* Play / Pausa */}
-            <button type="button" onClick={togglePlay}
-              className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black text-lg shadow-md hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3 cursor-pointer">
-              {playing
-                ? <><Pause className="w-6 h-6 fill-white" /> Pausar</>
-                : <><Play  className="w-6 h-6 fill-white" /> Ouvir Oração</>
-              }
-            </button>
-
-            {/* Voltar / Próxima */}
-            <div className="grid grid-cols-2 gap-3">
-              <button type="button" onClick={prev} disabled={stepIdx === 0}
-                className="py-3 rounded-xl bg-white dark:bg-slate-800 border border-amber-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold flex items-center justify-center gap-2 hover:bg-amber-50 disabled:opacity-40 cursor-pointer shadow-sm">
-                <SkipBack className="w-4 h-4" /> Voltar
-              </button>
-              <button type="button" onClick={next} disabled={stepIdx >= steps.length - 1}
-                className="py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold flex items-center justify-center gap-2 cursor-pointer shadow-sm disabled:opacity-40">
-                Próxima <SkipForward className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Mudo */}
-            <div className="flex justify-center">
-              <button type="button" onClick={() => setMuted(m => !m)}
-                className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-amber-700 cursor-pointer">
-                {muted
-                  ? <><VolumeX className="w-4 h-4 text-rose-400" /> Sem som</>
-                  : <><Volume2 className="w-4 h-4 text-emerald-500" /> Com som</>}
-              </button>
-            </div>
-          </div>
         </div>
 
       </div>
+
     </div>
   );
 };

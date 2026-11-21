@@ -140,11 +140,10 @@ const ProductDetail: React.FC<{
 
               <button
                 onClick={handleAdd}
-                className={`p-4 rounded-2xl border transition-all cursor-pointer shadow-sm flex items-center justify-center ${
-                  added
+                className={`p-4 rounded-2xl border transition-all cursor-pointer shadow-sm flex items-center justify-center ${added
                     ? 'bg-emerald-600 border-emerald-600 text-white'
                     : 'bg-amber-50 hover:bg-amber-100 border-[#d3c4af] text-[#785600]'
-                }`}
+                  }`}
                 title="Colocar no Carrinho"
               >
                 {added ? <Check className="w-5 h-5" /> : <ShoppingBag className="w-5 h-5" />}
@@ -166,7 +165,16 @@ const ProductDetail: React.FC<{
                 className="flex gap-4 bg-white rounded-2xl border border-[#d3c4af]/50 p-4 cursor-pointer hover:border-[#785600] hover:shadow-sm transition-all group"
               >
                 <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-[#f6f3f2]">
-                  <img src={p.imageUrl} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" decoding="async" />
+                  <img
+                    src={p.imageUrl}
+                    alt={p.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                    decoding="async"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=600';
+                    }}
+                  />
                 </div>
                 <div className="flex flex-col justify-center min-w-0">
                   <span className="text-[10px] font-bold uppercase tracking-widest text-[#785600]">{p.category}</span>
@@ -267,11 +275,10 @@ export const LojaView: React.FC<LojaViewProps> = ({
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-4 py-2 rounded-full font-sans text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                selectedCategory === cat.id
+              className={`px-4 py-2 rounded-full font-sans text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${selectedCategory === cat.id
                   ? 'bg-[#785600] dark:bg-amber-600 text-white shadow-sm'
                   : 'bg-white dark:bg-zinc-900 border border-[#d3c4af]/60 dark:border-zinc-700 text-[#4f4535] dark:text-zinc-200 hover:border-[#785600] dark:hover:border-amber-400'
-              }`}
+                }`}
             >
               {cat.label}
             </button>
@@ -364,11 +371,10 @@ export const LojaView: React.FC<LojaViewProps> = ({
                     {/* Icon to Add to Cart */}
                     <button
                       onClick={() => handleAddToCart(product)}
-                      className={`p-2.5 rounded-xl border transition-all cursor-pointer shadow-xs flex items-center justify-center ${
-                        isAdded
+                      className={`p-2.5 rounded-xl border transition-all cursor-pointer shadow-xs flex items-center justify-center ${isAdded
                           ? 'bg-emerald-600 border-emerald-600 text-white scale-95'
                           : 'bg-amber-50 dark:bg-zinc-800 hover:bg-amber-100 dark:hover:bg-zinc-700 border-[#d3c4af] dark:border-zinc-700 text-[#785600] dark:text-amber-400'
-                      }`}
+                        }`}
                       title="Adicionar ao Carrinho"
                     >
                       {isAdded ? <Check className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4" />}

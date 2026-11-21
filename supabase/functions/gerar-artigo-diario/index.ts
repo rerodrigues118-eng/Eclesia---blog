@@ -1,878 +1,429 @@
 // ============================================================================
-// ECLESIA BLOG CATÓLICO - SUPABASE EDGE FUNCTION: GERAR ARTIGO DIÁRIO COM IA
-// Integração: Groq / Grok + Notícias Católicas RSS + Curadoria Sacra 100% Autêntica
+// ECLESIA BLOG CATÓLICO - SUPABASE EDGE FUNCTION: GERAR 6 ARTIGOS DIÁRIOS
+// Arquitetura: Deno + TypeScript + Supabase Storage + Groq/Grok/Gemini
+// Otimizações: Anti-Duplicação (14 dias), Pipeline de Imagens Storage, SEO & GEO
 // ============================================================================
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// Headers CORS para permitir requisições do painel ERP Eclesia e disparadores externos
+// Headers CORS para chamadas externas e internas
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS"
 };
 
-// Configuração de ambiente e segredos
+// Variáveis de ambiente
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const GROK_API_KEY = Deno.env.get("GROK_API_KEY") ?? "";
+const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
 
-// Cliente Supabase administrativo com Service Role Key
+// Cliente administrativo Supabase
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 interface RequestPayload {
-  tipo?: "artigo_slot_1" | "artigo_slot_2" | "artigo_slot_3" | "artigo_slot_4" | "noticia" | "teologia" | "espiritualidade" | "vaticano" | "santo" | "liturgia" | "manual";
-  slot?: number; // 1 (06:00 BRT), 2 (10:30 BRT), 3 (15:00 BRT), 4 (19:30 BRT)
+  slot?: number; // 1 a 6
+  tipo?: "santo" | "noticia_vaticano" | "espiritualidade_dores_1" | "juventude" | "noticia_brasil" | "espiritualidade_dores_2" | "manual";
   temaManual?: string;
-  imagemReferencia?: string;
   statusArtigo?: "publicado" | "rascunho";
 }
 
-// ============================================================================
-// 1. DICIONÁRIO DE IMAGENS SACRAS SEGURAS (100% CATÓLICAS, ALTA DEFINIÇÃO)
-// ============================================================================
-const IMAGENS_SEGURAS_CATEGORIA: Record<string, { capa: string; alt: string; secundaria: string; legenda: string }> = {
-  // VATICANO / NOTÍCIAS DA SANTA SÉ
-  vaticano: {
-    capa: "https://images.unsplash.com/photo-1543429776-2782fc8e1acd?auto=format&fit=crop&q=80&w=1200",
-    alt: "Praça e solene Basílica de São Pedro no Vaticano",
-    secundaria: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&q=80&w=1200",
-    legenda: "A Cúpula da Basílica de São Pedro em Roma, símbolo da unidade da Igreja Católica Apostólica Romana"
-  },
-  // TEOLOGIA / DOUTRINA / EUCARISTIA
-  teologia: {
-    capa: "https://images.unsplash.com/photo-1548625361-195979bc7583?auto=format&fit=crop&q=80&w=1200",
-    alt: "Altar Eucarístico solene com Cálice da Santa Missa e Sagrada Escritura",
-    secundaria: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&q=80&w=1200",
-    legenda: "O sacrifício eucarístico e o mistério sublime da presença real de Cristo no altar"
-  },
-  // ESPIRITUALIDADE / ORAÇÃO MATINAL
-  espiritualidade: {
-    capa: "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&q=80&w=1200",
-    alt: "Bíblia Sagrada aberta no altar com velas acesas e Crucifixo",
-    secundaria: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&q=80&w=1200",
-    legenda: "O silêncio interior e o diálogo diário com Deus através da oração e da meditação da Palavra"
-  },
-  // JUVENTUDE & FÉ / ADORAÇÃO / MISSÃO
-  juventude: {
-    capa: "https://images.unsplash.com/photo-1601142634808-38923eb7c560?auto=format&fit=crop&q=80&w=1200",
-    alt: "Jovem em adoração ao Santíssimo Sacramento exposto no Ostensório",
-    secundaria: "https://images.unsplash.com/photo-1510525009512-ad7fc13eefab?auto=format&fit=crop&q=80&w=1200",
-    legenda: "Diante do Santíssimo Sacramento: a juventude católica encontra a verdadeira força para ser sal da terra"
-  },
-  // LITURGIA / SANTOS / DEVOÇÃO MARIANA
-  liturgia: {
-    capa: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&q=80&w=1200",
-    alt: "Vitral sacro gótico de catedral iluminado pela luz solar celestial",
-    secundaria: "https://images.unsplash.com/photo-1577083552431-6e5fd01aa342?auto=format&fit=crop&q=80&w=1200",
-    legenda: "A beleza transcendental da liturgia e a intercessão materna da Santíssima Virgem Maria"
-  }
+// ────────────────────────────────────────────────────────────────────────────
+// BANCO SACRO DE FALLBACK PERMANENTE (100% Católico e de Alta Resolução)
+// ────────────────────────────────────────────────────────────────────────────
+const FALLBACK_SACRO: Record<string, string> = {
+  santo: "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1200",
+  noticia_vaticano: "https://images.unsplash.com/photo-1543429776-2782fc8e1acd?auto=format&fit=crop&q=80&w=1200",
+  espiritualidade: "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&q=80&w=1200",
+  juventude: "https://images.unsplash.com/photo-1601142634808-38923eb7c560?auto=format&fit=crop&q=80&w=1200",
+  noticia_brasil: "https://images.unsplash.com/photo-1548625361-195979bc7583?auto=format&fit=crop&q=80&w=1200"
 };
 
-// ============================================================================
-// 2. FILTRO DE EXCLUSÃO SEVERO DE IMAGENS (SEM IMAGENS INADEQUADAS)
-// ============================================================================
-const TERMOS_PROIBIDOS = [
-  // Outras religiões
-  "mosque", "mesquita", "pagoda", "pagode", "hindu", "buddhist", "buda", "buddha",
-  "temple", "shrine", "islam", "mecca", "medina", "torii", "balinese", "bali",
-  "synagogue", "sinagoga", "shinto", "wicca", "umbanda", "candomble", "candomblé",
-  "macumba", "espiritismo", "terreiro", "kardecismo", "new age", "yoga", "chakra",
-  // Conteúdo secular / policial / político
-  "police", "policia", "polícia", "murder", "assassinato", "homicídio", "homicidio",
-  "shooting", "tiroteio", "arma de fogo", "gunshot", "robbery", "assalto", "roubo",
-  "drug", "droga", "trafficking", "tráfico", "trafico", "cartel", "gang", "gangue",
-  "politician", "político", "politico", "elections", "eleições", "eleicoes",
-  "partido", "senado", "congresso", "deputado", "vereador", "prefeito",
-  "trump", "biden", "lula", "bolsonaro", "esquerda", "direita",
-  // Conteúdo visual inadequado
-  "crowd", "street", "skyline", "skyscraper", "prédios",
-  "protest", "protesto", "riot", "war zone", "battlefield",
-  "gambling", "casino", "nightclub", "bar", "beer",
-  "bikini", "lingerie", "nude", "naked", "sensual"
-];
+// ────────────────────────────────────────────────────────────────────────────
+// 1. DEDUPLICAÇÃO DE TEMAS E IMAGENS (ÚLTIMOS 14 DIAS)
+// ────────────────────────────────────────────────────────────────────────────
+async function obterHistoricoRecente(): Promise<{ titulos: string[]; imagens: Set<string> }> {
+  const quatorzeDiasAtras = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
 
-// Termos proibidos em títulos RSS — filtra notícias não-católicas
-const BLOCKLIST_TITULOS_RSS = [
-  "polícia", "policia", "police", "preso", "assassinato", "homicídio",
-  "tiroteio", "assalto", "roubo", "tráfico", "trafico", "droga",
-  "eleição", "eleições", "deputado", "senador", "congresso",
-  "trump", "biden", "lula", "bolsonaro", "futebol", "seleção",
-  "acidente", "colisão", "incêndio", "desastre", "enchente",
-  "protestos", "manifestação", "greve", "sindicato"
-];
+  const { data, error } = await supabase
+    .from("articles")
+    .select("title, slug, cover_image")
+    .gte("published_at", quatorzeDiasAtras)
+    .order("published_at", { ascending: false })
+    .limit(100);
 
-// IDs conhecidos do Unsplash de mesquitas e templos orientais que foram banidos
-const BLACKLIST_UNSPLASH_IDS = [
-  "photo-1519817650390", // Mesquita Shah Alam
-  "photo-1544644181"     // Templo Ulun Danu Bratan
-];
-
-function validarImagemSegura(url?: string | null): boolean {
-  if (!url || typeof url !== "string") return false;
-  const urlLower = url.toLowerCase();
-
-  // Verifica protocolo e extensão
-  if (!urlLower.startsWith("http://") && !urlLower.startsWith("https://")) return false;
-
-  // Verifica blacklist de IDs
-  for (const blackId of BLACKLIST_UNSPLASH_IDS) {
-    if (urlLower.includes(blackId)) return false;
+  if (error || !data) {
+    console.warn("[Deduplicação] Falha ao consultar histórico:", error?.message);
+    return { titulos: [], imagens: new Set() };
   }
 
-  // Verifica termos negativos
-  for (const termo of TERMOS_PROIBIDOS) {
-    if (urlLower.includes(termo)) return false;
-  }
+  const titulos = data.map((a: { title: string }) => a.title).filter(Boolean);
+  const imagens = new Set(data.map((a: { cover_image: string }) => a.cover_image).filter(Boolean));
 
-  return true;
+  return { titulos, imagens };
 }
 
-// Valida se a imagem realmente carrega via HTTP HEAD (com timeout)
-async function validarImagemHTTP(url: string): Promise<boolean> {
+// ────────────────────────────────────────────────────────────────────────────
+// 2. PIPELINE DE STORAGE (Download da Imagem e Upload Seguro no Bucket post-images)
+// ────────────────────────────────────────────────────────────────────────────
+async function baixarEArmazenarImagemNoStorage(
+  imageUrl: string,
+  slug: string
+): Promise<string | null> {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-    const res = await fetch(url, {
-      method: "HEAD",
+    const timeout = setTimeout(() => controller.abort(), 9000);
+
+    const res = await fetch(imageUrl, {
       signal: controller.signal,
-      headers: { "User-Agent": "EclesiaBot/2.0" }
+      headers: { "User-Agent": "EclesiaBot/3.0 (+https://eclesia.blog)" }
     });
-    clearTimeout(timeoutId);
-    if (!res.ok) return false;
-    const contentType = res.headers.get("content-type") || "";
-    return contentType.startsWith("image/");
-  } catch {
-    return false;
-  }
-}
+    clearTimeout(timeout);
 
-// Obtém URL de imagem garantida: testa via HTTP e aplica fallback sacro se quebrada/vazia
-async function obterImagemCapaSegura(
-  url: string | undefined,
-  categoria: string
-): Promise<string> {
-  const catKey = categoria.toLowerCase();
-  const fallback = IMAGENS_SEGURAS_CATEGORIA[catKey]?.capa
-    || IMAGENS_SEGURAS_CATEGORIA.espiritualidade.capa;
+    if (!res.ok) throw new Error(`Status HTTP ${res.status}`);
 
-  if (!url || !validarImagemSegura(url)) return fallback;
-  const ok = await validarImagemHTTP(url);
-  return ok ? url : fallback;
-}
+    const contentType = res.headers.get("content-type") || "image/jpeg";
+    if (!contentType.startsWith("image/")) throw new Error(`Content-Type não é imagem: ${contentType}`);
 
-// Filtra título de RSS contra blocklist de termos não-católicos
-function tituloRSSPermitido(titulo: string): boolean {
-  const t = titulo.toLowerCase();
-  return !BLOCKLIST_TITULOS_RSS.some(termo => t.includes(termo));
-}
+    const ext = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : "jpg";
+    const buffer = await res.arrayBuffer();
 
-// Gera prompt de IA com visual sagrado estrito caso geração de arte seja acionada
-function gerarPromptVisualSagrado(tema: string): string {
-  const temaLimpo = tema.replace(/[^\w\s\u00C0-\u00FF]/gi, "").trim();
-  return `A high-resolution professional photograph of ${temaLimpo}, catholic sacred art style, reverent lighting, warm golden hour light inside a traditional catholic church, cinematic composition, 8k resolution`;
-}
+    const fileName = `artigos/${slug}-${Date.now()}.${ext}`;
 
-// ============================================================================
-// GERADOR DE IMAGEM ÚNICA VIA POLLINATIONS.AI (100% católica + seed aleatório)
-// ============================================================================
-function gerarImagemPollinationsIA(tema: string): string {
-  const seed = Math.floor(Math.random() * 1_000_000);
-  const temaLimpo = tema
-    .replace(/[^\w\s\u00C0-\u00FF]/gi, " ")
-    .trim()
-    .slice(0, 80);
-  const sacredStyles = [
-    "golden stained glass cathedral interior",
-    "roman catholic church altar golden light",
-    "holy bible rosary wooden table sacred",
-    "catholic priest blessing faithful congregation",
-    "saint peter basilica rome golden sunrise",
-    "monstrance eucharist altar soft candlelight",
-    "madonna virgin mary gold leaf painting",
-    "crucifix jesus cross stone chapel"
-  ];
-  const style = sacredStyles[Math.floor(Math.random() * sacredStyles.length)];
-  const promptEn = encodeURIComponent(
-    `A unique professional photography depicting ${temaLimpo}, ${style}, warm golden atmosphere, high resolution, 8k, photorealistic, no mosques, no pagan temples, no non-catholic symbols`
-  );
-  return `https://image.pollinations.ai/prompt/${promptEn}?seed=${seed}&width=1200&height=675&nologo=true`;
-}
-
-// ============================================================================
-// SELETOR RANDOMIZADO DE QUERY UNSPLASH (evita Top-1 repetido)
-// ============================================================================
-function buildUnsplashUrlAleatorio(tema: string, categoria: string): string {
-  const sacredTerms = [
-    "vatican square sunrise",
-    "catholic priest blessing",
-    "stained glass cathedral light",
-    "rosary bible wooden desk",
-    "golden chalice altar mass",
-    "holy cross stone chapel",
-    "saint peter rome basilica",
-    "church candles prayer",
-    "christian cross sunset sky",
-    "papal ceremony rome"
-  ];
-  const baseTerms = tema.split(" ").slice(0, 3).join("+");
-  const randomStyle = sacredTerms[Math.floor(Math.random() * sacredTerms.length)].replace(/ /g, "+");
-  const page = Math.floor(Math.random() * 4) + 1;
-  const orientation = ["landscape", "squarish"][Math.floor(Math.random() * 2)];
-  return `https://source.unsplash.com/featured/1200x675/?${baseTerms},${randomStyle},catholic&page=${page}&orientation=${orientation}&t=${Date.now()}`;
-}
-
-// Verifica unicidade de cover_image no banco de dados
-async function imagemJaUsadaNoBanco(url: string): Promise<boolean> {
-  if (!url) return false;
-  const { data } = await supabase
-    .from("articles")
-    .select("id")
-    .eq("cover_image", url)
-    .maybeSingle();
-  return !!data;
-}
-
-// ============================================================================
-// 3. AGREGADOR DE NOTÍCIAS CATÓLICAS (RSS FEEDS EM TEMPO REAL)
-// Fontes Oficiais: Vatican News PT, ACI Digital, CNBB, Canção Nova
-// ============================================================================
-interface NoticiaCatolica {
-  titulo: string;
-  resumo: string;
-  link: string;
-  imagemUrl?: string;
-  fonte: string;
-}
-
-const FONTES_RSS = [
-  { nome: "Vatican News PT", url: "https://www.vaticannews.va/pt.rss.xml" },
-  { nome: "ACI Digital", url: "https://feeds.feedburner.com/acidigital" },
-  { nome: "CNBB", url: "https://www.cnbb.org.br/feed/" },
-  { nome: "Canção Nova Notícias", url: "https://noticias.cancaonova.com/feed/" }
-];
-
-async function buscarNoticiasCatolicasRecentes(): Promise<NoticiaCatolica[]> {
-  const noticias: NoticiaCatolica[] = [];
-
-  for (const fonte of FONTES_RSS) {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4500);
-
-      const res = await fetch(fonte.url, {
-        headers: { "User-Agent": "EclesiaBot/2.0 (+https://eclesia.blog)" },
-        signal: controller.signal
+    const { error: uploadError } = await supabase.storage
+      .from("post-images")
+      .upload(fileName, buffer, {
+        contentType,
+        cacheControl: "31536000",
+        upsert: true
       });
-      clearTimeout(timeoutId);
 
-      if (!res.ok) continue;
-
-      const xmlText = await res.text();
-      const items = xmlText.match(/<item[\s\S]*?<\/item>/gi) || [];
-
-      for (let i = 0; i < Math.min(items.length, 5); i++) {
-        const item = items[i];
-
-        // Extrai título
-        const rawTitle = (item.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/i) || [])[1] || "";
-        const titulo = rawTitle.replace(/<!\[CDATA\[/g, "").replace(/\]\]>/g, "").replace(/<[^>]+>/g, "").trim();
-
-        // Extrai link
-        const rawLink = (item.match(/<link>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/link>/i) || [])[1] || "";
-        const link = rawLink.replace(/<!\[CDATA\[/g, "").replace(/\]\]>/g, "").trim();
-
-        // Extrai descrição
-        const rawDesc = (item.match(/<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/i) || [])[1] || "";
-        const resumo = rawDesc.replace(/<!\[CDATA\[/g, "").replace(/\]\]>/g, "").replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
-
-        // Extrai URL de imagem oficial se houver
-        let imagemUrl: string | undefined = undefined;
-        const enclosureMatch = item.match(/<enclosure[^>]+url=["']([^"']+)["']/i);
-        const mediaMatch = item.match(/<media:content[^>]+url=["']([^"']+)["']/i);
-        const thumbMatch = item.match(/<media:thumbnail[^>]+url=["']([^"']+)["']/i);
-        const imgDescMatch = rawDesc.match(/<img[^>]+src=["']([^"']+)["']/i);
-
-        const candidata = enclosureMatch?.[1] || mediaMatch?.[1] || thumbMatch?.[1] || imgDescMatch?.[1];
-        if (candidata && validarImagemSegura(candidata)) {
-          imagemUrl = candidata;
-        }
-
-        if (titulo && titulo.length > 15 && tituloRSSPermitido(titulo)) {
-          noticias.push({
-            titulo,
-            resumo: resumo.slice(0, 300),
-            link,
-            imagemUrl,
-            fonte: fonte.nome
-          });
-        }
-      }
-    } catch (e: any) {
-      console.warn(`[RSS Feeds] Aviso na fonte ${fonte.nome}:`, e.message);
+    if (uploadError) {
+      console.error("[Storage Upload Error]:", uploadError.message);
+      return null;
     }
-  }
 
-  return noticias;
+    const { data: publicData } = supabase.storage
+      .from("post-images")
+      .getPublicUrl(fileName);
+
+    return publicData.publicUrl;
+  } catch (err: any) {
+    console.warn(`[Storage Pipeline Warning] Falha ao enviar para storage: ${err.message}`);
+    return null;
+  }
 }
 
-// ============================================================================
-// 4. SELEÇÃO INTELIGENTE DE IMAGENS SACRAS POR CATEGORIA E CONTEXTO
-// Inclui randomização para evitar imagem de capa repetida entre artigos
-// ============================================================================
-function selecionarImagensArtigo(
-  categoria: string,
-  titulo: string = "",
-  conteudo: string = "",
-  imagemNoticiaOficial?: string
-) {
-  // Se houver imagem oficial válida e segura da matéria-fonte, prioriza
-  if (imagemNoticiaOficial && validarImagemSegura(imagemNoticiaOficial)) {
-    const fallbackMatriz = IMAGENS_SEGURAS_CATEGORIA.vaticano;
-    return {
-      capa: {
-        url: imagemNoticiaOficial,
-        alt: `${titulo} - Notícia eclesial oficial`
-      },
-      interna: {
-        url: fallbackMatriz.secundaria,
-        alt: fallbackMatriz.alt,
-        legenda: fallbackMatriz.legenda
-      }
-    };
-  }
+// ────────────────────────────────────────────────────────────────────────────
+// 3. SANITIZAÇÃO DE MARKDOWN E CONTROLE RIGOROSO DE NEGRITO
+// ────────────────────────────────────────────────────────────────────────────
+function sanitizarMarkdownEFormatacao(texto: string): string {
+  if (!texto) return "";
 
-  const texto = `${titulo} ${conteudo} ${categoria}`.toLowerCase();
+  let limpo = texto
+    .replace(/\\n/g, "\n")
+    .replace(/\\r/g, "")
+    // Garante quebra de linha dupla antes de títulos e citações
+    .replace(/([^\n])\n(#{2,4}\s)/g, "$1\n\n$2")
+    .replace(/([^\n])\n(>\s)/g, "$1\n\n$2")
+    // Formata blocos devocionais e orações
+    .replace(/\s*\[ORACAO(?::\s*([^\]]+))?\]\s*/gi, "\n\n[ORACAO:$1]\n")
+    .replace(/\s*\[\/ORACAO\]\s*/gi, "\n[/ORACAO]\n\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 
-  // Para artigos de notícias/vaticano, usa Unsplash com query aleatória
-  if (texto.includes("vaticano") || texto.includes("papa") || texto.includes("santa sé") || texto.includes("notícia") || texto.includes("noticia") || categoria.toLowerCase().includes("vaticano")) {
-    const f = IMAGENS_SEGURAS_CATEGORIA.vaticano;
-    return {
-      capa: { url: buildUnsplashUrlAleatorio(titulo, "vaticano"), alt: f.alt },
-      interna: { url: f.secundaria, alt: f.alt, legenda: f.legenda }
-    };
-  }
+  // Remove negrito (**) de parágrafos inteiros ou frases com mais de 5 palavras
+  limpo = limpo.replace(/\*\*([^*]+)\*\*/g, (match, conteudo) => {
+    const palavras = conteudo.trim().split(/\s+/);
+    if (palavras.length > 5 || conteudo.length > 40) {
+      return conteudo;
+    }
+    return match;
+  });
 
-  // Juventude & Fé / Carlo Acutis / Missão
-  if (texto.includes("juventude") || texto.includes("jovem") || texto.includes("acutis") || texto.includes("missão") || texto.includes("vocação") || categoria.toLowerCase().includes("juventude")) {
-    const f = IMAGENS_SEGURAS_CATEGORIA.juventude;
-    return {
-      capa: { url: buildUnsplashUrlAleatorio(titulo, "juventude"), alt: f.alt },
-      interna: { url: f.secundaria, alt: f.alt, legenda: f.legenda }
-    };
-  }
+  // Remove tags <b> ou <strong> abusivas
+  limpo = limpo.replace(/<(b|strong)>([\s\S]*?)<\/\1>/gi, (match, tag, conteudo) => {
+    const palavras = conteudo.trim().split(/\s+/);
+    if (palavras.length > 5 || conteudo.length > 40) {
+      return conteudo;
+    }
+    return match;
+  });
 
-  // Teologia / Eucaristia / Doutrina
-  if (texto.includes("teologia") || texto.includes("eucaristia") || texto.includes("missa") || texto.includes("sacramento") || texto.includes("doutrina") || categoria.toLowerCase().includes("teologia")) {
-    const f = IMAGENS_SEGURAS_CATEGORIA.teologia;
-    return {
-      capa: { url: buildUnsplashUrlAleatorio(titulo, "teologia"), alt: f.alt },
-      interna: { url: f.secundaria, alt: f.alt, legenda: f.legenda }
-    };
-  }
-
-  // Liturgia / Santos / Santoral
-  if (texto.includes("liturgia") || texto.includes("santo") || texto.includes("santoral") || texto.includes("maria") || texto.includes("terço")) {
-    const f = IMAGENS_SEGURAS_CATEGORIA.liturgia;
-    return {
-      capa: { url: buildUnsplashUrlAleatorio(titulo, "liturgia"), alt: f.alt },
-      interna: { url: f.secundaria, alt: f.alt, legenda: f.legenda }
-    };
-  }
-
-  // Fallback Padrão: Espiritualidade & Palavra de Deus
-  const f = IMAGENS_SEGURAS_CATEGORIA.espiritualidade;
-  return {
-    capa: { url: buildUnsplashUrlAleatorio(titulo, "espiritualidade"), alt: f.alt },
-    interna: { url: f.secundaria, alt: f.alt, legenda: f.legenda }
-  };
+  return limpo;
 }
 
-// ============================================================================
-// 5. MOTOR DE INTELIGÊNCIA ARTIFICIAL (GROQ / GROK)
-// ============================================================================
-async function chamarTextoIA(promptSistema: string, promptUsuario: string): Promise<string> {
+// ────────────────────────────────────────────────────────────────────────────
+// 4. MOTOR DE INTELIGÊNCIA ARTIFICIAL (GROQ / GROK / GEMINI)
+// ────────────────────────────────────────────────────────────────────────────
+async function chamarIA(promptSistema: string, promptUsuario: string): Promise<string> {
   const isGroq = GROK_API_KEY.startsWith("gsk_");
-  
-  const endpoint = isGroq
-    ? "https://api.groq.com/openai/v1/chat/completions"
-    : "https://api.x.ai/v1/chat/completions";
+  const endpoint = isGroq ? "https://api.groq.com/openai/v1/chat/completions" : "https://api.x.ai/v1/chat/completions";
+  const modelos = isGroq ? ["openai/gpt-oss-120b", "openai/gpt-oss-20b"] : ["grok-2-latest"];
 
-  // Modelos homologados na infraestrutura Groq com limites de tokens adequados
-  const modelos = isGroq
-    ? [
-        { nome: "openai/gpt-oss-120b", maxTokens: 3000 },
-        { nome: "openai/gpt-oss-20b", maxTokens: 3000 },
-        { nome: "qwen/qwen3.8-27b", maxTokens: 950 }
-      ]
-    : [
-        { nome: "grok-2-latest", maxTokens: 3000 },
-        { nome: "grok-beta", maxTokens: 3000 }
-      ];
-
-  let lastError = "";
-
-  for (const item of modelos) {
+  for (const modelo of modelos) {
     try {
-      const response = await fetch(endpoint, {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${GROK_API_KEY}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: item.nome,
+          model: modelo,
           messages: [
-            {
-              role: "system",
-              content: promptSistema + "\nATENÇÃO: Responda obrigatoriamente e exclusivamente em formato JSON puro (objeto JSON válido), sem comentários antes ou depois."
-            },
-            {
-              role: "user",
-              content: promptUsuario + "\nLembrete: Retorne estritamente um único objeto JSON válido."
-            }
+            { role: "system", content: promptSistema + "\nATENÇÃO: Retorne ESTRITAMENTE um objeto JSON válido, sem comentários antes ou depois." },
+            { role: "user", content: promptUsuario }
           ],
-          temperature: 0.7,
-          max_tokens: item.maxTokens
+          temperature: 0.65,
+          max_tokens: 3800
         })
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        lastError = `(${isGroq ? 'Groq' : 'xAI'} ${response.status}): ${errorText}`;
-        console.warn(`[Edge Function IA Warning] Modelo ${item.nome} falhou:`, errorText);
-        continue;
-      }
-
-      const data = await response.json();
-      const rawContent = data.choices?.[0]?.message?.content ?? "";
-
-      let jsonString = rawContent.trim();
-      if (jsonString.startsWith("```json")) {
-        jsonString = jsonString.replace(/^```json\s*/i, "").replace(/\s*```$/i, "").trim();
-      } else if (jsonString.startsWith("```")) {
-        jsonString = jsonString.replace(/^```\s*/, "").replace(/\s*```$/, "").trim();
-      }
-
-      if (jsonString) return jsonString;
-    } catch (e: any) {
-      lastError = e.message;
-      console.warn(`[Edge Function IA Exception] Modelo ${item.nome}:`, e);
+      if (!res.ok) continue;
+      const data = await res.json();
+      let raw = data.choices?.[0]?.message?.content ?? "";
+      raw = raw.replace(/^```json\s*/i, "").replace(/^```\s*/, "").replace(/\s*```$/i, "").trim();
+      if (raw) return raw;
+    } catch (e) {
+      console.warn(`Erro no modelo ${modelo}:`, e);
     }
   }
 
-  throw new Error(`Erro na API de Texto: ${lastError}`);
-}
-
-// Parser JSON com fallback e extração robusta de campos
-function parseJsonSeguro(raw: string): any {
-  if (!raw || typeof raw !== "string") return {};
-  let cleaned = raw.trim();
-
-  const jsonBlockMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-  if (jsonBlockMatch && jsonBlockMatch[1]) {
-    cleaned = jsonBlockMatch[1].trim();
-  } else {
-    const firstBrace = cleaned.indexOf("{");
-    const lastBrace = cleaned.lastIndexOf("}");
-    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-      cleaned = cleaned.slice(firstBrace, lastBrace + 1);
+  // Fallback Gemini
+  if (GEMINI_API_KEY) {
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${GEMINI_API_KEY}`;
+    const res = await fetch(geminiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: `${promptSistema}\n\n${promptUsuario}\nRetorne EXCLUSIVAMENTE um JSON válido.` }] }],
+        generationConfig: { temperature: 0.7, maxOutputTokens: 8192 }
+      })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      let raw = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+      return raw.replace(/^```json\s*/i, "").replace(/^```\s*/, "").replace(/\s*```$/i, "").trim();
     }
   }
 
-  let obj: any = {};
-  try {
-    obj = JSON.parse(cleaned);
-  } catch {
-    // Parser resiliente de múltiplos estágios para extrair campos
-    const extrairCampo = (chave: string) => {
-      // 1. Tenta correspondência padrão
-      const reg = new RegExp(`"${chave}"\\s*:\\s*"([\\s\\S]*?)(?="\\s*,\\s*"[a-zA-Z0-9_]+"|\\s*"\\s*})`, "i");
-      const m = cleaned.match(reg);
-      if (m && m[1]) return m[1].replace(/\\n/g, "\n").replace(/\\"/g, '"').trim();
-
-      // 2. Tenta busca por delimitador de chave subsequente
-      const startIdx = cleaned.search(new RegExp(`"${chave}"\\s*:\\s*"`, "i"));
-      if (startIdx === -1) return "";
-      const valStart = cleaned.indexOf('"', cleaned.indexOf(':', startIdx) + 1) + 1;
-      const nextKeyMatch = cleaned.slice(valStart).search(/",\s*"[a-zA-Z0-9_]+"\s*:/);
-      if (nextKeyMatch !== -1) {
-        return cleaned.slice(valStart, valStart + nextKeyMatch).replace(/\\n/g, "\n").replace(/\\"/g, '"').trim();
-      }
-      const endMatch = cleaned.slice(valStart).search(/"\s*}\s*$/);
-      if (endMatch !== -1) {
-        return cleaned.slice(valStart, valStart + endMatch).replace(/\\n/g, "\n").replace(/\\"/g, '"').trim();
-      }
-      return "";
-    };
-
-    obj = {
-      titulo: extrairCampo("titulo") || extrairCampo("title"),
-      conteudo: extrairCampo("conteudo") || extrairCampo("article") || extrairCampo("content") || extrairCampo("body"),
-      resumo: extrairCampo("resumo") || extrairCampo("summary") || extrairCampo("excerpt"),
-      slug: extrairCampo("slug"),
-      categoria: extrairCampo("categoria") || extrairCampo("category")
-    };
-  }
-
-  const tituloFinal = obj.titulo || obj.title || obj.headline || "Artigo Católico Eclesia";
-  // O slug deve ser SEMPRE gerado fielmente a partir do título do artigo
-  const slugGeradoDoTitulo = tituloFinal
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9\s-]/g, "")
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-");
-
-  return {
-    titulo: tituloFinal,
-    slug: slugGeradoDoTitulo || (obj.slug || "artigo-catolico").toLowerCase().replace(/[^a-z0-9-]/g, ""),
-    resumo: obj.resumo || obj.summary || obj.excerpt || obj.description || "Artigo de reflexão e fé no Portal Eclesia.",
-    conteudo: obj.conteudo || obj.article || obj.content || obj.body || obj.texto || "",
-    categoria: obj.categoria || obj.category || "Teologia",
-    tempoLeitura: obj.tempoLeitura || obj.read_time || "5 min de leitura",
-    metaTitle: obj.metaTitle || obj.meta_title || `${tituloFinal} | Eclesia`,
-    metaDescription: obj.metaDescription || obj.meta_description || obj.resumo || obj.summary,
-    keywords: obj.keywords || ["Fé Católica", "Portal Eclesia", "Igreja Católica"]
-  };
+  throw new Error("Falha em todos os provedores de IA (Groq, xAI e Gemini).");
 }
 
-function formatarTextoMarkdown(texto: string): string {
-  if (!texto) return "";
-  let result = texto
-    .replace(/\\n/g, "\n")
-    .replace(/\\r/g, "")
-    .replace(/([^\n])\n(#{2,4}\s)/g, "$1\n\n$2")
-    .replace(/([^\n])\n(>\s)/g, "$1\n\n$2")
-    .replace(/\s*\[ORACAO(?::\s*([^\]]+))?\]\s*/gi, "\n\n[ORACAO:$1]\n")
-    .replace(/\s*\[\/ORACAO\]\s*/gi, "\n[/ORACAO]\n\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-
-  // Remoção de negrito excessivo: se uma linha inteira (>40 chars) está em negrito, remove o negrito
-  result = result.replace(/\*\*([^*]{40,}?)\*\*/g, '$1');
-  // Remove negrito de frases longas que começam com ** e têm >30 chars antes do próximo **
-  result = result.replace(/\*\*([^*]{30,}?)\*\*/g, (match, content) => {
-    // Mantém se for um termo curto (<30 chars)
-    if (content.trim().split(/\s+/).length <= 5) return match;
-    return content;
-  });
-
-  return result;
-}
-
-// ============================================================================
-// 6. HANDLER PRINCIPAL DA EDGE FUNCTION
-// ============================================================================
+// ────────────────────────────────────────────────────────────────────────────
+// 5. HANDLER PRINCIPAL (ORQUESTRADOR DOS 6 ARTIGOS DIÁRIOS)
+// ────────────────────────────────────────────────────────────────────────────
 serve(async (req: Request) => {
-  // Pre-flight CORS
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
     let payload: RequestPayload = {};
     if (req.method === "POST") {
-      try {
-        payload = await req.json();
-      } catch {
-        payload = {};
-      }
+      try { payload = await req.json(); } catch { payload = {}; }
     }
 
     const hoje = new Date();
     // Hora no fuso de Brasília (UTC-3)
     const brtHours = new Date(hoje.getTime() - 3 * 60 * 60 * 1000).getUTCHours();
-    const dataFormatadaPtBr = hoje.toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric"
-    });
+    const dataExtenso = hoje.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
 
-    // Determina o slot editorial de acordo com payload ou horário
-    // Slot 1 (06:00 BRT): Formação Espiritual e Oração Matinal (50%)
-    // Slot 2 (10:30 BRT): Formação Teológica e Catecismo (50%)
-    // Slot 3 (15:00 BRT): Notícia Vaticano / Santa Sé em Alta (50% Notícias)
-    // Slot 4 (19:30 BRT): Notícia da Igreja no Brasil / Juventude & Missão (50% Notícias)
-    let slotEscolhido = payload.slot;
-    if (!slotEscolhido) {
-      if (payload.tipo === "artigo_slot_1" || payload.tipo === "espiritualidade") slotEscolhido = 1;
-      else if (payload.tipo === "artigo_slot_2" || payload.tipo === "teologia") slotEscolhido = 2;
-      else if (payload.tipo === "artigo_slot_3" || payload.tipo === "vaticano") slotEscolhido = 3;
-      else if (payload.tipo === "artigo_slot_4" || payload.tipo === "noticia") slotEscolhido = 4;
+    // Determina o slot (1 a 6) por payload ou horário
+    let slot = payload.slot;
+    if (!slot) {
+      if (payload.tipo === "santo") slot = 1;
+      else if (payload.tipo === "noticia_vaticano") slot = 2;
+      else if (payload.tipo === "espiritualidade_dores_1") slot = 3;
+      else if (payload.tipo === "juventude") slot = 4;
+      else if (payload.tipo === "noticia_brasil") slot = 5;
+      else if (payload.tipo === "espiritualidade_dores_2") slot = 6;
       else {
-        // Inferência automática por horário de Brasília
-        if (brtHours >= 5 && brtHours < 10) slotEscolhido = 1;
-        else if (brtHours >= 10 && brtHours < 14) slotEscolhido = 2;
-        else if (brtHours >= 14 && brtHours < 18) slotEscolhido = 3;
-        else slotEscolhido = 4;
+        if (brtHours >= 4 && brtHours < 7) slot = 1;       // 05:00 Santo do Dia
+        else if (brtHours >= 7 && brtHours < 10) slot = 2;  // 07:30 Notícia 1
+        else if (brtHours >= 10 && brtHours < 13) slot = 3; // 10:30 Espiritualidade 1
+        else if (brtHours >= 13 && brtHours < 16) slot = 4; // 13:30 Juventude
+        else if (brtHours >= 16 && brtHours < 19) slot = 5; // 16:30 Notícia 2
+        else slot = 6;                                      // 19:30 Espiritualidade 2
       }
     }
 
-    const regrasSeo = `
-      CRITÉRIOS ESTRITOS DE SEO DO PORTAL ECLESIA (SCORE 100%):
-      1. "titulo": Título magnético com EXATAMENTE entre 38 e 63 caracteres.
-      2. "metaTitle": Título alternativo com 45 a 60 caracteres.
-      3. "metaDescription": Resumo instigante com EXATAMENTE entre 125 e 155 caracteres.
-      4. "slug": minúsculas, hifens e números (sem acentos), gerado a partir do título.
-      5. "conteudo": No mínimo 800 palavras. Formatação em Markdown rico com:
-         - Subtítulos '## ' para seções e '### ' para sub-seções.
-         - Citações bíblicas/doutrinas em blockquote '> '.
-         - Negrito APENAS em termos-chave isolados (máx 3-4 palavras), NUNCA em frases completas.
-         - Itálico para títulos de documentos e citações de santos.
-         - Bloco final de oração [ORACAO: Título da Oração] ... [/ORACAO].
-      6. "resumo": Entre 120 e 160 caracteres.
-    `;
+    // 1. Busca histórico dos últimos 14 dias para evitar duplicatas de tema e imagem
+    const { titulos: titulosRecentes, imagens: imagensUsadas } = await obterHistoricoRecente();
+    const listaExclusao = titulosRecentes.slice(0, 40).map(t => `- "${t}"`).join("\n");
 
-    const promptSistema = `Você é um jornalista católico investigativo e teólogo fiel ao Magistério da Igreja Católica, comunicando com a juventude no estilo vibrante de São João Paulo II e Carlo Acutis.
-PROIBIDO ABSOLUTAMENTE:
-- Clichês genéricos de IA ("No cenário contemporâneo", "Nos dias de hoje", "Em suma", "Vale ressaltar", "Um farol de esperança").
-- Imagens ou conceitos estranhos à Tradição e Doutrina Católica.
-- Inventar declarações falsas do Papa ou encíclicas fictícias.
-- Colocar FRASES INTEIRAS em negrito (**). Use negrito APENAS em termos teológicos centrais isolados (máximo 3-4 palavras por ocorrência). Exemplo correto: "a **Eucaristia** é o centro". Exemplo errado: "**A Eucaristia é o centro da vida cristã**".
+    const diretrizesPromptSistema = `Você é um jornalista sênior católico e teólogo fiel ao Magistério da Igreja Católica, escrevendo para o portal eclesia.blog.
 
-ESTRUTURA OBRIGATÓRIA DO ARTIGO:
-1. INTRODUÇÃO contextualizada (1-2 parágrafos).
-2. DESENVOLVIMENTO TEOLÓGICO com 3-4 seções usando subtítulos "## Título":
-   - Cada seção com 2-3 parágrafos de profundidade doutrinária.
-   - Inclua ao menos 2 citações bíblicas em blockquote: > "Texto." (Livro Cap, Vers)
-   - Inclua ao menos 1 referência ao Catecismo ou ao Magistério: > Catecismo § Número
-   - Cite ao menos 1 Santo Padre ou Doutor da Igreja.
-3. CONCLUSÃO PASTORAL (1 parágrafo) com síntese prática.
-4. Bloco final de oração: [ORACAO: Título] ... [/ORACAO]
+REGRAS CRÍTICAS DE ESTILO, SEO E GEO (Generative Engine Optimization):
+1. EXTENSÃO MÍNIMA OBRIGATÓRIA: Entre 850 e 1.300 palavras. O texto deve ser denso, claro, profundo e esclarecedor.
+2. NEGRITO CONTROLADO: É ESTRITAMENTE PROIBIDO colocar parágrafos inteiros ou frases longas em negrito (**). Use negrito APENAS para destacar 2 a 3 palavras-chave pontuais por seção.
+3. GEO (Generative Engine Optimization): Imediatamente após cada subtítulo (## e ###), apresente 1 parágrafo com resposta direta, objetiva e conceitual que possa ser citada por IAs (Perplexity, ChatGPT, Google SGE) como fonte de autoridade doutrinária.
+4. ESTRUTURA DO CONTEÚDO:
+   - Introdução cativante (1-2 parágrafos apresentando a questão humana ou eclesial).
+   - 3 a 4 seções estruturadas com subtítulos '## Título Semântico'.
+   - Ao menos 2 citações bíblicas em blockquote: > "Texto bíblico." (Referência)
+   - Ao menos 1 referência explícita ao Catecismo da Igreja Católica (CIC § número) ou Encíclica Papal.
+   - Ao menos 1 citação de Santo Padre ou Doutor da Igreja (Santo Agostinho, Santo Tomás de Aquino, etc.).
+   - Conclusão pastoral prática com reflexão para o dia a dia.
+   - Bloco devocional final obrigatório: [ORACAO: Título da Oração] ... [/ORACAO].
 
-Finalize SEMPRE com uma oração católica sincera e fervorosa no formato:
-[ORACAO: Oração do Fiel Cristão]
-Senhor Deus todo-poderoso...
-[/ORACAO]`;
+LISTA DE TEMAS PROIBIDOS (PUBLICADOS NOS ÚLTIMOS 14 DIAS - NÃO REPITA NEM SE APROXIME):
+${listaExclusao || "Nenhum no momento."}`;
 
     let promptUsuario = "";
-    let isTrending = false;
-    let imagemNoticiaEncontrada: string | undefined = undefined;
+    let categoria = "Espiritualidade";
+    let fallbackCategoryKey = "espiritualidade";
+    let tipoArtigoDb: "artigo" | "noticia" = "artigo";
 
-    // Busca notícias recentes via RSS feeds oficiais católicos
-    let noticiasRecentes: NoticiaCatolica[] = [];
-    if (slotEscolhido === 3 || slotEscolhido === 4 || payload.tipo === "noticia" || payload.tipo === "vaticano") {
-      noticiasRecentes = await buscarNoticiasCatolicasRecentes();
+    switch (slot) {
+      case 1: // 05:00 - Santo do Dia
+        categoria = "Santo do Dia";
+        fallbackCategoryKey = "santo";
+        tipoArtigoDb = "artigo";
+        promptUsuario = `Escreva o artigo completo sobre o Santo ou Beato comemorado na liturgia de hoje (${dataExtenso}).
+Apresente com rigor histórico sua vida, virtudes heroicas, desafios de sua época e 3 lições práticas para a santidade hoje.
+Finalize com a oração litúrgica oficial de intercessão do Santo.`;
+        break;
+
+      case 2: // 07:30 - Notícia 1: Vaticano & Santa Sé
+        categoria = "Vaticano";
+        fallbackCategoryKey = "noticia_vaticano";
+        tipoArtigoDb = "noticia";
+        promptUsuario = `Escreva uma reportagem aprofundada sobre os acontecimentos recentes da Santa Sé, pronunciamentos do Papa e a missão da Igreja no mundo (${dataExtenso}).
+Una cobertura factual a uma análise doutrinária e pastoral sobre o impacto para os fiéis.`;
+        break;
+
+      case 3: // 10:30 - Espiritualidade & Dores Contemporâneas 1
+        categoria = "Espiritualidade";
+        fallbackCategoryKey = "espiritualidade";
+        tipoArtigoDb = "artigo";
+        promptUsuario = `Escreva um ensaio de espiritualidade e vida interior abordando uma dor contemporânea real: ANSIEDADE, SOLIDÃO, CANSAÇO MENTAL ou SOBRECARGA DIGITAL (${dataExtenso}).
+Mostre como a oração contemplativa, a vida sacramental e a paz de Cristo trazem cura e serenidade à alma.`;
+        break;
+
+      case 4: // 13:30 - Juventude & Vocação
+        categoria = "Juventude";
+        fallbackCategoryKey = "juventude";
+        tipoArtigoDb = "artigo";
+        promptUsuario = `Escreva um artigo vibrante para jovens católicos sobre AFETIVIDADE, NAMORO SANTO, AMIZADES e PROPÓSITO VOCACIONAL (${dataExtenso}).
+Inspire-se no testemunho do Beato Carlo Acutis e de São João Paulo II, desafiando a juventude a ser luz no ambiente digital e acadêmico.`;
+        break;
+
+      case 5: // 16:30 - Notícia 2: Igreja no Brasil & Missão
+        categoria = "Igreja no Brasil";
+        fallbackCategoryKey = "noticia_brasil";
+        tipoArtigoDb = "noticia";
+        promptUsuario = `Escreva uma matéria jornalística sobre a ação missionária da Igreja Católica no Brasil (${dataExtenso}).
+Destaque iniciativas paroquiais de caridade, defesa da dignidade da pessoa humana, formação de lideranças e a alegria do Evangelho na cultura brasileira.`;
+        break;
+
+      case 6: // 19:30 - Espiritualidade & Dores Contemporâneas 2
+      default:
+        categoria = "Vida Interior";
+        fallbackCategoryKey = "espiritualidade";
+        tipoArtigoDb = "artigo";
+        promptUsuario = `Escreva um artigo reflexivo e confortador sobre O MISTÉRIO DO SOFRIMENTO, A GRAÇA DO PERDÃO e A ESPERANÇA NA PROVAÇÃO (${dataExtenso}).
+Aborde como vencer o ressentimento e encontrar consolo na Cruz redentora e nos sacramentos da Reconciliação e da Eucaristia.`;
+        break;
     }
 
-    // ========================================================================
-    // SLOT 1 (06:00 BRT): FORMAÇÃO ESPIRITUAL & ORAÇÃO MATINAL (50% Formação)
-    // ========================================================================
-    if (slotEscolhido === 1) {
-      promptUsuario = `
-        LINHA EDITORIAL: FORMAÇÃO ESPIRITUAL & VIDA DE ORAÇÃO MATINAL (${dataFormatadaPtBr})
-        Escreva um artigo inspirador e profundo sobre o cultivo da vida interior, o silêncio da oração, a Santa Missa diária, a centralidade da Eucaristia e a devoção mariana.
-        ${regrasSeo}
-        Retorne APENAS um JSON válido com categoria "Espiritualidade" e tempoLeitura "5 min de leitura".
-      `;
-    }
-    // ========================================================================
-    // SLOT 2 (10:30 BRT): TEOLOGIA CATÓLICA, DOUTRINA & CATECISMO (50% Formação)
-    // ========================================================================
-    else if (slotEscolhido === 2) {
-      promptUsuario = `
-        LINHA EDITORIAL: TEOLOGIA CATÓLICA, DOUTRINA & MAGISTÉRIO (${dataFormatadaPtBr})
-        Escreva um artigo teológico denso, claro e acessível sobre a Eucaristia como coração da Igreja, a graça dos Sacramentos, o Catecismo da Igreja Católica e a sabedoria dos Santos Padres e Doutores (Santo Tomás de Aquino, Santo Agostinho, Santa Teresa d'Ávila).
-        ${regrasSeo}
-        Retorne APENAS um JSON válido com categoria "Teologia" e tempoLeitura "6 min de leitura".
-      `;
-    }
-    // ========================================================================
-    // SLOT 3 (15:00 BRT): NOTÍCIA ATUAL 1 - SANTA SÉ & VATICANO (50% Notícias)
-    // ========================================================================
-    else if (slotEscolhido === 3) {
-      isTrending = true;
-      // Filtra notícias relacionadas ao Vaticano / Santa Sé / Papa
-      const noticiaVaticano = noticiasRecentes.find(n => 
-        n.fonte.includes("Vatican") || n.titulo.toLowerCase().includes("papa") || n.titulo.toLowerCase().includes("vatican") || n.titulo.toLowerCase().includes("santa sé")
-      ) || noticiasRecentes[0];
+    const promptFinal = `${promptUsuario}
 
-      if (noticiaVaticano) {
-        imagemNoticiaEncontrada = noticiaVaticano.imagemUrl;
-        promptUsuario = `
-          LINHA EDITORIAL: NOTÍCIA EM ALTA NO MUNDO CATÓLICO / SANTA SÉ (${dataFormatadaPtBr})
-          Baseie o artigo no seguinte acontecimento real recente noticiado pelas agências católicas:
-          Título da Notícia: "${noticiaVaticano.titulo}"
-          Fonte Oficial: ${noticiaVaticano.fonte} (${noticiaVaticano.link})
-          Resumo do Fato: "${noticiaVaticano.resumo}"
+ESQUEMA OBRIGATÓRIO DA RESPOSTA EM JSON PURO:
+{
+  "titulo": "Título H1 claro, atrativo e sem sensacionalismo (42 a 65 caracteres)",
+  "slug": "slug-limpo-sem-acentos-baseado-no-titulo",
+  "resumo": "Meta description instigante com exatamente 135 a 160 caracteres contendo a palavra-chave",
+  "conteudo": "Texto completo em Markdown com seções H2 e H3, oração final e sem negrito abusivo...",
+  "visual_prompt": "Prompt em inglês para fotografia sacra realista e reverente, sem símbolos pagãos",
+  "keywords": ["Palavra1", "Palavra2", "Palavra3"]
+}`;
 
-          INSTRUÇÕES:
-          1. Escreva uma matéria jornalística aprofundada, unindo cobertura factual à análise teológica e pastoral do que isso significa para a vida dos fiéis no mundo de hoje.
-          2. Conecte o evento com o Magistério da Igreja e as palavras do Santo Padre.
-          ${regrasSeo}
-          Retorne APENAS um JSON válido com categoria "Vaticano", tempoLeitura "5 min de leitura".
-        `;
-      } else {
-        promptUsuario = `
-          LINHA EDITORIAL: NOTÍCIAS DA SANTA SÉ & ATUALIDADES DA IGREJA (${dataFormatadaPtBr})
-          Escreva uma reportagem jornalística e teológica sobre os recentes pronunciamentos do Papa e a missão diplomática e evangelizadora da Santa Sé pela paz e dignidade humana.
-          ${regrasSeo}
-          Retorne APENAS um JSON válido com categoria "Vaticano", tempoLeitura "5 min de leitura".
-        `;
-      }
-    }
-    // ========================================================================
-    // SLOT 4 (19:30 BRT): NOTÍCIA ATUAL 2 - IGREJA NO BRASIL & JUVENTUDE (50% Notícias)
-    // ========================================================================
-    else {
-      isTrending = true;
-      // Filtra notícia nacional ou missionária (CNBB, Canção Nova, ACI Digital)
-      const noticiaBrasil = noticiasRecentes.find(n => 
-        n.fonte.includes("CNBB") || n.fonte.includes("Canção Nova") || n.fonte.includes("ACI")
-      ) || noticiasRecentes[1] || noticiasRecentes[0];
-
-      if (noticiaBrasil) {
-        imagemNoticiaEncontrada = noticiaBrasil.imagemUrl;
-        promptUsuario = `
-          LINHA EDITORIAL: NOTÍCIA EM ALTA - IGREJA NO BRASIL, MISSÃO & JUVENTUDE (${dataFormatadaPtBr})
-          Baseie o artigo no seguinte acontecimento real recente noticiado pelas fontes católicas:
-          Título da Notícia: "${noticiaBrasil.titulo}"
-          Fonte Oficial: ${noticiaBrasil.fonte} (${noticiaBrasil.link})
-          Resumo do Fato: "${noticiaBrasil.resumo}"
-
-          INSTRUÇÕES:
-          1. Escreva uma matéria vibrante focada na ação missionária, na defesa da fé e no testemunho da Igreja no Brasil e no mundo.
-          2. Destaque como os jovens católicos podem se engajar ativamente e viver sua vocação.
-          ${regrasSeo}
-          Retorne APENAS um JSON válido com categoria "Juventude & Fé", tempoLeitura "5 min de leitura".
-        `;
-      } else {
-        promptUsuario = `
-          LINHA EDITORIAL: JUVENTUDE, MISSÃO E ACONTECIMENTOS DA IGREJA (${dataFormatadaPtBr})
-          Escreva um artigo jornalístico contemporâneo sobre o testemunho dos jovens católicos na cultura atual, a herança do Beato Carlo Acutis e o renascimento missionário da fé.
-          ${regrasSeo}
-          Retorne APENAS um JSON válido com categoria "Juventude & Fé", tempoLeitura "5 min de leitura".
-        `;
-      }
+    // 2. Chamada à IA
+    const jsonResposta = await chamarIA(diretrizesPromptSistema, promptFinal);
+    let dadosArtigo: any = {};
+    try {
+      dadosArtigo = JSON.parse(jsonResposta);
+    } catch {
+      throw new Error("A IA gerou uma resposta que não pôde ser decodificada em JSON.");
     }
 
-    // Geração de Texto com IA
-    const jsonTexto = await chamarTextoIA(promptSistema, promptUsuario);
-    const artigo = parseJsonSeguro(jsonTexto);
+    const tituloFinal = dadosArtigo.titulo || `Reflexão Eclesia: ${dataExtenso}`;
+    const slugFinal = (dadosArtigo.slug || tituloFinal)
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9\s-]/g, "")
+      .trim()
+      .replace(/\s+/g, "-")
+      .slice(0, 80);
 
-    // Seleção Curada de Imagens Sacras (100% Autênticas Católicas)
-    const parSacro = selecionarImagensArtigo(
-      artigo.categoria,
-      artigo.titulo,
-      artigo.conteudo,
-      payload.imagemReferencia || imagemNoticiaEncontrada
+    const conteudoTratado = sanitizarMarkdownEFormatacao(dadosArtigo.conteudo);
+
+    // 3. Pipeline de Imagem Garantida com Upload no Supabase Storage (post-images)
+    const seed = Math.floor(Math.random() * 999999);
+    const promptVisual = encodeURIComponent(
+      `${dadosArtigo.visual_prompt || "catholic sacred art church altar candlelight"}, high resolution, photorealistic, cinematic light, 8k, no mosques, no non-catholic elements`
     );
+    const imagemCandidataUrl = `https://image.pollinations.ai/prompt/${promptVisual}?seed=${seed}&width=1200&height=675&nologo=true`;
 
-    // =========================================================================
-    // GARANTIA DE UNICIDADE DA IMAGEM DE CAPA
-    // Verifica se a URL já foi usada no banco. Se sim, gera imagem nova via
-    // Pollinations.ai com seed aleatório para 100% de exclusividade.
-    // =========================================================================
-    let urlCapaFinal = parSacro.capa.url;
-    const jaUsada = await imagemJaUsadaNoBanco(urlCapaFinal);
-    if (jaUsada) {
-      console.log(`[Unicidade] Imagem de capa já usada no banco: ${urlCapaFinal}. Gerando nova via Pollinations.ai...`);
-      urlCapaFinal = gerarImagemPollinationsIA(artigo.titulo);
-    }
-    const urlInternaFinal = parSacro.interna.url;
+    // Realiza o download do binário e faz upload no bucket "post-images"
+    let urlCapaFinal = await baixarEArmazenarImagemNoStorage(imagemCandidataUrl, slugFinal);
 
-    let conteudoTratado = formatarTextoMarkdown(artigo.conteudo);
-    if (!conteudoTratado || conteudoTratado.length < 250) {
-      conteudoTratado = `## ${artigo.titulo}\n\n${artigo.resumo}\n\nA Igreja Católica, fiel à sua missão evangelizadora, acompanha de perto os acontecimentos que moldam a nossa sociedade e a vida espiritual dos fiéis. Diante dos desafios da contemporaneidade, a voz do Magistério e os ensinamentos dos Santos Padres ressoam como um apelo contínuo à fidelidade a Cristo e ao Evangelho.\n\n> "Ide por todo o mundo e pregai o Evangelho a toda criatura." (São Marcos 16, 15)\n\nQue este acontecimento renove em nossos corações o fervor apostólico, o amor à Santa Igreja e o compromisso de testemunhar a verdade cristã em todos os ambientes.\n\n[ORACAO: Oração pela Igreja e pela Missão]\nSenhor Jesus Cristo, Redentor do gênero humano, guardai a Vossa Santa Igreja na unidade e na paz. Iluminai o Papa, os bispos e todos os fiéis para que sejamos no mundo verdadeiras testemunhas do Vosso Reino de amor e verdade.\nAmém.\n[/ORACAO]`;
+    // Se falhar ou imagem já tiver sido usada nos últimos 14 dias, aplica o fallback do acervo seguro
+    if (!urlCapaFinal || imagensUsadas.has(urlCapaFinal)) {
+      urlCapaFinal = FALLBACK_SACRO[fallbackCategoryKey] || FALLBACK_SACRO.espiritualidade;
     }
-    const statusFinal = payload.statusArtigo || "publicado";
-    const dataPublicacao = new Date().toISOString();
-    const slugFinal = artigo.slug.toLowerCase().replace(/[^a-z0-9-]/g, "");
+
+    // Calcula tempo de leitura real (média de 180 palavras por minuto)
+    const totalPalavras = conteudoTratado.split(/\s+/).length;
+    const minutosLeitura = Math.max(3, Math.ceil(totalPalavras / 180));
+    const tempoLeituraFinal = `${minutosLeitura} min de leitura`;
 
     const novoArtigoDb = {
-      title: artigo.titulo,
+      title: tituloFinal,
       slug: slugFinal,
-      excerpt: artigo.resumo,
+      excerpt: dadosArtigo.resumo || "Artigo de reflexão e fé no Portal Eclesia.",
       content: conteudoTratado,
       cover_image: urlCapaFinal,
-      category: artigo.categoria || "Teologia",
-      type: "artigo",
+      category: categoria,
+      type: tipoArtigoDb,
       author_name: "Redação Eclesia",
-      read_time: artigo.tempoLeitura || "5 min de leitura",
-      status: statusFinal,
+      read_time: tempoLeituraFinal,
+      status: payload.statusArtigo || "publicado",
       source: "ia_grok",
-      featured: false,
-      trending: isTrending,
-      meta_title: artigo.metaTitle || artigo.titulo,
-      meta_description: artigo.metaDescription || artigo.resumo,
-      keywords: artigo.keywords || ["Fé Católica", "Igreja Católica"],
-      published_at: dataPublicacao
+      featured: slot === 2 || slot === 3,
+      trending: tipoArtigoDb === "noticia",
+      meta_title: `${tituloFinal} | Eclesia`,
+      meta_description: (dadosArtigo.resumo || "").slice(0, 160),
+      keywords: dadosArtigo.keywords || ["Fé Católica", "Igreja Católica"],
+      published_at: new Date().toISOString()
     };
 
-    // =========================================================================
-    // TRAVA ANTI-DUPLICIDADE: verifica slug + data antes de inserir
-    // =========================================================================
-    const dataHojeStr = new Date().toISOString().split('T')[0];
-    const { data: artigoExistente } = await supabase
-      .from("articles")
-      .select("id")
-      .eq("slug", slugFinal)
-      .gte("published_at", `${dataHojeStr}T00:00:00`)
-      .lte("published_at", `${dataHojeStr}T23:59:59`)
-      .maybeSingle();
-
-    if (artigoExistente) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: `Artigo com slug "${slugFinal}" já publicado hoje (${dataHojeStr}). Duplicidade evitada.`
-        }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 409
-        }
-      );
-    }
-
-    // =========================================================================
-    // VALIDAÇÃO HTTP DA IMAGEM DE CAPA: aplica fallback se quebrada/vazia
-    // =========================================================================
-    urlCapaFinal = await obterImagemCapaSegura(urlCapaFinal, artigo.categoria.toLowerCase().includes("vaticano") ? "vaticano" : artigo.categoria.toLowerCase().includes("teologia") ? "teologia" : artigo.categoria.toLowerCase().includes("juventude") ? "juventude" : "espiritualidade");
-
-    const { data: insertedData, error: dbError } = await supabase
+    // 4. Inserção no PostgreSQL com trava anti-duplicação por slug
+    const { data: dbData, error: dbError } = await supabase
       .from("articles")
       .upsert(novoArtigoDb, { onConflict: "slug" })
       .select()
       .single();
 
-    if (dbError) {
-      console.error("[Database Error]:", dbError);
-      throw new Error(`Erro ao salvar no banco: ${dbError.message}`);
-    }
+    if (dbError) throw new Error(`Erro ao salvar artigo no Postgres: ${dbError.message}`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        slot: slotEscolhido,
-        editorial: slotEscolhido <= 2 ? "50% Formação Teológica/Espiritual" : "50% Notícias em Alta (RSS/Web)",
-        message: `Novo artigo gerado com sucesso! (Slot ${slotEscolhido}: ${artigo.categoria})`,
-        article: {
-          ...insertedData,
-          secondary_image: urlInternaFinal,
-          visual_prompt_fallback: gerarPromptVisualSagrado(artigo.titulo)
-        }
+        slot,
+        categoria,
+        article: dbData
       }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200
-      }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
 
   } catch (error: any) {
-    console.error("[Edge Function Error]:", error);
+    console.error("[Erro na Edge Function]:", error);
     return new Response(
-      JSON.stringify({
-        success: false,
-        error: error.message || "Erro desconhecido ao processar artigo com IA."
-      }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500
-      }
+      JSON.stringify({ success: false, error: error.message }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
     );
   }
 });

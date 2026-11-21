@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "prebuild": "node scripts/generate-sitemap.mjs",
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
     "deploy": "echo 'Deploy gerenciado automaticamente pelo Cloudflare Pages via Git'",

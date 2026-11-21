@@ -108,10 +108,11 @@ export const OraçõesView: React.FC<{ prayers?: PrayerItem[] }> = ({ prayers = 
 
   const filteredPrayers = prayers.filter((p) => {
     const pCategory = p.category || p.situation || '';
+    const norm = (str: string) => str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     const matchSituation =
       selectedSituation === 'all' ||
-      pCategory.toLowerCase() === selectedSituation.toLowerCase() ||
-      (selectedSituation === 'diarias' && (pCategory === 'Saúde' || pCategory === 'Trabalho' || pCategory === 'Família' || pCategory === 'Gratidão' || pCategory === 'Luto'));
+      norm(pCategory) === norm(selectedSituation) ||
+      (norm(selectedSituation) === 'diarias' && (norm(pCategory) === 'diarias' || norm(pCategory) === 'geral' || pCategory === 'Saúde' || pCategory === 'Trabalho' || pCategory === 'Família' || pCategory === 'Gratidão' || pCategory === 'Luto'));
 
     const pText = (p.text || p.content || '').toLowerCase();
     const pTitle = (p.title || '').toLowerCase();
@@ -120,7 +121,7 @@ export const OraçõesView: React.FC<{ prayers?: PrayerItem[] }> = ({ prayers = 
       !q ||
       pTitle.includes(q) ||
       pText.includes(q) ||
-      pCategory.toLowerCase().includes(q);
+      norm(pCategory).includes(norm(q));
 
     return matchSituation && matchSearch;
   });
@@ -171,7 +172,16 @@ export const OraçõesView: React.FC<{ prayers?: PrayerItem[] }> = ({ prayers = 
 
             {featuredPrayer.imageUrl && (
               <div className="w-full lg:w-48 h-32 rounded-2xl overflow-hidden border border-[#d3c4af]/60 shrink-0">
-                <img src={featuredPrayer.imageUrl} alt={featuredPrayer.title} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                <img
+                  src={featuredPrayer.imageUrl}
+                  alt={featuredPrayer.title}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&q=80&w=1200';
+                  }}
+                />
               </div>
             )}
           </div>
