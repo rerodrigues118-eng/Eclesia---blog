@@ -372,6 +372,205 @@ const GentleSunSVG: React.FC<{ className?: string }> = ({ className = '' }) => (
 );
 
 /* ============================================================================
+   ANJINHO SVG INLINE — 100% vetorial, zero fundo xadrez, flutua no céu
+   ============================================================================ */
+const AnjinhoSVG: React.FC<{ className?: string }> = ({ className = '' }) => (
+  <svg viewBox="0 0 200 240" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <defs>
+      <radialGradient id="skinGrad" cx="40%" cy="35%" r="65%">
+        <stop offset="0%" stopColor="#ffe8d6" />
+        <stop offset="60%" stopColor="#f5c6a0" />
+        <stop offset="100%" stopColor="#e8a87c" />
+      </radialGradient>
+      <radialGradient id="hairGrad" cx="40%" cy="30%" r="65%">
+        <stop offset="0%" stopColor="#ffe066" />
+        <stop offset="70%" stopColor="#f59e0b" />
+        <stop offset="100%" stopColor="#b45309" />
+      </radialGradient>
+      <radialGradient id="robeGrad" cx="40%" cy="30%" r="65%">
+        <stop offset="0%" stopColor="#f0f9ff" />
+        <stop offset="60%" stopColor="#bae6fd" />
+        <stop offset="100%" stopColor="#7dd3fc" />
+      </radialGradient>
+      <radialGradient id="wingGrad" cx="30%" cy="30%" r="70%">
+        <stop offset="0%" stopColor="#ffffff" stopOpacity="0.98"/>
+        <stop offset="50%" stopColor="#f0f9ff" stopOpacity="0.92"/>
+        <stop offset="100%" stopColor="#bae6fd" stopOpacity="0.80"/>
+      </radialGradient>
+      <radialGradient id="cloudGradAnj" cx="40%" cy="30%" r="60%">
+        <stop offset="0%" stopColor="#ffffff"/>
+        <stop offset="60%" stopColor="#f0f9ff"/>
+        <stop offset="100%" stopColor="#e0f2fe"/>
+      </radialGradient>
+      <filter id="anjShadow" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="4" stdDeviation="6" floodColor="#60a5fa" floodOpacity="0.25"/>
+      </filter>
+      <filter id="anjWingShadow" x="-10%" y="-10%" width="120%" height="120%">
+        <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#7dd3fc" floodOpacity="0.35"/>
+      </filter>
+    </defs>
+
+    {/* Asa esquerda */}
+    <ellipse cx="52" cy="130" rx="52" ry="30" fill="url(#wingGrad)" stroke="#bae6fd" strokeWidth="1" transform="rotate(-25 52 130)" filter="url(#anjWingShadow)" opacity="0.9"/>
+    <ellipse cx="48" cy="118" rx="38" ry="18" fill="#ffffff" opacity="0.6" transform="rotate(-20 48 118)"/>
+
+    {/* Asa direita */}
+    <ellipse cx="148" cy="130" rx="52" ry="30" fill="url(#wingGrad)" stroke="#bae6fd" strokeWidth="1" transform="rotate(25 148 130)" filter="url(#anjWingShadow)" opacity="0.9"/>
+    <ellipse cx="152" cy="118" rx="38" ry="18" fill="#ffffff" opacity="0.6" transform="rotate(20 152 118)"/>
+
+    {/* Nuvem base */}
+    <g filter="url(#anjShadow)">
+      <ellipse cx="100" cy="215" rx="68" ry="22" fill="url(#cloudGradAnj)"/>
+      <ellipse cx="68" cy="207" rx="36" ry="20" fill="url(#cloudGradAnj)"/>
+      <ellipse cx="132" cy="207" rx="36" ry="20" fill="url(#cloudGradAnj)"/>
+      <ellipse cx="100" cy="200" rx="48" ry="24" fill="#ffffff" opacity="0.7"/>
+    </g>
+
+    {/* Corpinho — roupa azul clara */}
+    <ellipse cx="100" cy="175" rx="38" ry="34" fill="url(#robeGrad)" stroke="#7dd3fc" strokeWidth="1.5"/>
+    {/* Detalhe do laço do pescoço */}
+    <path d="M 86,152 Q 100,158 114,152" stroke="#bae6fd" strokeWidth="2" strokeLinecap="round" fill="none"/>
+
+    {/* Bracinho esquerdo */}
+    <ellipse cx="65" cy="168" rx="13" ry="9" fill="url(#skinGrad)" transform="rotate(-30 65 168)"/>
+    {/* Mãozinha esquerda */}
+    <circle cx="58" cy="176" r="8" fill="url(#skinGrad)"/>
+    <circle cx="52" cy="174" r="5" fill="url(#skinGrad)"/>
+
+    {/* Bracinho direito */}
+    <ellipse cx="135" cy="168" rx="13" ry="9" fill="url(#skinGrad)" transform="rotate(30 135 168)"/>
+    {/* Mãozinha direita (segurando terço/coração) */}
+    <circle cx="142" cy="176" r="8" fill="url(#skinGrad)"/>
+    <circle cx="148" cy="174" r="5" fill="url(#skinGrad)"/>
+    {/* Coraçãozinho dourado na mão */}
+    <path d="M 148,170 C 145,165 140,168 140,172 C 140,176 148,181 148,181 C 148,181 156,176 156,172 C 156,168 151,165 148,170 Z" fill="#facc15" stroke="#b45309" strokeWidth="1"/>
+
+    {/* Cabecinha */}
+    <circle cx="100" cy="118" r="38" fill="url(#skinGrad)" stroke="#f5c6a0" strokeWidth="1.5"/>
+    {/* Bochechinhas */}
+    <circle cx="82" cy="124" r="8" fill="#f87171" opacity="0.35"/>
+    <circle cx="118" cy="124" r="8" fill="#f87171" opacity="0.35"/>
+    {/* Olhinhos */}
+    <ellipse cx="88" cy="115" rx="6" ry="7" fill="#3b1c08"/>
+    <ellipse cx="112" cy="115" rx="6" ry="7" fill="#3b1c08"/>
+    <circle cx="90" cy="113" r="2.5" fill="#ffffff"/>
+    <circle cx="114" cy="113" r="2.5" fill="#ffffff"/>
+    {/* Sorriso */}
+    <path d="M 90,129 Q 100,138 110,129" stroke="#b45309" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+    {/* Narizinho */}
+    <ellipse cx="100" cy="123" rx="4" ry="2.5" fill="#e8a87c" opacity="0.7"/>
+
+    {/* Cabelo dourado fofinho */}
+    <ellipse cx="100" cy="88" rx="38" ry="20" fill="url(#hairGrad)"/>
+    <ellipse cx="72" cy="98" rx="16" ry="20" fill="url(#hairGrad)"/>
+    <ellipse cx="128" cy="98" rx="16" ry="20" fill="url(#hairGrad)"/>
+    <ellipse cx="85" cy="84" rx="20" ry="14" fill="#ffe066" opacity="0.6"/>
+
+    {/* Auréola dourada */}
+    <circle cx="100" cy="82" r="34" fill="none" stroke="#facc15" strokeWidth="3" opacity="0.7"/>
+    <circle cx="100" cy="82" r="38" fill="none" stroke="#fef08a" strokeWidth="1" opacity="0.4"/>
+  </svg>
+);
+
+/* ============================================================================
+   MENINO JESUS SVG INLINE — 100% vetorial, zero fundo xadrez
+   ============================================================================ */
+const MeninoJesusSVG: React.FC<{ className?: string }> = ({ className = '' }) => (
+  <svg viewBox="0 0 200 250" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <defs>
+      <radialGradient id="jSkinGrad" cx="40%" cy="35%" r="65%">
+        <stop offset="0%" stopColor="#ffe8d6"/>
+        <stop offset="60%" stopColor="#f5c6a0"/>
+        <stop offset="100%" stopColor="#e8a87c"/>
+      </radialGradient>
+      <radialGradient id="jHairGrad" cx="40%" cy="30%" r="65%">
+        <stop offset="0%" stopColor="#8b4513"/>
+        <stop offset="60%" stopColor="#5c2d0a"/>
+        <stop offset="100%" stopColor="#3b1c08"/>
+      </radialGradient>
+      <radialGradient id="jRobeGrad" cx="40%" cy="30%" r="65%">
+        <stop offset="0%" stopColor="#fffbf0"/>
+        <stop offset="50%" stopColor="#fef9c3"/>
+        <stop offset="100%" stopColor="#fde047"/>
+      </radialGradient>
+      <radialGradient id="jMantleGrad" cx="40%" cy="30%" r="65%">
+        <stop offset="0%" stopColor="#bfdbfe"/>
+        <stop offset="60%" stopColor="#3b82f6"/>
+        <stop offset="100%" stopColor="#1e3a8a"/>
+      </radialGradient>
+      <radialGradient id="jCloudGrad" cx="40%" cy="30%" r="60%">
+        <stop offset="0%" stopColor="#ffffff"/>
+        <stop offset="60%" stopColor="#f0f9ff"/>
+        <stop offset="100%" stopColor="#e0f2fe"/>
+      </radialGradient>
+      <filter id="jesusShadow" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="4" stdDeviation="7" floodColor="#60a5fa" floodOpacity="0.3"/>
+      </filter>
+    </defs>
+
+    {/* Nuvem base */}
+    <g filter="url(#jesusShadow)">
+      <ellipse cx="100" cy="230" rx="70" ry="22" fill="url(#jCloudGrad)"/>
+      <ellipse cx="66" cy="220" rx="38" ry="22" fill="url(#jCloudGrad)"/>
+      <ellipse cx="134" cy="220" rx="38" ry="22" fill="url(#jCloudGrad)"/>
+      <ellipse cx="100" cy="212" rx="52" ry="26" fill="#ffffff" opacity="0.7"/>
+    </g>
+
+    {/* Manto azul real */}
+    <path d="M 55,175 Q 46,200 52,220 Q 100,228 148,220 Q 154,200 145,175 Q 128,165 100,163 Q 72,165 55,175 Z" fill="url(#jMantleGrad)" stroke="#1e40af" strokeWidth="1.5"/>
+
+    {/* Túnica branca/dourada */}
+    <ellipse cx="100" cy="178" rx="40" ry="36" fill="url(#jRobeGrad)" stroke="#fde047" strokeWidth="1.5"/>
+    {/* Detalhe da túnica */}
+    <path d="M 85,160 Q 100,166 115,160" stroke="#fde047" strokeWidth="2" strokeLinecap="round" fill="none"/>
+
+    {/* Bracinho esquerdo — mão com chaga */}
+    <ellipse cx="62" cy="172" rx="14" ry="9" fill="url(#jSkinGrad)" transform="rotate(-25 62 172)"/>
+    <circle cx="56" cy="180" r="9" fill="url(#jSkinGrad)"/>
+    {/* Chaga na mão */}
+    <circle cx="56" cy="180" r="3.5" fill="#dc2626" opacity="0.75"/>
+    <circle cx="56" cy="180" r="1.5" fill="#ffffff" opacity="0.6"/>
+
+    {/* Bracinho direito — mão abençoando */}
+    <ellipse cx="138" cy="172" rx="14" ry="9" fill="url(#jSkinGrad)" transform="rotate(25 138 172)"/>
+    <circle cx="144" cy="180" r="9" fill="url(#jSkinGrad)"/>
+    {/* Dedos abençoando */}
+    <ellipse cx="150" cy="174" rx="4" ry="6" fill="url(#jSkinGrad)"/>
+    <ellipse cx="155" cy="176" rx="3.5" ry="5" fill="url(#jSkinGrad)"/>
+    {/* Chaga na mão */}
+    <circle cx="144" cy="180" r="3.5" fill="#dc2626" opacity="0.75"/>
+    <circle cx="144" cy="180" r="1.5" fill="#ffffff" opacity="0.6"/>
+
+    {/* Cabecinha */}
+    <circle cx="100" cy="118" r="40" fill="url(#jSkinGrad)" stroke="#f5c6a0" strokeWidth="1.5"/>
+    {/* Bochechinhas */}
+    <circle cx="80" cy="126" r="9" fill="#f87171" opacity="0.3"/>
+    <circle cx="120" cy="126" r="9" fill="#f87171" opacity="0.3"/>
+    {/* Olhinhos */}
+    <ellipse cx="87" cy="114" rx="6.5" ry="7.5" fill="#3b1c08"/>
+    <ellipse cx="113" cy="114" rx="6.5" ry="7.5" fill="#3b1c08"/>
+    <circle cx="89" cy="112" r="2.5" fill="#ffffff"/>
+    <circle cx="115" cy="112" r="2.5" fill="#ffffff"/>
+    {/* Sorriso */}
+    <path d="M 88,130 Q 100,140 112,130" stroke="#b45309" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+    {/* Narizinho */}
+    <ellipse cx="100" cy="123" rx="4.5" ry="3" fill="#e8a87c" opacity="0.65"/>
+
+    {/* Cabelo castanho */}
+    <ellipse cx="100" cy="86" rx="40" ry="22" fill="url(#jHairGrad)"/>
+    <ellipse cx="70" cy="100" rx="17" ry="22" fill="url(#jHairGrad)"/>
+    <ellipse cx="130" cy="100" rx="17" ry="22" fill="url(#jHairGrad)"/>
+
+    {/* Auréola dourada */}
+    <circle cx="100" cy="80" r="38" fill="none" stroke="#facc15" strokeWidth="3.5" opacity="0.75"/>
+    <circle cx="100" cy="80" r="43" fill="none" stroke="#fef08a" strokeWidth="1.5" opacity="0.4"/>
+    {/* Cruz na auréola */}
+    <line x1="100" y1="43" x2="100" y2="52" stroke="#facc15" strokeWidth="2.5" opacity="0.8"/>
+    <line x1="93" y1="47" x2="107" y2="47" stroke="#facc15" strokeWidth="2.5" opacity="0.8"/>
+  </svg>
+);
+
+/* ============================================================================
    COMPONENTE PRINCIPAL
    ============================================================================ */
 export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onSwitchToAdult }) => {
@@ -522,29 +721,16 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
   return (
     <div className="relative w-full select-none">
 
-      {/* ═══ CENÁRIO CELESTIAL DE PERSONAGENS INFANTIS E NUVENS FLUTUANTES (Z-0 e Z-10) ═══ */}
-      {/* 1. Sol Dourado Radiante e Sorridente (100% visível, livre e sem obstrução) */}
-      <GentleSunSVG className="absolute -top-6 sm:-top-8 right-16 sm:right-28 md:right-40 w-22 sm:w-28 md:w-34 pointer-events-none select-none z-10 opacity-100 drop-shadow-md transition-transform duration-700 hover:scale-105" />
+      {/* ═══ CENÁRIO CELESTIAL DE PERSONAGENS INFANTIS E NUVENS FLUTUANTES ═══ */}
 
-      {/* 2. Anjinho Infantil sentado na Nuvem (Lateral esquerda, sem moldura, sem fundo xadrez, 100% livre) */}
-      <div className="absolute left-1 sm:left-4 md:left-8 top-[36%] sm:top-[38%] w-24 sm:w-32 md:w-40 pointer-events-none select-none z-10 drop-shadow-xl animate-pulse">
-        <img
-          src="/terco-kids/anjinho-clean.png"
-          alt="Anjinho na Nuvem"
-          className="w-full h-auto object-contain filter drop-shadow-md"
-          onError={e => { (e.currentTarget as HTMLImageElement).src = '/terco-kids/anjinho.png'; }}
-        />
-      </div>
+      {/* 1. Sol Dourado — reposicionado no canto superior direito, bem acima da linha de botões */}
+      <GentleSunSVG className="absolute top-0 right-4 sm:right-8 md:right-16 w-20 sm:w-24 md:w-28 pointer-events-none select-none z-[1] opacity-100 drop-shadow-md" />
 
-      {/* 3. Menino Jesus Infantil na Nuvem (Acima do card de oração na direita, 100% nítido, colorido e sem obstrução) */}
-      <div className="absolute right-2 sm:right-6 md:right-10 top-[15%] sm:top-[17%] md:top-[18%] w-26 sm:w-34 md:w-42 pointer-events-none select-none z-10 drop-shadow-2xl animate-pulse">
-        <img
-          src="/terco-kids/jesus-clean.png"
-          alt="Menino Jesus na Nuvem"
-          className="w-full h-auto object-contain filter drop-shadow-md"
-          onError={e => { (e.currentTarget as HTMLImageElement).src = '/terco-kids/jesus.png'; }}
-        />
-      </div>
+      {/* 2. Anjinho SVG inline — ZERO fundo xadrez, flutua livremente no céu azul pastel */}
+      <AnjinhoSVG className="absolute left-0 sm:left-2 md:left-6 top-[34%] sm:top-[36%] w-28 sm:w-36 md:w-44 pointer-events-none select-none z-[2] drop-shadow-lg" />
+
+      {/* 3. Menino Jesus SVG inline — ZERO fundo xadrez, visível no topo direito acima do card */}
+      <MeninoJesusSVG className="absolute right-0 sm:right-2 md:right-6 top-[12%] sm:top-[14%] md:top-[16%] w-28 sm:w-36 md:w-44 pointer-events-none select-none z-[2] drop-shadow-lg" />
 
       {/* 4. Camadas de Nuvens Macias pelo Topo e Laterais (Sem encostar nos botões) */}
       {/* Topo Esquerdo */}
