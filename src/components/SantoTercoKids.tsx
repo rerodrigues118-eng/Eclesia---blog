@@ -115,7 +115,7 @@ function playBell() {
 }
 
 /* ============================================================================
-   CONSTRUÇÃO DOS PASSOS (CRUCIFIXO -> HASTE -> MEDALHA -> 5 DEZENAS -> SALVE RAINHA)
+   CONSTRUÇÃO DOS PASSOS
    ============================================================================ */
 function buildSteps(group: MysteryGroupData): PrayerStep[] {
   const s: PrayerStep[] = [];
@@ -179,10 +179,10 @@ function buildSteps(group: MysteryGroupData): PrayerStep[] {
 }
 
 /* ============================================================================
-   GEOMETRIA DAS CONTAS — NOVO FORMATO LONGO E ORGÂNICO (BASEADO NA FOTO DE REFERÊNCIA)
-   ViewBox 0 0 900 1200
-   Colar alongado convergindo para a Medalha de Nossa Senhora Aparecida Infantil,
-   com ramo vertical inferior e Cruz Azul com Coração Dourado no Centro.
+   GEOMETRIA DAS CONTAS — NOVO FORMATO ESGUIO E VERTICAL (CAIMENTO REAL EM "U" / GOTA)
+   ViewBox 0 0 900 1280
+   Laço vertical alongado, proporção natural com caimento suave em direção à Medalha,
+   e haste inferior confortável com a Cruz Azul e Coração Dourado.
    ============================================================================ */
 export interface BeadDef {
   id: string;
@@ -197,33 +197,33 @@ function buildBeads(): { beads: BeadDef[]; loopPath: string; stemPath: string } 
   const loopPts: string[] = [];
 
   // 1. HASTE VERTICAL INFERIOR (da Cruz subindo até a Medalha)
-  // X = 450 fixo
-  beads.push({ id: 'bead-cross',    x: 450, y: 1105, r: 28, type: 'cross'  });
-  beads.push({ id: 'bead-gl-intro', x: 450, y: 995,  r: 10, type: 'gloria' });
-  beads.push({ id: 'bead-av0-3',    x: 450, y: 945,  r: 15, type: 'ave'    });
-  beads.push({ id: 'bead-av0-2',    x: 450, y: 900,  r: 15, type: 'ave'    });
-  beads.push({ id: 'bead-av0-1',    x: 450, y: 855,  r: 15, type: 'ave'    });
-  beads.push({ id: 'bead-pn-intro', x: 450, y: 795,  r: 22, type: 'pn'     });
-  beads.push({ id: 'bead-medal',    x: 450, y: 680,  r: 36, type: 'medal'  });
+  // X = 450 fixo, com amplo espaço para não espremer nada
+  beads.push({ id: 'bead-cross',    x: 450, y: 1175, r: 28, type: 'cross'  });
+  beads.push({ id: 'bead-gl-intro', x: 450, y: 1055, r: 10, type: 'gloria' });
+  beads.push({ id: 'bead-av0-3',    x: 450, y: 1005, r: 15, type: 'ave'    });
+  beads.push({ id: 'bead-av0-2',    x: 450, y: 960,  r: 15, type: 'ave'    });
+  beads.push({ id: 'bead-av0-1',    x: 450, y: 915,  r: 15, type: 'ave'    });
+  beads.push({ id: 'bead-pn-intro', x: 450, y: 855,  r: 22, type: 'pn'     });
+  beads.push({ id: 'bead-medal',    x: 450, y: 745,  r: 38, type: 'medal'  });
 
-  // 2. LAÇO DAS 5 DEZENAS (Curva paramétrica em forma de gota aberta/colar da foto)
+  // 2. LAÇO DAS 5 DEZENAS (Curva paramétrica esguia em gota vertical alongada)
   const N = 1000;
   const samples: { x: number; y: number }[] = [];
   for (let i = 0; i <= N; i++) {
     const t = i / N;
     const phi = t * 2 * Math.PI;
-    // Y: 640 nas pontas junto à medalha, 105 no topo do colar
-    const topFactor = Math.pow((1 - Math.cos(phi)) / 2, 0.88);
-    const y = 640 - 535 * topFactor;
+    // Y: 715 nas pontas conectando à medalha, 70 no topo (altura vertical de 645px!)
+    const topFactor = Math.pow((1 - Math.cos(phi)) / 2, 0.92);
+    const y = 715 - 645 * topFactor;
 
-    // X: simétrico com abaulamento lateral orgânico
-    const baseOffset = -34 * Math.cos(phi / 2);
-    const bulge = -320 * Math.sin(phi);
+    // X: largura lateral ajustada para 225px (muito mais esguio e elegante!)
+    const baseOffset = -26 * Math.cos(phi / 2);
+    const bulge = -225 * Math.sin(phi);
     const x = 450 + bulge + baseOffset;
     samples.push({ x, y });
   }
 
-  // Comprimento acumulado do arco para distribuição uniforme das 60 contas
+  // Comprimento acumulado do arco para distribuição milimétrica uniforme das 60 contas
   const dists = [0];
   let totalLen = 0;
   for (let i = 1; i <= N; i++) {
@@ -250,7 +250,7 @@ function buildBeads(): { beads: BeadDef[]; loopPath: string; stemPath: string } 
     };
   }
 
-  // 60 contas ao longo da curva (5 dezenas x 12 contas cada: 1 PN, 10 AV, 1 Glória)
+  // 60 contas ao longo do colar (5 dezenas x 12: 1 PN, 10 AV, 1 Glória)
   const marginStart = totalLen * 0.02;
   const marginEnd = totalLen * 0.98;
   const usableLen = marginEnd - marginStart;
@@ -279,8 +279,8 @@ function buildBeads(): { beads: BeadDef[]; loopPath: string; stemPath: string } 
     loopPts.push(`${glPt.x},${glPt.y}`);
   }
 
-  const stemPath = 'M 450,1075 L 450,715';
-  const loopPath = `M 416,645 L ${loopPts.join(' L ')} L 484,645`;
+  const stemPath = 'M 450,1140 L 450,780';
+  const loopPath = `M 424,715 L ${loopPts.join(' L ')} L 476,715`;
 
   return { beads, loopPath, stemPath };
 }
@@ -288,15 +288,19 @@ function buildBeads(): { beads: BeadDef[]; loopPath: string; stemPath: string } 
 const { beads: BEAD_DEFS, loopPath: LOOP_PATH, stemPath: STEM_PATH } = buildBeads();
 
 /* ============================================================================
-   ILUSTRAÇÕES VETORIAIS PURAS DE NUVENS E SOL (ZERO FUNDO XADREZ, BORDAS 100% SUAVES)
+   ILUSTRAÇÕES VETORIAIS DE NUVENS E SOL (ZERO FUNDO XADREZ, MACIAS E PURAS)
    ============================================================================ */
-const SoftCloudSVG: React.FC<{ className?: string; flipped?: boolean }> = ({ className = '', flipped = false }) => (
+const SoftCloudSVG: React.FC<{ className?: string; flipped?: boolean; opacity?: number }> = ({
+  className = '',
+  flipped = false,
+  opacity = 0.95
+}) => (
   <svg
     viewBox="0 0 360 200"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     className={className}
-    style={{ transform: flipped ? 'scaleX(-1)' : undefined }}
+    style={{ transform: flipped ? 'scaleX(-1)' : undefined, opacity }}
   >
     <defs>
       <linearGradient id={flipped ? "cloudGradR" : "cloudGradL"} x1="0%" y1="0%" x2="0%" y2="100%">
@@ -516,20 +520,44 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
   };
 
   return (
-    <div className="relative w-full rounded-3xl p-3 sm:p-6 md:p-8 select-none shadow-2xl border border-sky-200/90 dark:border-sky-800/40 bg-gradient-to-b from-[#cae9ff] via-[#e2f3fe] to-[#f4faff] dark:from-[#0b1c2e] dark:via-[#10273f] dark:to-[#071321]">
+    <div className="relative w-full select-none">
 
-      {/* ═══ CENÁRIO VETORIAL CELESTIAL DE NUVENS E SOL (ZERO FUNDO XADREZ, SEM CORTES RETOS) ═══ */}
-      {/* Sol Dourado Suave (posicionado no topo direito, brilhando com tranquilidade) */}
-      <GentleSunSVG className="absolute -top-3 sm:-top-5 right-12 sm:right-24 md:right-32 w-18 sm:w-22 md:w-26 pointer-events-none select-none z-0 opacity-90 transition-transform duration-700 hover:scale-105" />
+      {/* ═══ CENÁRIO CELESTIAL DE PERSONAGENS INFANTIS E NUVENS FLUTUANTES (Z-0) ═══ */}
+      {/* 1. Sol Dourado Suave (Canto superior direito) */}
+      <GentleSunSVG className="absolute -top-6 right-6 sm:right-16 md:right-24 w-20 sm:w-28 md:w-32 pointer-events-none select-none z-0 opacity-90 transition-transform duration-700 hover:scale-105" />
 
-      {/* Nuvem Esquerda Suave (vazando organicamente para a borda superior esquerda) */}
-      <SoftCloudSVG className="absolute -top-5 sm:-top-7 -left-5 sm:-left-7 md:-left-9 w-44 sm:w-60 md:w-76 pointer-events-none select-none z-0 opacity-95 transition-opacity" />
+      {/* 2. Anjinho Infantil sentado na Nuvem (Lateral esquerda, flutuando ao lado do terço) */}
+      <div className="absolute -left-2 sm:left-2 md:left-6 top-[28%] sm:top-[30%] w-24 sm:w-32 md:w-40 pointer-events-none select-none z-0 transition-transform duration-1000 animate-pulse">
+        <img
+          src="/terco-kids/anjinho-clean.png"
+          alt="Anjinho"
+          className="w-full h-auto object-contain drop-shadow-xl"
+          onError={e => { (e.currentTarget as HTMLImageElement).src = '/terco-kids/anjinho.png'; }}
+        />
+      </div>
 
-      {/* Nuvem Direita Suave (parcialmente sobreposta à base do sol, gerando profundidade) */}
-      <SoftCloudSVG flipped className="absolute -top-6 sm:-top-8 -right-5 sm:-right-7 md:-right-9 w-48 sm:w-64 md:w-84 pointer-events-none select-none z-0 opacity-95 transition-opacity" />
+      {/* 3. Menino Jesus Infantil na Nuvem (Lateral direita, flutuando harmoniosamente) */}
+      <div className="absolute -right-2 sm:right-2 md:right-6 top-[30%] sm:top-[32%] w-24 sm:w-32 md:w-40 pointer-events-none select-none z-0 transition-transform duration-1000 animate-pulse">
+        <img
+          src="/terco-kids/jesus-clean.png"
+          alt="Menino Jesus"
+          className="w-full h-auto object-contain drop-shadow-xl"
+          onError={e => { (e.currentTarget as HTMLImageElement).src = '/terco-kids/jesus.png'; }}
+        />
+      </div>
 
-      {/* ── CONTEÚDO EM CAMADA SUPERIOR (z-10) LIVRE DE QUALQUER BLOQUEIO DE CLIQUES ── */}
-      <div className="relative z-10 pt-3 sm:pt-5 space-y-4">
+      {/* 4. Camadas de Nuvens Macias pelo Topo e Laterais */}
+      {/* Topo Esquerdo */}
+      <SoftCloudSVG className="absolute -top-8 -left-6 sm:-left-10 w-48 sm:w-64 md:w-80 pointer-events-none select-none z-0 opacity-90" />
+      {/* Topo Direito (atrás do sol) */}
+      <SoftCloudSVG flipped className="absolute -top-10 -right-6 sm:-right-10 w-56 sm:w-72 md:w-96 pointer-events-none select-none z-0 opacity-90" />
+      {/* Meio Esquerdo (abaixo do anjinho) */}
+      <SoftCloudSVG className="absolute top-[48%] -left-8 sm:-left-12 w-36 sm:w-52 pointer-events-none select-none z-0 opacity-60" />
+      {/* Meio Direito */}
+      <SoftCloudSVG flipped className="absolute top-[52%] -right-8 sm:-right-12 w-40 sm:w-56 pointer-events-none select-none z-0 opacity-60" />
+
+      {/* ── CONTEÚDO EM CAMADA SUPERIOR (Z-10) 100% LIVRE DE QUALQUER BLOQUEIO DE CLIQUES ── */}
+      <div className="relative z-10 pt-2 sm:pt-4 space-y-4">
 
         {/* ── SELETOR DE MISTÉRIOS LÚDICO ── */}
         <div className="flex flex-wrap justify-center gap-2">
@@ -568,14 +596,14 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
           )}
         </div>
 
-        {/* ── LAYOUT PRINCIPAL: TERÇO EM DESTAQUE (PROTAGONISTA) + CARD LATERAL ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-[64%_36%] gap-6 items-center pt-2">
+        {/* ── LAYOUT PRINCIPAL: TERÇO ESGUIO (62%) + CARD DE NOSSA SENHORA (38%) ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-[62%_38%] gap-6 items-center pt-2">
 
-          {/* ═══ ÁREA DO TERÇO INFANTIL (MAIOR, PROTAGONISTA E EM NOVO FORMATO) ═══ */}
+          {/* ═══ ÁREA DO TERÇO INFANTIL (CAIMENTO NATURAL EM "U" / GOTA ALONGADA) ═══ */}
           <div className="flex items-center justify-center w-full">
-            <div className="w-full max-w-[760px] sm:px-2">
+            <div className="w-full max-w-[700px] sm:px-2">
               <svg
-                viewBox="0 0 900 1200"
+                viewBox="0 0 900 1280"
                 className="w-full h-auto select-none drop-shadow-md"
                 style={{ overflow: 'visible' }}
               >
@@ -595,7 +623,7 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                   </filter>
 
                   {/* ── GRADIENTES DAS CONTAS ── */}
-                  {/* Ave-Maria: Azul Safira Pérola com reflexo esférico 3D (como na foto de referência) */}
+                  {/* Ave-Maria: Azul Safira Pérola com reflexo esférico 3D (foto de referência) */}
                   <radialGradient id="aveBeadNormal" cx="35%" cy="35%" r="65%">
                     <stop offset="0%" stopColor="#bfdbfe" />
                     <stop offset="25%" stopColor="#60a5fa" />
@@ -603,7 +631,7 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                     <stop offset="100%" stopColor="#172554" />
                   </radialGradient>
 
-                  {/* Ave-Maria Rezada: Azul Safira luminoso e sereno */}
+                  {/* Ave-Maria Rezada */}
                   <radialGradient id="aveBeadPrayed" cx="35%" cy="35%" r="65%">
                     <stop offset="0%" stopColor="#e0e7ff" />
                     <stop offset="35%" stopColor="#3b82f6" />
@@ -619,7 +647,7 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                     <stop offset="100%" stopColor="#0c4a6e" />
                   </radialGradient>
 
-                  {/* Pai Nosso: Esfera Dourada Metálica Brilhante (como na foto) */}
+                  {/* Pai Nosso: Esfera Dourada Metálica Brilhante */}
                   <radialGradient id="goldBeadNormal" cx="32%" cy="32%" r="68%">
                     <stop offset="0%" stopColor="#fef9c3" />
                     <stop offset="30%" stopColor="#facc15" />
@@ -650,9 +678,9 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                     <stop offset="100%" stopColor="#1e3a8a" />
                   </linearGradient>
 
-                  {/* Clip da Medalha de Nossa Senhora */}
-                  <clipPath id="medalClip">
-                    <circle cx="450" cy="680" r="34" />
+                  {/* Clip da Medalha de Nossa Senhora relativo ao grupo */}
+                  <clipPath id="innerMedalClip">
+                    <ellipse cx="0" cy="0" rx="33" ry="39" />
                   </clipPath>
                 </defs>
 
@@ -677,23 +705,23 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                 {/* ── MEDALHÃO CENTRAL DO ESPÍRITO SANTO E MISTÉRIO ATUAL ── */}
                 <g transform="translate(450, 360)" className="pointer-events-none">
                   <circle
-                    r="92"
+                    r="86"
                     fill="white"
-                    fillOpacity="0.9"
+                    fillOpacity="0.92"
                     stroke="#fbbf24"
                     strokeWidth="3"
                     className="dark:fill-slate-900/90 dark:stroke-amber-500/60"
                     filter="url(#beadShadow)"
                   />
                   <circle
-                    r="84"
+                    r="78"
                     fill="none"
                     stroke="#bfdbfe"
                     strokeWidth="1.5"
                     strokeDasharray="4 3"
                     opacity="0.7"
                   />
-                  <text y="-26" textAnchor="middle" fontSize="30">🕊️</text>
+                  <text y="-24" textAnchor="middle" fontSize="28">🕊️</text>
                   <text
                     y="4"
                     textAnchor="middle"
@@ -753,7 +781,7 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                         />
                       )}
 
-                      {/* ══ 1. CRUCIFIXO AZUL COM CORAÇÃO DOURADO NO CENTRO (IDÊNTICO À FOTO) ══ */}
+                      {/* ══ 1. CRUCIFIXO AZUL COM CORAÇÃO DOURADO NO CENTRO ══ */}
                       {bead.type === 'cross' && (
                         <g transform={`translate(${bead.x}, ${bead.y})`} filter="url(#beadShadow)">
                           {/* Argolinha dourada superior */}
@@ -774,7 +802,7 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                             strokeWidth="2"
                           />
 
-                          {/* Coração Dourado Central (como no terço da foto de referência) */}
+                          {/* Coração Dourado Central (como na foto de referência) */}
                           <path
                             d="M 0,-5 C -4,-13 -12,-9 -12,-2 C -12,5 -5,10 0,16 C 5,10 12,5 12,-2 C 12,-9 4,-13 0,-5 Z"
                             fill="url(#goldBeadNormal)"
@@ -784,7 +812,7 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                         </g>
                       )}
 
-                      {/* ══ 2. MEDALHA DE NOSSA SENHORA APARECIDA INFANTIL (ENTREMEIO DA FOTO) ══ */}
+                      {/* ══ 2. MEDALHA DE NOSSA SENHORA APARECIDA INFANTIL (CENTRALIZADA E ILUMINADA) ══ */}
                       {bead.type === 'medal' && (
                         <g transform={`translate(${bead.x}, ${bead.y})`}>
                           {/* Anéis de fixação dourados laterais e inferior */}
@@ -817,19 +845,19 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                             <circle cx="20"  cy="-13" r="2" fill="#ffffff" />
                           </g>
 
-                          {/* Imagem de Nossa Senhora Sorrindo/Falando */}
-                          <g clipPath="url(#medalClip)">
+                          {/* Imagem de Nossa Senhora Sorrindo/Falando (100% centralizada na medalha) */}
+                          <g clipPath="url(#innerMedalClip)">
                             <image
                               href={playing ? '/terco-kids/FALANDO.png' : '/terco-kids/SORINDO-NORMAL.png'}
-                              x="414"
-                              y="642"
-                              width="72"
-                              height="82"
+                              x="-34"
+                              y="-38"
+                              width="68"
+                              height="76"
                               preserveAspectRatio="xMidYMid slice"
                             />
                           </g>
 
-                          {/* Manto azul marinho e detalhes dourados */}
+                          {/* Aro interno dourado de contorno da medalha */}
                           <ellipse
                             cx="0"
                             cy="0"
@@ -855,7 +883,6 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                             stroke={active ? '#d97706' : '#78350f'}
                             strokeWidth="2.5"
                           />
-                          {/* Ponto de brilho de luz na esfera metálica */}
                           <circle
                             cx={bead.x - bead.r * 0.35}
                             cy={bead.y - bead.r * 0.35}
@@ -863,7 +890,6 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                             fill="#ffffff"
                             opacity={active ? 0.9 : 0.65}
                           />
-                          {/* Coroa dourada no centro do Pai Nosso */}
                           <text
                             x={bead.x}
                             y={bead.y + 6}
@@ -887,7 +913,6 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                             stroke={active ? '#38bdf8' : '#1e3a8a'}
                             strokeWidth="2"
                           />
-                          {/* Reflexo esférico perolado de luz clara (estilo pérola de vidro/resina) */}
                           <circle
                             cx={bead.x - bead.r * 0.32}
                             cy={bead.y - bead.r * 0.32}
@@ -895,7 +920,6 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
                             fill="#ffffff"
                             opacity={active ? 0.85 : 0.6}
                           />
-                          {/* Check branco na conta já rezada */}
                           {prayed && (
                             <text
                               x={bead.x}
