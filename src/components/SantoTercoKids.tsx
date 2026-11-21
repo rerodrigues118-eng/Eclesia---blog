@@ -288,6 +288,86 @@ function buildBeads(): { beads: BeadDef[]; loopPath: string; stemPath: string } 
 const { beads: BEAD_DEFS, loopPath: LOOP_PATH, stemPath: STEM_PATH } = buildBeads();
 
 /* ============================================================================
+   ILUSTRAÇÕES VETORIAIS PURAS DE NUVENS E SOL (ZERO FUNDO XADREZ, BORDAS 100% SUAVES)
+   ============================================================================ */
+const SoftCloudSVG: React.FC<{ className?: string; flipped?: boolean }> = ({ className = '', flipped = false }) => (
+  <svg
+    viewBox="0 0 360 200"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    style={{ transform: flipped ? 'scaleX(-1)' : undefined }}
+  >
+    <defs>
+      <linearGradient id={flipped ? "cloudGradR" : "cloudGradL"} x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#ffffff" stopOpacity="0.99" />
+        <stop offset="55%" stopColor="#f8fafc" stopOpacity="0.96" />
+        <stop offset="100%" stopColor="#e0f2fe" stopOpacity="0.90" />
+      </linearGradient>
+      <filter id={flipped ? "cloudShadowR" : "cloudShadowL"} x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="6" stdDeviation="8" floodColor="#7dd3fc" floodOpacity="0.35" />
+      </filter>
+    </defs>
+    <g filter={`url(#${flipped ? "cloudShadowR" : "cloudShadowL"})`}>
+      <path
+        d="M 60,150 L 300,150 A 35,35 0 0,0 330,105 A 42,42 0 0,0 270,55 A 58,58 0 0,0 155,42 A 48,48 0 0,0 65,80 A 35,35 0 0,0 60,150 Z"
+        fill={`url(#${flipped ? "cloudGradR" : "cloudGradL"})`}
+      />
+      <ellipse cx="180" cy="90" rx="60" ry="32" fill="#ffffff" opacity="0.65" />
+      <ellipse cx="120" cy="115" rx="45" ry="22" fill="#ffffff" opacity="0.5" />
+      <ellipse cx="240" cy="118" rx="48" ry="22" fill="#ffffff" opacity="0.5" />
+    </g>
+  </svg>
+);
+
+const GentleSunSVG: React.FC<{ className?: string }> = ({ className = '' }) => (
+  <svg
+    viewBox="0 0 160 160"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <defs>
+      <radialGradient id="gentleSunCore" cx="40%" cy="40%" r="60%">
+        <stop offset="0%" stopColor="#fef08a" />
+        <stop offset="40%" stopColor="#facc15" />
+        <stop offset="85%" stopColor="#f59e0b" />
+        <stop offset="100%" stopColor="#d97706" />
+      </radialGradient>
+      <filter id="sunGlow" x="-25%" y="-25%" width="150%" height="150%">
+        <feGaussianBlur stdDeviation="5" result="blur" />
+        <feMerge>
+          <feMergeNode in="blur" />
+          <feMergeNode in="SourceGraphic" />
+        </feMerge>
+      </filter>
+    </defs>
+    <g transform="translate(80, 80)" filter="url(#sunGlow)">
+      {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((deg, i) => (
+        <rect
+          key={i}
+          x="-4.5"
+          y="-66"
+          width="9"
+          height="18"
+          rx="4.5"
+          fill="#fbbf24"
+          opacity="0.85"
+          transform={`rotate(${deg})`}
+        />
+      ))}
+      <circle r="42" fill="url(#gentleSunCore)" stroke="#fef08a" strokeWidth="2.5" />
+      <circle cx="-12" cy="-12" r="12" fill="#ffffff" opacity="0.55" />
+      <circle cx="-15" cy="8" r="4.5" fill="#f87171" opacity="0.5" />
+      <circle cx="15" cy="8" r="4.5" fill="#f87171" opacity="0.5" />
+      <path d="M -8,5 Q 0,13 8,5" stroke="#78350f" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.75" />
+      <circle cx="-13" cy="-3" r="2.5" fill="#78350f" opacity="0.8" />
+      <circle cx="13" cy="-3" r="2.5" fill="#78350f" opacity="0.8" />
+    </g>
+  </svg>
+);
+
+/* ============================================================================
    COMPONENTE PRINCIPAL
    ============================================================================ */
 export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onSwitchToAdult }) => {
@@ -436,38 +516,20 @@ export const SantoTercoKids: React.FC<{ onSwitchToAdult?: () => void }> = ({ onS
   };
 
   return (
-    <div className="relative w-full rounded-3xl p-3 sm:p-6 md:p-8 select-none overflow-hidden shadow-2xl border border-sky-200/90 dark:border-sky-800/40 bg-gradient-to-b from-[#cae9ff] via-[#e2f3fe] to-[#f4faff] dark:from-[#0b1c2e] dark:via-[#10273f] dark:to-[#071321]">
+    <div className="relative w-full rounded-3xl p-3 sm:p-6 md:p-8 select-none shadow-2xl border border-sky-200/90 dark:border-sky-800/40 bg-gradient-to-b from-[#cae9ff] via-[#e2f3fe] to-[#f4faff] dark:from-[#0b1c2e] dark:via-[#10273f] dark:to-[#071321]">
 
-      {/* ═══ IMAGENS DE NUVENS E SOL NO TOPO DO CENÁRIO (CÉU AZUL PASTEL) ═══ */}
-      {/* Nuvem Esquerda Superior */}
-      <img
-        src="/terco-kids/nuvem-1-clean.png"
-        onError={e => { (e.currentTarget as HTMLImageElement).src = '/terco-kids/nuvem-1.png'; }}
-        alt=""
-        aria-hidden="true"
-        className="absolute -top-3 -left-6 sm:-top-5 sm:-left-3 w-40 sm:w-60 md:w-72 max-h-32 object-contain pointer-events-none select-none z-0 opacity-85 transition-opacity"
-      />
+      {/* ═══ CENÁRIO VETORIAL CELESTIAL DE NUVENS E SOL (ZERO FUNDO XADREZ, SEM CORTES RETOS) ═══ */}
+      {/* Sol Dourado Suave (posicionado no topo direito, brilhando com tranquilidade) */}
+      <GentleSunSVG className="absolute -top-3 sm:-top-5 right-12 sm:right-24 md:right-32 w-18 sm:w-22 md:w-26 pointer-events-none select-none z-0 opacity-90 transition-transform duration-700 hover:scale-105" />
 
-      {/* Nuvem Direita Superior */}
-      <img
-        src="/terco-kids/nuvem-2-clean.png"
-        onError={e => { (e.currentTarget as HTMLImageElement).src = '/terco-kids/nuvem-2.png'; }}
-        alt=""
-        aria-hidden="true"
-        className="absolute -top-4 -right-6 sm:-top-6 sm:-right-4 w-44 sm:w-64 md:w-80 max-h-36 object-contain pointer-events-none select-none z-0 opacity-85 transition-opacity"
-      />
+      {/* Nuvem Esquerda Suave (vazando organicamente para a borda superior esquerda) */}
+      <SoftCloudSVG className="absolute -top-5 sm:-top-7 -left-5 sm:-left-7 md:-left-9 w-44 sm:w-60 md:w-76 pointer-events-none select-none z-0 opacity-95 transition-opacity" />
 
-      {/* Solzinho carinhoso suave */}
-      <img
-        src="/terco-kids/sol-clean.png"
-        onError={e => { (e.currentTarget as HTMLImageElement).src = '/terco-kids/sol.png'; }}
-        alt=""
-        aria-hidden="true"
-        className="absolute top-2 right-1/4 sm:right-1/3 w-12 sm:w-16 md:w-20 object-contain pointer-events-none select-none z-0 opacity-80"
-      />
+      {/* Nuvem Direita Suave (parcialmente sobreposta à base do sol, gerando profundidade) */}
+      <SoftCloudSVG flipped className="absolute -top-6 sm:-top-8 -right-5 sm:-right-7 md:-right-9 w-48 sm:w-64 md:w-84 pointer-events-none select-none z-0 opacity-95 transition-opacity" />
 
       {/* ── CONTEÚDO EM CAMADA SUPERIOR (z-10) LIVRE DE QUALQUER BLOQUEIO DE CLIQUES ── */}
-      <div className="relative z-10 space-y-4">
+      <div className="relative z-10 pt-3 sm:pt-5 space-y-4">
 
         {/* ── SELETOR DE MISTÉRIOS LÚDICO ── */}
         <div className="flex flex-wrap justify-center gap-2">
